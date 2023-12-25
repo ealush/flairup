@@ -2,14 +2,14 @@ function createSheet(name: string) {
   const id = `css-local-${name}-${genUniqueHash()}`;
 
   const styleTag = createStyleTag(id);
+  let sheet = "";
 
   const storedStyles: StoredStyles = {};
-  const hashedStyles: HasedStyles = {};
 
   function create(styles: Styles) {
     const localStyles = iterateScopedStyles(styles, applyStyle);
 
-    return localStyles;
+    return sheet;
   }
 
   return {
@@ -23,10 +23,19 @@ function createSheet(name: string) {
       return key;
     }
 
-    const hash = genUniqueHash();
-    hashedStyles[hash] = key;
+    appendStyle(property, value);
     storedStyles[key] = [property, value];
     return key;
+  }
+
+  function appendStyle(property: string, value: string) {
+    const hash = genUniqueHash();
+    const propertyName = camelCaseToDash(property);
+
+    const selector = `.${hash}`;
+
+    const rule = `${selector} { ${propertyName}: ${value}; }`;
+    sheet += sheet ? `\n${rule}` : rule;
   }
 }
 
@@ -53,7 +62,6 @@ function iterateScopedStyles(
 type Style = Record<keyof CSSStyleDeclaration, string>;
 type Styles = Record<string, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
-type HasedStyles = Record<string, string>;
 type ScopedStyles = Record<string, Set<string>>;
 
 function createStyleTag(id: string) {
