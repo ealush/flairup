@@ -3,44 +3,47 @@ function createSheet(name: string) {
 
   const styleTag = createStyleTag(id);
 
-  const storedStyles = {};
-  const hashedStyles = {};
+  const storedStyles: StoredStyles = {};
+  const hashedStyles: HasedStyles = {};
 
   function create(styles: Styles) {
-    const localStyles = iterateScopedStyles(styles, storedStyles, hashedStyles);
+    const localStyles = iterateScopedStyles(styles, applyStyle);
 
-    return localStyles
+    return localStyles;
   }
 
   return {
     create,
   };
+
+  function applyStyle(property: string, value: string): string {
+    const key = `${property}:${value}`;
+
+    if (storedStyles[key]) {
+      return key;
+    }
+
+    const hash = genUniqueHash();
+    hashedStyles[hash] = key;
+    storedStyles[key] = [property, value];
+    return key;
+  }
 }
 
 function iterateScopedStyles(
   styles: Styles,
-  storedStyles: StoredStyles,
-  hasedStyles: hasedStyles
+  applyStyle: (property: string, value: string) => string
 ): ScopedStyles {
   const output: ScopedStyles = {};
 
   for (const scope in styles) {
-    output[scope] = [];
+    output[scope] = new Set<string>();
 
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       const value = scopedStyles[property];
 
-      const key = `${property}:${value}`;
-      output[scope].push(key);
-
-      if (storedStyles[key]) {
-        continue;
-      }
-      const hash = genUniqueHash();
-
-      hasedStyles[hash] = key;
-      storedStyles[key] = [property, value];
+      output[scope].add(applyStyle(property, value));
     }
   }
 
@@ -50,8 +53,8 @@ function iterateScopedStyles(
 type Style = Record<keyof CSSStyleDeclaration, string>;
 type Styles = Record<string, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
-type hasedStyles = Record<string, string>;
-type ScopedStyles = Record<string, string[]>;
+type HasedStyles = Record<string, string>;
+type ScopedStyles = Record<string, Set<string>>;
 
 function createStyleTag(id: string) {
   const styleTag = document.createElement("style");
