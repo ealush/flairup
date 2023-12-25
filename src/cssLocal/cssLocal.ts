@@ -1,13 +1,13 @@
 function createSheet(name: string) {
-  const stylesheet = {};
-  const id = `css-local-${name}-${count.next()}`;
+  const id = `css-local-${name}-${genUniqueHash()}`;
 
   const styleTag = createStyleTag(id);
 
-  function create(styles: Styles) {
-    Object.assign(stylesheet, styles);
+  const storedStyles = {};
+  const hashedStyles = {};
 
-    
+  function create(styles: Styles) {
+    iterateScopedStyles(styles, storedStyles, hashedStyles);
   }
 
   return {
@@ -15,8 +15,33 @@ function createSheet(name: string) {
   };
 }
 
+function iterateScopedStyles(
+  styles: Styles,
+  storedStyles: StoredStyles,
+  hasedStyles: hasedStyles
+) {
+  for (const scope in styles) {
+    const scopedStyles = styles[scope];
+    for (const property in scopedStyles) {
+      const value = scopedStyles[property];
+
+      const key = `${property}:${value}`;
+
+      if (storedStyles[key]) {
+        continue;
+      }
+      const hash = genUniqueHash();
+
+      hasedStyles[hash] = key;
+      storedStyles[key] = [property, value];
+    }
+  }
+}
+
 type Style = Record<keyof CSSStyleDeclaration, string>;
 type Styles = Record<string, Style>;
+type StoredStyles = Record<string, [property: string, value: string]>;
+type hasedStyles = Record<string, string>;
 
 function createStyleTag(id: string) {
   const styleTag = document.createElement("style");
@@ -25,20 +50,13 @@ function createStyleTag(id: string) {
   return styleTag;
 }
 
-const count = (function counter() {
-  let count = 0;
-  return {
-    next: () => count++,
-  };
-})();
-
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 const takenHashes = new Set<string>();
 
-function generateUniqueRandomClassName() {
+function genUniqueHash() {
   let hash;
 
   do {
