@@ -7,7 +7,9 @@ function createSheet(name: string) {
   const hashedStyles = {};
 
   function create(styles: Styles) {
-    iterateScopedStyles(styles, storedStyles, hashedStyles);
+    const localStyles = iterateScopedStyles(styles, storedStyles, hashedStyles);
+
+    return localStyles
   }
 
   return {
@@ -19,13 +21,18 @@ function iterateScopedStyles(
   styles: Styles,
   storedStyles: StoredStyles,
   hasedStyles: hasedStyles
-) {
+): ScopedStyles {
+  const output: ScopedStyles = {};
+
   for (const scope in styles) {
+    output[scope] = [];
+
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       const value = scopedStyles[property];
 
       const key = `${property}:${value}`;
+      output[scope].push(key);
 
       if (storedStyles[key]) {
         continue;
@@ -36,12 +43,15 @@ function iterateScopedStyles(
       storedStyles[key] = [property, value];
     }
   }
+
+  return output;
 }
 
 type Style = Record<keyof CSSStyleDeclaration, string>;
 type Styles = Record<string, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type hasedStyles = Record<string, string>;
+type ScopedStyles = Record<string, string[]>;
 
 function createStyleTag(id: string) {
   const styleTag = document.createElement("style");
