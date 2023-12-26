@@ -4,15 +4,19 @@ function createSheet(name: string) {
   const storedStyles: StoredStyles = {};
   const storedClasses: Record<string, string> = {};
 
-  function create(styles: Styles) {
-    const localStyles = iterateScopedStyles(styles, applyRule, applyChunk);
-
-    return localStyles;
-  }
-
   return {
     create,
   };
+
+  function create<K extends string>(styles: Styles<K>) {
+    const localStyles = iterateScopedStyles<K>(
+      styles,
+      applyRule,
+      applyChunk
+    );
+
+    return localStyles;
+  }
 
   function applyRule(property: string, value: string): string {
     const key = `${property}:${value}`;
@@ -47,16 +51,16 @@ function createSheet(name: string) {
   }
 }
 
-function iterateScopedStyles(
-  styles: Styles,
+function iterateScopedStyles<K extends string>(
+  styles: Styles<K>,
   applyRule: (property: string, value: string) => string,
   applyChunk: (
     className: string,
     property: string,
     styleObject: StyleObject
   ) => void
-): ScopedStyles {
-  const output: ScopedStyles = {};
+): ScopedStyles<K> {
+  const output: ScopedStyles<K> = {} as ScopedStyles<K>;
 
   for (const scope in styles) {
     let scopeClassName = genUniqueHash();
@@ -125,9 +129,9 @@ type AllowedStyleProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
 type Pseudo = `:${string}`;
 type Style = StyleObject & Record<Pseudo, StyleObject>;
-type Styles = Record<string, Style>;
+type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
-type ScopedStyles = Record<string, Set<string>>;
+type ScopedStyles<K extends string> = Record<K, Set<string>>;
 
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
