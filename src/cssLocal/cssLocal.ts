@@ -9,11 +9,7 @@ function createSheet(name: string) {
   };
 
   function create<K extends string>(styles: Styles<K>) {
-    const localStyles = iterateScopedStyles<K>(
-      styles,
-      applyRule,
-      applyChunk
-    );
+    const localStyles = iterateScopedStyles<K>(styles, applyRule, applyChunk);
 
     return localStyles;
   }
@@ -131,7 +127,8 @@ type Pseudo = `:${string}`;
 type Style = StyleObject & Record<Pseudo, StyleObject>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
-type ScopedStyles<K extends string> = Record<K, Set<string>>;
+type ScopedStyles<K extends string> = Record<K, ClassSet>;
+type ClassSet = Set<string>;
 
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
@@ -147,4 +144,14 @@ function genUniqueHash() {
   } while (takenHashes.has(hash));
 
   return `css-local-${hash}`;
+}
+
+function join(style: ClassSet): string {
+  let output = "";
+
+  for (const className of style) {
+    output += output ? ` ${className}` : className;
+  }
+
+  return output;
 }
