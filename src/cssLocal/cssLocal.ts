@@ -7,7 +7,7 @@ function createSheet(name: string) {
   function create(styles: Styles) {
     const localStyles = iterateScopedStyles(styles, applyRule, applyChunk);
 
-    return sheet;
+    return localStyles;
   }
 
   return {
