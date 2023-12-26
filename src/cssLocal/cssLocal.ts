@@ -5,6 +5,7 @@ function createSheet(name: string) {
   let sheet = "";
 
   const storedStyles: StoredStyles = {};
+  const storedClasses: Record<string, string> = {};
 
   function create(styles: Styles) {
     const localStyles = iterateScopedStyles(styles, applyStyle);
@@ -19,23 +20,19 @@ function createSheet(name: string) {
   function applyStyle(property: string, value: string): string {
     const key = `${property}:${value}`;
 
-    if (storedStyles[key]) {
+    if (storedClasses[key]) {
       return key;
     }
 
-    appendStyle(property, value);
-    storedStyles[key] = [property, value];
-    return key;
-  }
-
-  function appendStyle(property: string, value: string) {
     const hash = genUniqueHash();
-    const propertyName = camelCaseToDash(property);
+    storedClasses[key] = hash;
+    storedStyles[hash] = [property, value];
 
-    const selector = `.${hash}`;
+    const className = `.${hash}`;
+    const line = `${className} { ${property}: ${value}; }`;
+    sheet += sheet ? `\n${line}` : line;
 
-    const rule = `${selector} { ${propertyName}: ${value}; }`;
-    sheet += sheet ? `\n${rule}` : rule;
+    return key;
   }
 }
 
@@ -46,11 +43,21 @@ function iterateScopedStyles(
   const output: ScopedStyles = {};
 
   for (const scope in styles) {
+    let scopeClassName = genUniqueHash();
+
     output[scope] = new Set<string>();
 
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       if (isPseudoSelector(property)) {
+        const chunk = createChunk(
+          scopeClassName,
+          property,
+          scopedStyles[property as keyof typeof scopedStyles] as StyleObject
+        );
+
+        output[scope].add(chunk);
+
         continue;
       }
 
@@ -61,6 +68,23 @@ function iterateScopedStyles(
   }
 
   return output;
+}
+
+function createChunk(
+  className: string,
+  property: string,
+  styleObject: StyleObject
+) {
+  let output = "";
+  const selector = `.${className}${property}`;
+
+  for (const property in styleObject) {
+    const value = styleObject[property as keyof typeof styleObject];
+    const line = `${property}: ${value};`;
+    output += output ? `\n${line}` : line;
+  }
+
+  return `${selector} { ${output} }`;
 }
 
 function isPseudoSelector(selector: string) {
