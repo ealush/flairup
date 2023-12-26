@@ -8,7 +8,7 @@ function createSheet(name: string) {
   const storedClasses: Record<string, string> = {};
 
   function create(styles: Styles) {
-    const localStyles = iterateScopedStyles(styles, applyStyle);
+    const localStyles = iterateScopedStyles(styles, applyRule, applyChunk);
 
     return sheet;
   }
@@ -17,7 +17,7 @@ function createSheet(name: string) {
     create,
   };
 
-  function applyStyle(property: string, value: string): string {
+  function applyRule(property: string, value: string): string {
     const key = `${property}:${value}`;
 
     if (storedClasses[key]) {
@@ -32,13 +32,37 @@ function createSheet(name: string) {
     const line = `${className} { ${property}: ${value}; }`;
     sheet += sheet ? `\n${line}` : line;
 
-    return key;
+    return hash;
+  }
+
+  function applyChunk(
+    className: string,
+    property: string,
+    styleObject: StyleObject
+  ) {
+    let output = "";
+    const selector = `.${className}${property}`;
+
+    for (const property in styleObject) {
+      const value = styleObject[property as keyof typeof styleObject];
+      const line = `${property}: ${value};`;
+      output += output ? `\n${line}` : line;
+    }
+
+    sheet += sheet
+      ? `\n${selector} { ${output} }`
+      : `${selector} { ${output} }`;
   }
 }
 
 function iterateScopedStyles(
   styles: Styles,
-  applyStyle: (property: string, value: string) => string
+  applyRule: (property: string, value: string) => string,
+  applyChunk: (
+    className: string,
+    property: string,
+    styleObject: StyleObject
+  ) => void
 ): ScopedStyles {
   const output: ScopedStyles = {};
 
@@ -50,41 +74,24 @@ function iterateScopedStyles(
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       if (isPseudoSelector(property)) {
-        const chunk = createChunk(
+        applyChunk(
           scopeClassName,
           property,
           scopedStyles[property as keyof typeof scopedStyles] as StyleObject
         );
 
-        output[scope].add(chunk);
+        output[scope].add(scopeClassName);
 
         continue;
       }
 
       const value = scopedStyles[property as keyof typeof scopedStyles];
 
-      output[scope].add(applyStyle(property, value as string));
+      output[scope].add(applyRule(property, value as string));
     }
   }
 
   return output;
-}
-
-function createChunk(
-  className: string,
-  property: string,
-  styleObject: StyleObject
-) {
-  let output = "";
-  const selector = `.${className}${property}`;
-
-  for (const property in styleObject) {
-    const value = styleObject[property as keyof typeof styleObject];
-    const line = `${property}: ${value};`;
-    output += output ? `\n${line}` : line;
-  }
-
-  return `${selector} { ${output} }`;
 }
 
 function isPseudoSelector(selector: string) {
