@@ -50,16 +50,28 @@ function iterateScopedStyles(
 
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
-      const value = scopedStyles[property];
+      if (isPseudoSelector(property)) {
+        continue;
+      }
 
-      output[scope].add(applyStyle(property, value));
+      const value = scopedStyles[property as keyof typeof scopedStyles];
+
+      output[scope].add(applyStyle(property, value as string));
     }
   }
 
   return output;
 }
 
-type Style = Record<keyof CSSStyleDeclaration, string>;
+function isPseudoSelector(selector: string) {
+  return selector.startsWith(":");
+}
+
+type PropertyValue = string | number;
+type AllowedStyleProperties = keyof CSSStyleDeclaration;
+type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
+type Pseudo = `:${string}`;
+type Style = StyleObject & Record<Pseudo, StyleObject>;
 type Styles = Record<string, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles = Record<string, Set<string>>;
