@@ -1,8 +1,5 @@
 function createSheet(name: string) {
-  const id = `css-local-${name}-${genUniqueHash()}`;
-
-  const styleTag = createStyleTag(id);
-  let sheet = "";
+  const sheet = new Sheet(name);
 
   const storedStyles: StoredStyles = {};
   const storedClasses: Record<string, string> = {};
@@ -28,10 +25,7 @@ function createSheet(name: string) {
     storedClasses[key] = hash;
     storedStyles[hash] = [property, value];
 
-    const className = `.${hash}`;
-    const line = `${className} { ${property}: ${value}; }`;
-    sheet += sheet ? `\n${line}` : line;
-
+    sheet.append(`.${hash} { ${property}: ${value}; }`);
     return hash;
   }
 
@@ -49,9 +43,7 @@ function createSheet(name: string) {
       output += output ? `\n${line}` : line;
     }
 
-    sheet += sheet
-      ? `\n${selector} { ${output} }`
-      : `${selector} { ${output} }`;
+    sheet.append(`${selector} { ${output} }`);
   }
 }
 
@@ -98,6 +90,36 @@ function isPseudoSelector(selector: string) {
   return selector.startsWith(":");
 }
 
+class Sheet {
+  private styleTag: HTMLStyleElement | undefined;
+
+  constructor(private name: string) {
+    const id = `css-local-${name}-${genUniqueHash()}`;
+
+    this.styleTag = this.createStyleTag(id);
+  }
+
+  append(css: string) {
+    if (!this.styleTag) {
+      return;
+    }
+
+    this.styleTag.innerHTML += this.styleTag.innerHTML ? `\n${css}` : css;
+  }
+
+  createStyleTag(id: string) {
+    // check that we're in the browser and have access to the DOM
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const styleTag = document.createElement("style");
+    styleTag.type = "text/css";
+    document.head.appendChild(styleTag);
+    return styleTag;
+  }
+}
+
 type PropertyValue = string | number;
 type AllowedStyleProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
@@ -106,13 +128,6 @@ type Style = StyleObject & Record<Pseudo, StyleObject>;
 type Styles = Record<string, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles = Record<string, Set<string>>;
-
-function createStyleTag(id: string) {
-  const styleTag = document.createElement("style");
-  styleTag.type = "text/css";
-  document.head.appendChild(styleTag);
-  return styleTag;
-}
 
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
