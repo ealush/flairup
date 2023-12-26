@@ -100,11 +100,7 @@ class Sheet {
   }
 
   append(css: string) {
-    if (!this.styleTag) {
-      return;
-    }
-
-    this.styleTag.innerHTML += this.styleTag.innerHTML ? `\n${css}` : css;
+    this.styleTag?.sheet?.insertRule(css);
   }
 
   createStyleTag(id: string) {
