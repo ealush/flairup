@@ -1,56 +1,14 @@
 export function createSheet(name: string) {
   const sheet = new Sheet(name);
 
-  const storedStyles: StoredStyles = {};
-  const storedClasses: Record<string, string> = {};
-
   return {
     create,
   };
 
   function create<K extends string>(styles: Styles<K>) {
-    const localStyles = iterateScopedStyles<K>(
-      name,
-      styles,
-      applyRule,
-      applyChunk
-    );
+    const localStyles = iterateScopedStyles<K>(name, styles, sheet);
 
     return localStyles;
-  }
-
-  function applyRule(property: string, value: string): string {
-    const key = `${property}:${value}`;
-
-    if (storedClasses[key]) {
-      return key;
-    }
-
-    const hash = genUniqueHash(name);
-    storedClasses[key] = hash;
-    storedStyles[hash] = [property, value];
-
-    sheet.append(`.${hash} { ${genLine(property, value)}; }`);
-    return hash;
-  }
-
-  function applyChunk(
-    className: string,
-    property: string,
-    styleObject: StyleObject
-  ) {
-    let output = "";
-    const selector = `.${className}${property}`;
-
-    for (const property in styleObject) {
-      const value = styleObject[
-        property as keyof typeof styleObject
-      ] as PropertyValue;
-      const line = genLine(property, value);
-      output += output ? `\n${line}` : line;
-    }
-
-    sheet.append(`${selector} { ${output} }`);
   }
 }
 
@@ -64,12 +22,7 @@ function genLine(property: string, value: PropertyValue) {
 function iterateScopedStyles<K extends string>(
   name: string,
   styles: Styles<K>,
-  applyRule: (property: string, value: string) => string,
-  applyChunk: (
-    className: string,
-    property: string,
-    styleObject: StyleObject
-  ) => void
+  sheet: Sheet
 ): ScopedStyles<K> {
   const output: ScopedStyles<K> = {} as ScopedStyles<K>;
 
@@ -81,7 +34,7 @@ function iterateScopedStyles<K extends string>(
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       if (is.pseudoSelector(property)) {
-        applyChunk(
+        sheet.applyChunk(
           scopeClassName,
           property,
           scopedStyles[property as keyof typeof scopedStyles] as StyleObject
@@ -93,8 +46,9 @@ function iterateScopedStyles<K extends string>(
       }
 
       const value = scopedStyles[property as keyof typeof scopedStyles];
+      const ruleClassName = sheet.applyRule(property, value as string);
 
-      output[scope].add(applyRule(property, value as string));
+      output[scope].add(ruleClassName);
     }
   }
 
@@ -108,6 +62,8 @@ const is = {
 
 class Sheet {
   private styleTag: HTMLStyleElement | undefined;
+  private storedStyles: StoredStyles = {};
+  private storedClasses: Record<string, string> = {};
 
   constructor(private name: string) {
     const id = `cl-${name}-${genUniqueHash(name)}`;
@@ -115,7 +71,7 @@ class Sheet {
     this.styleTag = this.createStyleTag(id);
   }
 
-  append(css: string) {
+  private append(css: string) {
     this.styleTag?.sheet?.insertRule(css);
   }
 
@@ -129,6 +85,36 @@ class Sheet {
     styleTag.type = "text/css";
     document.head.appendChild(styleTag);
     return styleTag;
+  }
+
+  applyRule(property: string, value: string) {
+    const key = `${property}:${value}`;
+
+    if (this.storedClasses[key]) {
+      return key;
+    }
+
+    const hash = genUniqueHash(this.name);
+    this.storedClasses[key] = hash;
+    this.storedStyles[hash] = [property, value];
+
+    this.append(`.${hash} { ${genLine(property, value)}; }`);
+    return hash;
+  }
+
+  applyChunk(className: string, property: string, styleObject: StyleObject) {
+    let output = "";
+    const selector = `.${className}${property}`;
+
+    for (const property in styleObject) {
+      const value = styleObject[
+        property as keyof typeof styleObject
+      ] as PropertyValue;
+      const line = genLine(property, value);
+      output += output ? `\n${line}` : line;
+    }
+
+    this.append(`${selector} { ${output} }`);
   }
 }
 
