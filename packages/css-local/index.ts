@@ -8,6 +8,8 @@ export function createSheet(name: string) {
   function create<K extends string>(styles: Styles<K>) {
     const localStyles = iterateScopedStyles<K>(name, styles, sheet);
 
+    sheet.apply();
+
     return localStyles;
   }
 }
@@ -73,7 +75,15 @@ class Sheet {
   }
 
   private append(css: string) {
-    this.style = addLine(this.style, css);
+    this.style = appendString(this.style, css);
+  }
+
+  apply() {
+    if (!this.styleTag) {
+      return;
+    }
+
+    this.styleTag.innerHTML = this.style;
   }
 
   createStyleTag(id: string) {
@@ -112,7 +122,7 @@ class Sheet {
         property as keyof typeof styleObject
       ] as PropertyValue;
       const line = genLine(property, value);
-      output = addLine(output, line);
+      output = appendString(output, line);
     }
 
     this.append(`${selector} { ${output} }`);
@@ -163,6 +173,6 @@ type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
 type ClassSet = Set<string>;
 
-function addLine(base: string, line: string) {
+function appendString(base: string, line: string) {
   return base ? `${base}\n${line}` : line;
 }
