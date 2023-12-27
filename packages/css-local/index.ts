@@ -47,6 +47,25 @@ function iterateScopedStyles<K extends string>(
         continue;
       }
 
+      if (is.mediaQuery(property)) {
+        const mediaQuery = property;
+
+        sheet.append(`${mediaQuery} {`);
+
+        for (const property in scopedStyles[mediaQuery]) {
+          const value =
+            // @ts-ignore
+            scopedStyles[mediaQuery][property as keyof typeof scopedStyles];
+          const ruleClassName = sheet.addRule(property, value as string);
+
+          output[scope].add(ruleClassName);
+        }
+
+        sheet.append(`}`);
+
+        continue;
+      }
+
       const value = scopedStyles[property as keyof typeof scopedStyles];
       const ruleClassName = sheet.addRule(property, value as string);
 
@@ -74,7 +93,7 @@ class Sheet {
     this.styleTag = this.createStyleTag(id);
   }
 
-  private append(css: string) {
+  append(css: string) {
     this.style = appendString(this.style, css);
   }
 
@@ -107,9 +126,8 @@ class Sheet {
 
     const hash = genUniqueHash(this.name);
     this.storedClasses[key] = hash;
-    this.storedStyles[hash] = [property, value];
 
-    this.append(`.${hash} { ${genLine(property, value)}; }`);
+    this.append(this.genCssRule(hash, property, value));
     return hash;
   }
 
@@ -126,6 +144,12 @@ class Sheet {
     }
 
     this.append(`${selector} { ${output} }`);
+  }
+
+  genCssRule(hash: string, property: string, value: string) {
+    this.storedStyles[hash] = [property, value];
+
+    return `.${hash} { ${genLine(property, value)} }`;
   }
 }
 
@@ -167,7 +191,8 @@ type PropertyValue = string | number;
 type AllowedStyleProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
 type Pseudo = `:${string}`;
-type Style = StyleObject & Record<Pseudo, StyleObject>;
+type MediaQuery = `@media ${string}`;
+type Style = StyleObject & Record<Pseudo | MediaQuery, StyleObject>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
