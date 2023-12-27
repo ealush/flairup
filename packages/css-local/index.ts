@@ -29,7 +29,7 @@ function iterateScopedStyles<K extends string>(
   const output: ScopedStyles<K> = {} as ScopedStyles<K>;
 
   for (const scope in styles) {
-    let scopeClassName = genUniqueHash(name);
+    let scopeClassName = genUniqueHash(name, count());
 
     output[scope] = new Set<string>();
 
@@ -88,7 +88,7 @@ class Sheet {
   private style: string = "";
 
   constructor(private name: string) {
-    const id = `cl-${name}-${genUniqueHash(name)}`;
+    const id = `cl-${name}-${genUniqueHash(name, count())}`;
 
     this.styleTag = this.createStyleTag(id);
   }
@@ -124,7 +124,7 @@ class Sheet {
       return key;
     }
 
-    const hash = genUniqueHash(this.name);
+    const hash = genUniqueHash(this.name, key);
     this.storedClasses[key] = hash;
     this.storedStyles[hash] = [property, value];
 
@@ -170,14 +170,15 @@ function handlePropertyValue(property: string, value: PropertyValue) {
 
 const takenHashes = new Set<string>();
 
-function genUniqueHash(prefix: string) {
-  let hash;
-
-  do {
-    hash = Math.random().toString(36).substring(2, 15);
-  } while (takenHashes.has(hash));
-
-  return `${prefix ?? "cl"}_${hash}`;
+function genUniqueHash(prefix: string, seed: string) {
+  let hash = 0;
+  if (seed.length === 0) return hash.toString();
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return `${prefix ?? "cl"}_${hash.toString(36)}`;
 }
 
 export function xJoin(...styles: ClassSet[]): string {
@@ -200,3 +201,8 @@ type ClassSet = Set<string>;
 function appendString(base: string, line: string) {
   return base ? `${base}\n${line}` : line;
 }
+
+const count = (() => {
+  let i = 0;
+  return () => `${i++}`;
+})();
