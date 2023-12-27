@@ -1,23 +1,15 @@
 {
-  "name": "css-local",
-  "version": "1.0.0",
-  "description": "Tiny Runtime CSS In JS for npm modules",
-  "main": "index.html",
-  "scripts": {
-    "start": "parcel index.html --open",
-    "build": "parcel build index.html"
-  },
-  "dependencies": {
-    "parcel-bundler": "^1.6.1"
-  },
+  "name": "css-local-scope",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
   "devDependencies": {
-    "typescript": "4.4.4"
+    "@nx/js": "17.2.7",
+    "nx": "17.2.7",
+    "typescript": "^5.3.3"
   },
-  "resolutions": {
-    "@babel/preset-env": "7.13.8"
-  },
-  "keywords": [
-    "typescript",
-    "javascript"
+  "workspaces": [
+    "packages/*"
   ]
 }
