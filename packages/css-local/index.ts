@@ -126,8 +126,9 @@ class Sheet {
 
     const hash = genUniqueHash(this.name);
     this.storedClasses[key] = hash;
+    this.storedStyles[hash] = [property, value];
 
-    this.append(this.genCssRule(hash, property, value));
+    this.append(genCssRule(hash, property, value));
     return hash;
   }
 
@@ -145,12 +146,10 @@ class Sheet {
 
     this.append(`${selector} { ${output} }`);
   }
+}
 
-  genCssRule(hash: string, property: string, value: string) {
-    this.storedStyles[hash] = [property, value];
-
-    return `.${hash} { ${genLine(property, value)} }`;
-  }
+function genCssRule(hash: string, property: string, value: string) {
+  return `.${hash} { ${genLine(property, value)} }`;
 }
 
 function camelCaseToDash(str: string) {
