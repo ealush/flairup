@@ -34,7 +34,7 @@ function iterateScopedStyles<K extends string>(
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
       if (is.pseudoSelector(property)) {
-        sheet.applyChunk(
+        sheet.addChunk(
           scopeClassName,
           property,
           scopedStyles[property as keyof typeof scopedStyles] as StyleObject
@@ -46,7 +46,7 @@ function iterateScopedStyles<K extends string>(
       }
 
       const value = scopedStyles[property as keyof typeof scopedStyles];
-      const ruleClassName = sheet.applyRule(property, value as string);
+      const ruleClassName = sheet.addRule(property, value as string);
 
       output[scope].add(ruleClassName);
     }
@@ -64,6 +64,7 @@ class Sheet {
   private styleTag: HTMLStyleElement | undefined;
   private storedStyles: StoredStyles = {};
   private storedClasses: Record<string, string> = {};
+  private style: string = "";
 
   constructor(private name: string) {
     const id = `cl-${name}-${genUniqueHash(name)}`;
@@ -72,7 +73,7 @@ class Sheet {
   }
 
   private append(css: string) {
-    this.styleTag?.sheet?.insertRule(css);
+    this.style = addLine(this.style, css);
   }
 
   createStyleTag(id: string) {
@@ -87,7 +88,7 @@ class Sheet {
     return styleTag;
   }
 
-  applyRule(property: string, value: string) {
+  addRule(property: string, value: string) {
     const key = `${property}:${value}`;
 
     if (this.storedClasses[key]) {
@@ -102,7 +103,7 @@ class Sheet {
     return hash;
   }
 
-  applyChunk(className: string, property: string, styleObject: StyleObject) {
+  addChunk(className: string, property: string, styleObject: StyleObject) {
     let output = "";
     const selector = `.${className}${property}`;
 
@@ -111,7 +112,7 @@ class Sheet {
         property as keyof typeof styleObject
       ] as PropertyValue;
       const line = genLine(property, value);
-      output += output ? `\n${line}` : line;
+      output = addLine(output, line);
     }
 
     this.append(`${selector} { ${output} }`);
@@ -161,3 +162,7 @@ type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
 type ClassSet = Set<string>;
+
+function addLine(base: string, line: string) {
+  return base ? `${base}\n${line}` : line;
+}
