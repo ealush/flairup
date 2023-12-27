@@ -1,7 +1,7 @@
 {
-  "name": "vanilla-typescript",
+  "name": "css-local",
   "version": "1.0.0",
-  "description": "JavaScript and TypeScript example starter project",
+  "description": "Tiny Runtime CSS In JS for npm modules",
   "main": "index.html",
   "scripts": {
     "start": "parcel index.html --open",
