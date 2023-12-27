@@ -80,7 +80,7 @@ function iterateScopedStyles<K extends string>(
 
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
-      if (isPseudoSelector(property)) {
+      if (is.pseudoSelector(property)) {
         applyChunk(
           scopeClassName,
           property,
@@ -101,9 +101,10 @@ function iterateScopedStyles<K extends string>(
   return output;
 }
 
-function isPseudoSelector(selector: string) {
-  return selector.startsWith(":");
-}
+const is = {
+  pseudoSelector: (selector: string) => selector.startsWith(":"),
+  mediaQuery: (property: string) => property.startsWith("@media"),
+};
 
 class Sheet {
   private styleTag: HTMLStyleElement | undefined;
@@ -130,16 +131,6 @@ class Sheet {
     return styleTag;
   }
 }
-
-type PropertyValue = string | number;
-type AllowedStyleProperties = keyof CSSStyleDeclaration;
-type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
-type Pseudo = `:${string}`;
-type Style = StyleObject & Record<Pseudo, StyleObject>;
-type Styles<K extends string> = Record<K, Style>;
-type StoredStyles = Record<string, [property: string, value: string]>;
-type ScopedStyles<K extends string> = Record<K, ClassSet>;
-type ClassSet = Set<string>;
 
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
@@ -174,3 +165,13 @@ export function xJoin(...styles: ClassSet[]): string {
     return `${acc} ${Array.from(curr).join(" ")}`;
   }, "");
 }
+
+type PropertyValue = string | number;
+type AllowedStyleProperties = keyof CSSStyleDeclaration;
+type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
+type Pseudo = `:${string}`;
+type Style = StyleObject & Record<Pseudo, StyleObject>;
+type Styles<K extends string> = Record<K, Style>;
+type StoredStyles = Record<string, [property: string, value: string]>;
+type ScopedStyles<K extends string> = Record<K, ClassSet>;
+type ClassSet = Set<string>;
