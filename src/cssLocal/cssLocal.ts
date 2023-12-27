@@ -1,4 +1,4 @@
-function createSheet(name: string) {
+export function createSheet(name: string) {
   const sheet = new Sheet(name);
 
   const storedStyles: StoredStyles = {};
@@ -25,7 +25,7 @@ function createSheet(name: string) {
     storedClasses[key] = hash;
     storedStyles[hash] = [property, value];
 
-    sheet.append(`.${hash} { ${property}: ${value}; }`);
+    sheet.append(`.${hash} { ${genLine(property, value)}; }`);
     return hash;
   }
 
@@ -38,13 +38,22 @@ function createSheet(name: string) {
     const selector = `.${className}${property}`;
 
     for (const property in styleObject) {
-      const value = styleObject[property as keyof typeof styleObject];
-      const line = `${property}: ${value};`;
+      const value = styleObject[
+        property as keyof typeof styleObject
+      ] as PropertyValue;
+      const line = genLine(property, value);
       output += output ? `\n${line}` : line;
     }
 
     sheet.append(`${selector} { ${output} }`);
   }
+}
+
+function genLine(property: string, value: PropertyValue) {
+  return `${camelCaseToDash(property)}: ${handlePropertyValue(
+    property,
+    value
+  )};`;
 }
 
 function iterateScopedStyles<K extends string>(
@@ -130,6 +139,18 @@ function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
+function handlePropertyValue(property: string, value: PropertyValue) {
+  if (typeof value === "number") {
+    return `${value}px`;
+  }
+
+  if (property === "content") {
+    return `"${value}"`;
+  }
+
+  return value;
+}
+
 const takenHashes = new Set<string>();
 
 function genUniqueHash() {
@@ -142,12 +163,8 @@ function genUniqueHash() {
   return `css-local-${hash}`;
 }
 
-function join(style: ClassSet): string {
-  let output = "";
-
-  for (const className of style) {
-    output += output ? ` ${className}` : className;
-  }
-
-  return output;
+export function xJoin(...styles: ClassSet[]): string {
+  return styles.reduce((acc, curr) => {
+    return `${acc} ${Array.from(curr).join(" ")}`;
+  }, "");
 }
