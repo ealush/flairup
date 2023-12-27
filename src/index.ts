@@ -9,7 +9,12 @@ export function createSheet(name: string) {
   };
 
   function create<K extends string>(styles: Styles<K>) {
-    const localStyles = iterateScopedStyles<K>(styles, applyRule, applyChunk);
+    const localStyles = iterateScopedStyles<K>(
+      name,
+      styles,
+      applyRule,
+      applyChunk
+    );
 
     return localStyles;
   }
@@ -21,7 +26,7 @@ export function createSheet(name: string) {
       return key;
     }
 
-    const hash = genUniqueHash();
+    const hash = genUniqueHash(name);
     storedClasses[key] = hash;
     storedStyles[hash] = [property, value];
 
@@ -57,6 +62,7 @@ function genLine(property: string, value: PropertyValue) {
 }
 
 function iterateScopedStyles<K extends string>(
+  name: string,
   styles: Styles<K>,
   applyRule: (property: string, value: string) => string,
   applyChunk: (
@@ -68,7 +74,7 @@ function iterateScopedStyles<K extends string>(
   const output: ScopedStyles<K> = {} as ScopedStyles<K>;
 
   for (const scope in styles) {
-    let scopeClassName = genUniqueHash();
+    let scopeClassName = genUniqueHash(name);
 
     output[scope] = new Set<string>();
 
@@ -103,7 +109,7 @@ class Sheet {
   private styleTag: HTMLStyleElement | undefined;
 
   constructor(private name: string) {
-    const id = `css-local-${name}-${genUniqueHash()}`;
+    const id = `cl-${name}-${genUniqueHash(name)}`;
 
     this.styleTag = this.createStyleTag(id);
   }
@@ -153,14 +159,14 @@ function handlePropertyValue(property: string, value: PropertyValue) {
 
 const takenHashes = new Set<string>();
 
-function genUniqueHash() {
+function genUniqueHash(prefix: string) {
   let hash;
 
   do {
     hash = Math.random().toString(36).substring(2, 15);
   } while (takenHashes.has(hash));
 
-  return `css-local-${hash}`;
+  return `${prefix ?? "cl"}_${hash}`;
 }
 
 export function xJoin(...styles: ClassSet[]): string {
