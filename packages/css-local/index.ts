@@ -176,8 +176,6 @@ function handlePropertyValue(property: string, value: PropertyValue) {
   return value;
 }
 
-const takenHashes = new Set<string>();
-
 function genUniqueHash(prefix: string, seed: string) {
   let hash = 0;
   if (seed.length === 0) return hash.toString();
@@ -203,7 +201,7 @@ type MediaQuery = `@media ${string}`;
 type ClassIndication = `.`;
 type Style = StyleObject &
   Record<Pseudo | MediaQuery, StyleObject> &
-  Record<ClassIndication, string | string[]>;
+  Partial<Record<ClassIndication, string | string[]>>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
