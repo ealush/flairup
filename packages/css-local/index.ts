@@ -47,6 +47,11 @@ function iterateScopedStyles<K extends string>(
         continue;
       }
 
+      if (is.directClass(property)) {
+        output[scope].add(scopedStyles[property] as string);
+        continue;
+      }
+
       if (is.mediaQuery(property)) {
         const mediaQuery = property;
 
@@ -79,6 +84,7 @@ function iterateScopedStyles<K extends string>(
 const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
+  directClass: (property: string) => property === ".",
 };
 
 class Sheet {
@@ -192,7 +198,10 @@ type AllowedStyleProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
-type Style = StyleObject & Record<Pseudo | MediaQuery, StyleObject>;
+type ClassIndication = `.`;
+type Style = StyleObject &
+  Record<Pseudo | MediaQuery, StyleObject> &
+  Record<ClassIndication, string>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
