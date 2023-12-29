@@ -48,7 +48,9 @@ function iterateScopedStyles<K extends string>(
       }
 
       if (is.directClass(property)) {
-        output[scope].add(scopedStyles[property] as string);
+        [].concat(scopedStyles[property as string]).forEach((className) => {
+          output[scope].add(className);
+        });
         continue;
       }
 
@@ -201,7 +203,7 @@ type MediaQuery = `@media ${string}`;
 type ClassIndication = `.`;
 type Style = StyleObject &
   Record<Pseudo | MediaQuery, StyleObject> &
-  Record<ClassIndication, string>;
+  Record<ClassIndication, string | string[]>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
