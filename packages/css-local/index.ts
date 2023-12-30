@@ -56,6 +56,7 @@ function iterateScopedStyles<K extends string>(
   return output;
 }
 
+// Property handlers
 function getHandler(property: string, value: StyleObject) {
   if (is.chunkable(property, value)) {
     return handleChunkable;
@@ -64,9 +65,25 @@ function getHandler(property: string, value: StyleObject) {
   if (is.mediaQuery(property)) {
     return handleMediaQuery;
   }
+
+  if (is.directClass(property)) {
+    return handleDirectClass;
+  }
+
   return handleRule;
 }
 
+// Simply adds the provided  classnames onto the current scope
+function handleDirectClass(
+  _: Sheet,
+  _a: string,
+  _b: string,
+  value: string[] | string
+) {
+  return [].concat(value as unknown as []);
+}
+
+// Adds regular css rules
 function handleRule(sheet: Sheet, _: string, property: string, value: string) {
   const output: string[] = [];
 
@@ -77,6 +94,8 @@ function handleRule(sheet: Sheet, _: string, property: string, value: string) {
   return output;
 }
 
+// Handles both pseudo selectors and css variables
+// They are appended entirely as a chunk, not as individual classes
 function handleChunkable(
   sheet: Sheet,
   scopeClassName: string,
@@ -89,6 +108,7 @@ function handleChunkable(
   return output;
 }
 
+// Handles media queries - their uniqueness is that they actually go above the scope and not inside it
 function handleMediaQuery(
   sheet: Sheet,
   scopeClassName: string,
@@ -119,12 +139,7 @@ function handleMediaQuery(
   return output;
 }
 
-function forIn(obj: object, fn: (key: string, value: any) => void) {
-  for (const key in obj) {
-    fn(key, obj[key]);
-  }
-}
-
+// Selectors
 const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
@@ -212,8 +227,9 @@ class Sheet {
   }
 }
 
+// Creates the css line for a chunk
 function chunkSelector(className: string, property) {
-  const base = `.${className}`;
+  const base = makeClassName(className);
 
   if (is.pseudoSelector(property)) {
     return `${base}${property}`;
@@ -226,14 +242,19 @@ function chunkSelector(className: string, property) {
   return base;
 }
 
+function makeClassName(hash: string) {
+  return `.${hash}`;
+}
+
 function genCssRule(hash: string, property: string, value: string) {
-  return `.${hash} { ${genLine(property, value)} }`;
+  return `${makeClassName(hash)} { ${genLine(property, value)} }`;
 }
 
 function camelCaseToDash(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
+// Some properties need special handling
 function handlePropertyValue(property: string, value: PropertyValue) {
   if (typeof value === "number") {
     return `${value}px`;
@@ -246,6 +267,7 @@ function handlePropertyValue(property: string, value: PropertyValue) {
   return value;
 }
 
+// Stable hash function.
 function genUniqueHash(prefix: string, seed: string) {
   let hash = 0;
   if (seed.length === 0) return hash.toString();
@@ -267,6 +289,13 @@ function genLine(property: string, value: PropertyValue) {
     value
   )};`;
 }
+
+function forIn(obj: object, fn: (key: string, value: any) => void) {
+  for (const key in obj) {
+    fn(key, obj[key]);
+  }
+}
+
 type PropertyValue = string | number;
 type CSSProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<CSSProperties, PropertyValue>>;
