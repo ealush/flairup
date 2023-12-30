@@ -3,6 +3,7 @@ export function createSheet(name: string) {
 
   return {
     create,
+    getStyle: sheet.getStyle.bind(sheet),
   };
 
   function create<K extends string>(styles: Styles<K>) {
@@ -35,7 +36,7 @@ function iterateScopedStyles<K extends string>(
 
     const scopedStyles = styles[scope];
     for (const property in scopedStyles) {
-      if (is.pseudoSelector(property)) {
+      if (is.pseudoSelector(property) || is.cssVariables(property)) {
         sheet.addChunk(
           scopeClassName,
           property,
@@ -57,9 +58,23 @@ function iterateScopedStyles<K extends string>(
       if (is.mediaQuery(property)) {
         const mediaQuery = property;
 
-        sheet.append(`${mediaQuery} {`);
+        sheet.append(`${chunkSelector(scopeClassName, mediaQuery)} {`);
 
         for (const property in scopedStyles[mediaQuery]) {
+          if (is.pseudoSelector(property) || is.cssVariables(property)) {
+            sheet.addChunk(
+              scopeClassName,
+              property,
+              scopedStyles[mediaQuery][
+                property as keyof typeof scopedStyles
+              ] as StyleObject
+            );
+
+            output[scope].add(scopeClassName);
+
+            continue;
+          }
+
           const value =
             // @ts-ignore
             scopedStyles[mediaQuery][property as keyof typeof scopedStyles];
@@ -87,6 +102,7 @@ const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
   directClass: (property: string) => property === ".",
+  cssVariables: (property: string) => property === "--",
 };
 
 class Sheet {
@@ -99,6 +115,10 @@ class Sheet {
     const id = `cl-${name}-${genUniqueHash(name, count())}`;
 
     this.styleTag = this.createStyleTag(id);
+  }
+
+  getStyle() {
+    return this.style;
   }
 
   append(css: string) {
@@ -142,18 +162,48 @@ class Sheet {
 
   addChunk(className: string, property: string, styleObject: StyleObject) {
     let output = "";
-    const selector = `.${className}${property}`;
+    const selector = chunkSelector(className, property);
 
     for (const property in styleObject) {
       const value = styleObject[
         property as keyof typeof styleObject
       ] as PropertyValue;
+
+      if (is.cssVariables(property)) {
+        for (const cssVar in styleObject[property] as unknown as StyleObject) {
+          const value = styleObject?.[property]?.[
+            cssVar as keyof typeof styleObject
+          ] as PropertyValue;
+
+          output = appendString(
+            output,
+            genLine(`${cssVar}`, handlePropertyValue(property, value))
+          );
+        }
+
+        continue;
+      }
+
       const line = genLine(property, value);
       output = appendString(output, line);
     }
 
     this.append(`${selector} { ${output} }`);
   }
+}
+
+function chunkSelector(className: string, property) {
+  const base = `.${className}`;
+
+  if (is.pseudoSelector(property)) {
+    return `${base}${property}`;
+  }
+
+  if (is.mediaQuery(property)) {
+    return `${property}`;
+  }
+
+  return base;
 }
 
 function genCssRule(hash: string, property: string, value: string) {
@@ -194,14 +244,17 @@ export function xJoin(...styles: ClassSet[]): string {
 }
 
 type PropertyValue = string | number;
-type AllowedStyleProperties = keyof CSSStyleDeclaration;
-type StyleObject = Partial<Record<AllowedStyleProperties, PropertyValue>>;
+type CSSProperties = keyof CSSStyleDeclaration;
+type StyleObject = Partial<Record<CSSProperties, PropertyValue>>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 type ClassIndication = `.`;
+type CSSVariables = `--`;
+type CSSVariablesObject = Record<`--${string}`, string>;
+type CSSVariablesObjectDecleration = Record<CSSVariables, CSSVariablesObject>;
 type Style = StyleObject &
-  Record<Pseudo | MediaQuery, StyleObject> &
-  Partial<Record<ClassIndication, string | string[]>>;
+  CSSVariablesObjectDecleration &
+  Record<Pseudo | MediaQuery, StyleObject | CSSVariablesObjectDecleration>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
