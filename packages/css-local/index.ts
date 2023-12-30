@@ -1,3 +1,9 @@
+export function cx(...styles: ClassSet[]): string {
+  return styles.reduce((acc, curr) => {
+    return `${acc} ${Array.from(curr).join(" ")}`;
+  }, "");
+}
+
 export function createSheet(name: string) {
   const sheet = new Sheet(name);
   let scopes = 0;
@@ -26,13 +32,6 @@ export function createSheet(name: string) {
   }
 }
 
-function genLine(property: string, value: PropertyValue) {
-  return `${camelCaseToDash(property)}: ${handlePropertyValue(
-    property,
-    value
-  )};`;
-}
-
 function iterateScopedStyles<K extends string>(
   scope: string,
   index: number,
@@ -47,46 +46,75 @@ function iterateScopedStyles<K extends string>(
   const scopedStyle = styles[scope];
 
   forIn(scopedStyle, (property, value) => {
-    if (is.pseudoSelector(property) || is.cssVariables(property)) {
-      sheet.addChunk(scopeClassName, property, value as StyleObject);
+    const handler = getHandler(property, value);
 
-      output.add(scopeClassName);
+    handler(sheet, scopeClassName, property, value).forEach((className) =>
+      output.add(className)
+    );
+  });
 
-      return;
-    }
+  return output;
+}
 
-    if (is.directClass(property)) {
-      [].concat(value).forEach((className) => {
-        output.add(className);
-      });
-      return;
-    }
+function getHandler(property: string, value: StyleObject) {
+  if (is.chunkable(property, value)) {
+    return handleChunkable;
+  }
 
-    if (is.mediaQuery(property)) {
-      sheet.append(`${chunkSelector(scopeClassName, property)} {`);
-      forIn(value, (property, value) => {
-        if (is.pseudoSelector(property) || is.cssVariables(property)) {
-          sheet.addChunk(scopeClassName, property, value as StyleObject);
+  if (is.mediaQuery(property)) {
+    return handleMediaQuery;
+  }
+  return handleRule;
+}
 
-          output.add(scopeClassName);
+function handleRule(sheet: Sheet, _: string, property: string, value: string) {
+  const output: string[] = [];
 
-          return;
-        }
+  const ruleClassName = sheet.addRule(property, value);
 
-        const ruleClassName = sheet.addRule(property, value as string);
+  output.push(ruleClassName);
 
-        output.add(ruleClassName);
-      });
+  return output;
+}
 
-      sheet.append(`}`);
+function handleChunkable(
+  sheet: Sheet,
+  scopeClassName: string,
+  property: string,
+  value: StyleObject
+) {
+  const output: string[] = [];
+  sheet.addChunk(scopeClassName, property, value);
+  output.push(scopeClassName);
+  return output;
+}
 
+function handleMediaQuery(
+  sheet: Sheet,
+  scopeClassName: string,
+  property: string,
+  value: StyleObject
+) {
+  const output: string[] = [];
+
+  sheet.append(`${chunkSelector(scopeClassName, property)} {`);
+  forIn(value, (property, value) => {
+    if (is.chunkable(property, value)) {
+      handleChunkable(
+        sheet,
+        scopeClassName,
+        property,
+        value as StyleObject
+      ).forEach((className) => output.push(className));
       return;
     }
 
     const ruleClassName = sheet.addRule(property, value as string);
 
-    output.add(ruleClassName);
+    output.push(ruleClassName);
   });
+
+  sheet.append(`}`);
 
   return output;
 }
@@ -101,7 +129,10 @@ const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
   directClass: (property: string) => property === ".",
-  cssVariables: (property: string) => property === "--",
+  cssVariables: (property: string, value: any): value is StyleObject =>
+    property === "--",
+  chunkable: (property: string, value: any) =>
+    is.cssVariables(property, value) || is.pseudoSelector(property),
 };
 
 class Sheet {
@@ -163,29 +194,19 @@ class Sheet {
     let output = "";
     const selector = chunkSelector(className, property);
 
-    for (const property in styleObject) {
-      const value = styleObject[
-        property as keyof typeof styleObject
-      ] as PropertyValue;
-
-      if (is.cssVariables(property)) {
-        for (const cssVar in styleObject[property] as unknown as StyleObject) {
-          const value = styleObject?.[property]?.[
-            cssVar as keyof typeof styleObject
-          ] as PropertyValue;
-
+    forIn(styleObject, (property, value: PropertyValue) => {
+      if (is.cssVariables(property, value)) {
+        return forIn(value, (cssVar, value: PropertyValue) => {
           output = appendString(
             output,
             genLine(`${cssVar}`, handlePropertyValue(property, value))
           );
-        }
-
-        continue;
+        });
       }
 
       const line = genLine(property, value);
       output = appendString(output, line);
-    }
+    });
 
     this.append(`${selector} { ${output} }`);
   }
@@ -236,12 +257,16 @@ function genUniqueHash(prefix: string, seed: string) {
   return `${prefix ?? "cl"}_${hash.toString(36)}`;
 }
 
-export function xJoin(...styles: ClassSet[]): string {
-  return styles.reduce((acc, curr) => {
-    return `${acc} ${Array.from(curr).join(" ")}`;
-  }, "");
+function appendString(base: string, line: string) {
+  return base ? `${base}\n${line}` : line;
 }
 
+function genLine(property: string, value: PropertyValue) {
+  return `${camelCaseToDash(property)}: ${handlePropertyValue(
+    property,
+    value
+  )};`;
+}
 type PropertyValue = string | number;
 type CSSProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<CSSProperties, PropertyValue>>;
@@ -257,7 +282,3 @@ type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
 type ClassSet = Set<string>;
-
-function appendString(base: string, line: string) {
-  return base ? `${base}\n${line}` : line;
-}
