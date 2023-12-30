@@ -28,9 +28,9 @@ function iterateScopedStyles<K extends string>(
   sheet: Sheet
 ): ScopedStyles<K> {
   const output: ScopedStyles<K> = {} as ScopedStyles<K>;
-
+  let count = 0;
   for (const scope in styles) {
-    let scopeClassName = genUniqueHash(name, count());
+    let scopeClassName = genUniqueHash(name, `${count++}`);
 
     output[scope] = new Set<string>();
 
@@ -112,7 +112,7 @@ class Sheet {
   private style: string = "";
 
   constructor(private name: string) {
-    const id = `cl-${name}-${genUniqueHash(name, count())}`;
+    const id = `cl-${name}`;
 
     this.styleTag = this.createStyleTag(id);
   }
@@ -263,8 +263,3 @@ type ClassSet = Set<string>;
 function appendString(base: string, line: string) {
   return base ? `${base}\n${line}` : line;
 }
-
-const count = (() => {
-  let i = 0;
-  return () => `${i++}`;
-})();
