@@ -304,9 +304,12 @@ type MediaQuery = `@media ${string}`;
 type CSSVariables = `--`;
 type CSSVariablesObject = Record<`--${string}`, string>;
 type CSSVariablesObjectDecleration = Record<CSSVariables, CSSVariablesObject>;
-type Style = StyleObject &
-  CSSVariablesObjectDecleration &
-  Record<Pseudo | MediaQuery, StyleObject | CSSVariablesObjectDecleration>;
+type Style = Partial<
+  StyleObject &
+    CSSVariablesObjectDecleration &
+    Record<Pseudo | MediaQuery, StyleObject | CSSVariablesObjectDecleration> &
+    Record<".", string | string[]>
+>;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
