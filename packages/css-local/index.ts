@@ -6,7 +6,6 @@ export function cx(...styles: ClassSet[]): string {
 
 export function createSheet(name: string) {
   const sheet = new Sheet(name);
-  let scopes = 0;
 
   return {
     create,
@@ -17,13 +16,7 @@ export function createSheet(name: string) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scope) => {
-      scopedStyles[scope] = iterateScopedStyles(
-        scope,
-        scopes++,
-        name,
-        styles,
-        sheet
-      );
+      scopedStyles[scope] = iterateScopedStyles(scope, styles, sheet);
     });
 
     sheet.apply();
@@ -34,14 +27,12 @@ export function createSheet(name: string) {
 
 function iterateScopedStyles<K extends string>(
   scope: string,
-  index: number,
-  name: string,
   styles: Styles<K>,
   sheet: Sheet
 ): ClassSet {
   const output = new Set<string>();
 
-  let scopeClassName = genUniqueHash(name, `${index}`);
+  let scopeClassName = genUniqueHash(sheet.name, `${scope}_${sheet.count}`);
 
   const scopedStyle = styles[scope];
 
@@ -160,8 +151,9 @@ class Sheet {
   private storedStyles: StoredStyles = {};
   private storedClasses: Record<string, string> = {};
   private style: string = "";
+  public count = 0;
 
-  constructor(private name: string) {
+  constructor(public name: string) {
     const id = `cl-${name}`;
 
     this.styleTag = this.createStyleTag(id);
@@ -176,6 +168,8 @@ class Sheet {
   }
 
   apply() {
+    this.count++;
+
     if (!this.styleTag) {
       return;
     }
