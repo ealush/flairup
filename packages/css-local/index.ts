@@ -51,15 +51,6 @@ function iterateStyles<K extends string>(
         scopeClassName
       ).forEach((classes) => output.add(classes));
     }
-    if (is.mediaQuery(property)) {
-      return;
-    }
-    if (is.cssRelationshipSelector(property)) {
-      return;
-    }
-    if (is.generalDescendantSelector(property)) {
-      return;
-    }
 
     if (is.validProperty(value)) {
       const ruleClassName = sheet.addRule(property, value);
@@ -134,17 +125,6 @@ const is = {
   directClass: (property: string) => property === ".",
   cssVariables: (property: string, value: any): value is StyleObject =>
     property === "--",
-  chunkable: (property: string, value: any) =>
-    is.cssVariables(property, value) || is.pseudoSelector(property),
-  cssRelationshipSelector: (property: string) => {
-    const prop = property.trim();
-    const relationShipSelectors = [">", "~", "+"];
-    return relationShipSelectors.some((selector) => prop.startsWith(selector));
-  },
-  generalDescendantSelector: (property: string) => {
-    const prop = property.trim();
-    return prop.startsWith(".") && prop.length > 1;
-  },
   validProperty: (value: any): value is string =>
     typeof value === "string" || typeof value === "number",
 };
@@ -210,7 +190,6 @@ class Sheet {
     this.append(genCssRule(hash, property, value));
     return hash;
   }
-
 }
 
 function joinedProperty(property: string, value: string) {
@@ -218,7 +197,7 @@ function joinedProperty(property: string, value: string) {
 }
 
 // Creates the css line for a chunk
-function chunkSelector(className: string, property) {
+function chunkSelector(className: string, property: string, child?: string) {
   const base = makeClassName(className);
 
   if (is.pseudoSelector(property)) {
@@ -228,8 +207,6 @@ function chunkSelector(className: string, property) {
   if (is.mediaQuery(property)) {
     return `${property}`;
   }
-
-  return base;
 }
 
 function makeClassName(hash: string) {
@@ -250,10 +227,6 @@ function camelCaseToDash(str: string) {
 
 // Some properties need special handling
 function handlePropertyValue(property: string, value: PropertyValue) {
-  if (typeof value === "number") {
-    return `${value}px`;
-  }
-
   if (property === "content") {
     return `"${value}"`;
   }
