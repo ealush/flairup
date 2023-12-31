@@ -144,6 +144,10 @@ const is = {
     const relationShipSelectors = [">", "~", "+"];
     return relationShipSelectors.some((selector) => prop.startsWith(selector));
   },
+  generalDescendantSelector: (property: string) => {
+    const prop = property.trim();
+    return prop.startsWith(".") && prop.length > 1;
+  },
 };
 
 class Sheet {
