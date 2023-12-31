@@ -211,39 +211,11 @@ class Sheet {
     return hash;
   }
 
-  // addChunk(selector: string, output: string) {
-  //   this.append(`${selector} { ${output} }`);
-  // }
 }
 
 function joinedProperty(property: string, value: string) {
   return `${property}:${value}`;
 }
-
-// function createChunk(
-//   styleObject: StyleObject,
-//   className: string,
-//   property: string
-// ) {
-//   let chunk = "";
-//   const selector = chunkSelector(className, property);
-
-//   forIn(styleObject, (property, value: PropertyValue) => {
-//     if (is.cssVariables(property, value)) {
-//       return forIn(value, (cssVar, value: PropertyValue) => {
-//         chunk = appendString(
-//           chunk,
-//           genLine(`${cssVar}`, handlePropertyValue(property, value))
-//         );
-//       });
-//     }
-
-//     const line = genLine(property, value);
-//     chunk = appendString(chunk, line);
-//   });
-
-//   return chunk;
-// }
 
 // Creates the css line for a chunk
 function chunkSelector(className: string, property) {
