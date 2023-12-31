@@ -15,14 +15,85 @@ export function createSheet(name: string) {
   function create<K extends string>(styles: Styles<K>) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
-    forIn(styles, (scope) => {
-      scopedStyles[scope] = iterateScopedStyles(scope, styles, sheet);
+    forIn(styles, (scopeName, styles) => {
+      const scopeClassName = genUniqueHash(sheet.name, scopeName);
+      scopedStyles[scopeName] = iterateStyles(sheet, styles, scopeClassName);
     });
 
     sheet.apply();
 
     return scopedStyles;
   }
+}
+
+function iterateStyles<K extends string>(
+  sheet: Sheet,
+  styles: Styles<K>,
+  scopeClassName: string
+) {
+  const output: ClassSet = new Set<string>();
+  forIn(styles, (property, value) => {
+    if (is.string(value)) {
+      const ruleClassName = sheet.addRule(property, value);
+      return output.add(ruleClassName);
+    }
+
+    if (is.cssVariables(property, value)) {
+      return;
+    }
+    if (is.directClass(property)) {
+      return;
+    }
+    if (is.pseudoSelector(property)) {
+      return handlePseudoSelector(
+        sheet,
+        value,
+        property,
+        scopeClassName
+      ).forEach((classes) => output.add(classes));
+    }
+    if (is.mediaQuery(property)) {
+      return;
+    }
+    if (is.cssRelationshipSelector(property)) {
+      return;
+    }
+    if (is.generalDescendantSelector(property)) {
+      return;
+    }
+  });
+
+  return output;
+}
+
+function handlePseudoSelector(
+  sheet: Sheet,
+  styles: StyleObject,
+  property: string,
+  scopeClassName: string
+) {
+  const classes: ClassSet = new Set<string>();
+
+  let chunkRows: string[] = [];
+  forIn(styles, (property: string, value) => {
+    if (is.string(value)) {
+      chunkRows.push(genLine(property, value));
+      return;
+    }
+
+    iterateStyles(sheet, value, scopeClassName).forEach((className) =>
+      classes.add(className)
+    );
+  });
+
+  if (chunkRows.length) {
+    sheet.append(
+      `${chunkSelector(scopeClassName, property)} {\n${chunkRows.join("\n")}\n}`
+    );
+  }
+
+  classes.add(scopeClassName);
+  return classes;
 }
 
 function iterateScopedStyles<K extends string>(
@@ -85,20 +156,6 @@ function handleRule(sheet: Sheet, _: string, property: string, value: string) {
   return output;
 }
 
-// Handles both pseudo selectors and css variables
-// They are appended entirely as a chunk, not as individual classes
-function handleChunkable(
-  sheet: Sheet,
-  scopeClassName: string,
-  property: string,
-  value: StyleObject
-) {
-  const output: string[] = [];
-  sheet.addChunk(scopeClassName, property, value);
-  output.push(scopeClassName);
-  return output;
-}
-
 // Handles media queries - their uniqueness is that they actually go above the scope and not inside it
 function handleMediaQuery(
   sheet: Sheet,
@@ -111,13 +168,13 @@ function handleMediaQuery(
   sheet.append(`${chunkSelector(scopeClassName, property)} {`);
   forIn(value, (property, value) => {
     if (is.chunkable(property, value)) {
-      handleChunkable(
-        sheet,
-        scopeClassName,
-        property,
-        value as StyleObject
-      ).forEach((className) => output.push(className));
-      return;
+      //   handleChunkable(
+      //     sheet,
+      //     scopeClassName,
+      //     property,
+      //     value as StyleObject
+      //   ).forEach((className) => output.push(className));
+      //   return;
     }
 
     const ruleClassName = sheet.addRule(property, value as string);
@@ -148,11 +205,16 @@ const is = {
     const prop = property.trim();
     return prop.startsWith(".") && prop.length > 1;
   },
+  string: (value: any): value is string => typeof value === "string",
 };
 
 class Sheet {
   private styleTag: HTMLStyleElement | undefined;
+
+  // Hash->css
   private storedStyles: StoredStyles = {};
+
+  // styles->hash
   private storedClasses: Record<string, string> = {};
   private style: string = "";
   public count = 0;
@@ -194,7 +256,7 @@ class Sheet {
   }
 
   addRule(property: string, value: string) {
-    const key = `${property}:${value}`;
+    const key = joinedProperty(property, value);
 
     if (this.storedClasses[key]) {
       return this.storedClasses[key];
@@ -208,27 +270,39 @@ class Sheet {
     return hash;
   }
 
-  addChunk(className: string, property: string, styleObject: StyleObject) {
-    let output = "";
-    const selector = chunkSelector(className, property);
-
-    forIn(styleObject, (property, value: PropertyValue) => {
-      if (is.cssVariables(property, value)) {
-        return forIn(value, (cssVar, value: PropertyValue) => {
-          output = appendString(
-            output,
-            genLine(`${cssVar}`, handlePropertyValue(property, value))
-          );
-        });
-      }
-
-      const line = genLine(property, value);
-      output = appendString(output, line);
-    });
-
-    this.append(`${selector} { ${output} }`);
-  }
+  // addChunk(selector: string, output: string) {
+  //   this.append(`${selector} { ${output} }`);
+  // }
 }
+
+function joinedProperty(property: string, value: string) {
+  return `${property}:${value}`;
+}
+
+// function createChunk(
+//   styleObject: StyleObject,
+//   className: string,
+//   property: string
+// ) {
+//   let chunk = "";
+//   const selector = chunkSelector(className, property);
+
+//   forIn(styleObject, (property, value: PropertyValue) => {
+//     if (is.cssVariables(property, value)) {
+//       return forIn(value, (cssVar, value: PropertyValue) => {
+//         chunk = appendString(
+//           chunk,
+//           genLine(`${cssVar}`, handlePropertyValue(property, value))
+//         );
+//       });
+//     }
+
+//     const line = genLine(property, value);
+//     chunk = appendString(chunk, line);
+//   });
+
+//   return chunk;
+// }
 
 // Creates the css line for a chunk
 function chunkSelector(className: string, property) {
@@ -295,7 +369,7 @@ function genLine(property: string, value: PropertyValue) {
 
 function forIn(obj: object, fn: (key: string, value: any) => void) {
   for (const key in obj) {
-    fn(key, obj[key]);
+    fn(key.trim(), obj[key]);
   }
 }
 
