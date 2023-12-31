@@ -33,18 +33,15 @@ function iterateStyles<K extends string>(
 ) {
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
-    if (is.string(value)) {
-      const ruleClassName = sheet.addRule(property, value);
-      return output.add(ruleClassName);
-    }
-
     if (is.cssVariables(property, value)) {
       return handleCssVariables(sheet, value, property, scopeClassName).forEach(
         (classes) => output.add(classes)
       );
     }
     if (is.directClass(property)) {
-      return;
+      return handleDirectClass(sheet, value).forEach((classes) =>
+        output.add(classes)
+      );
     }
     if (is.pseudoSelector(property)) {
       return handlePseudoSelector(
@@ -63,9 +60,18 @@ function iterateStyles<K extends string>(
     if (is.generalDescendantSelector(property)) {
       return;
     }
+
+    if (is.string(value)) {
+      const ruleClassName = sheet.addRule(property, value);
+      return output.add(ruleClassName);
+    }
   });
 
   return output;
+}
+
+function handleDirectClass(sheet: Sheet, classes: string | string[]) {
+  return [].concat(classes as unknown as []);
 }
 
 function handlePseudoSelector(
@@ -116,16 +122,6 @@ function handleCssVariables(
   }
 
   return [scopeClassName];
-}
-
-// Simply adds the provided  classnames onto the current scope
-function handleDirectClass(
-  _: Sheet,
-  _a: string,
-  _b: string,
-  value: string[] | string
-) {
-  return [].concat(value as unknown as []);
 }
 
 // Adds regular css rules
