@@ -148,6 +148,11 @@ const is = {
     property === "--",
   chunkable: (property: string, value: any) =>
     is.cssVariables(property, value) || is.pseudoSelector(property),
+  cssRelationshipSelector: (property: string) => {
+    const prop = property.trim();
+    const relationShipSelectors = [">", "~", "+"];
+    return relationShipSelectors.some((selector) => prop.startsWith(selector));
+  },
 };
 
 class Sheet {
@@ -304,12 +309,12 @@ type MediaQuery = `@media ${string}`;
 type CSSVariablesObject = Record<`--${string}`, string>;
 type Style = Partial<
   Record<string, any> &
-  Partial<{
-    '.'?: string | string[];
-    "--"?: CSSVariablesObject;
-  }> &
-Record<Pseudo | MediaQuery, StyleObject>&
-  StyleObject
+    Partial<{
+      "."?: string | string[];
+      "--"?: CSSVariablesObject;
+    }> &
+    Record<Pseudo | MediaQuery, StyleObject> &
+    StyleObject
 >;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
