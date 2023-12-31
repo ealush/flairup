@@ -43,8 +43,8 @@ function iterateStyles<K extends string>(
         output.add(classes)
       );
     }
-    if (is.pseudoSelector(property)) {
-      return handlePseudoSelector(
+    if (is.pseudoSelector(property) || is.mediaQuery(property)) {
+      return handlePseudoSelectorOrMediaQuery(
         sheet,
         value,
         property,
@@ -61,7 +61,7 @@ function iterateStyles<K extends string>(
       return;
     }
 
-    if (is.string(value)) {
+    if (is.validProperty(value)) {
       const ruleClassName = sheet.addRule(property, value);
       return output.add(ruleClassName);
     }
@@ -74,7 +74,7 @@ function handleDirectClass(sheet: Sheet, classes: string | string[]) {
   return [].concat(classes as unknown as []);
 }
 
-function handlePseudoSelector(
+function handlePseudoSelectorOrMediaQuery(
   sheet: Sheet,
   styles: StyleObject,
   property: string,
@@ -84,7 +84,7 @@ function handlePseudoSelector(
 
   let chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
-    if (is.string(value)) {
+    if (is.validProperty(value)) {
       chunkRows.push(genLine(property, value));
       return;
     }
@@ -95,8 +95,11 @@ function handlePseudoSelector(
   });
 
   if (chunkRows.length) {
+    const output = chunkRows.join("\n");
     sheet.append(
-      `${chunkSelector(scopeClassName, property)} {\n${chunkRows.join("\n")}\n}`
+      `${chunkSelector(scopeClassName, property)} {${
+        is.mediaQuery(property) ? genCssRules(scopeClassName, output) : output
+      }}`
     );
   }
 
@@ -124,48 +127,6 @@ function handleCssVariables(
   return [scopeClassName];
 }
 
-// Adds regular css rules
-function handleRule(sheet: Sheet, _: string, property: string, value: string) {
-  const output: string[] = [];
-
-  const ruleClassName = sheet.addRule(property, value);
-
-  output.push(ruleClassName);
-
-  return output;
-}
-
-// Handles media queries - their uniqueness is that they actually go above the scope and not inside it
-function handleMediaQuery(
-  sheet: Sheet,
-  scopeClassName: string,
-  property: string,
-  value: StyleObject
-) {
-  const output: string[] = [];
-
-  sheet.append(`${chunkSelector(scopeClassName, property)} {`);
-  forIn(value, (property, value) => {
-    if (is.chunkable(property, value)) {
-      //   handleChunkable(
-      //     sheet,
-      //     scopeClassName,
-      //     property,
-      //     value as StyleObject
-      //   ).forEach((className) => output.push(className));
-      //   return;
-    }
-
-    const ruleClassName = sheet.addRule(property, value as string);
-
-    output.push(ruleClassName);
-  });
-
-  sheet.append(`}`);
-
-  return output;
-}
-
 // Selectors
 const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
@@ -184,7 +145,8 @@ const is = {
     const prop = property.trim();
     return prop.startsWith(".") && prop.length > 1;
   },
-  string: (value: any): value is string => typeof value === "string",
+  validProperty: (value: any): value is string =>
+    typeof value === "string" || typeof value === "number",
 };
 
 class Sheet {
@@ -303,7 +265,11 @@ function makeClassName(hash: string) {
 }
 
 function genCssRule(hash: string, property: string, value: string) {
-  return `${makeClassName(hash)} { ${genLine(property, value)} }`;
+  return genCssRules(hash, genLine(property, value));
+}
+
+function genCssRules(hash: string, content: string): string {
+  return `${makeClassName(hash)} { ${content} }`;
 }
 
 function camelCaseToDash(str: string) {
