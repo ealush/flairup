@@ -301,14 +301,15 @@ type CSSProperties = keyof CSSStyleDeclaration;
 type StyleObject = Partial<Record<CSSProperties, PropertyValue>>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
-type CSSVariables = `--`;
 type CSSVariablesObject = Record<`--${string}`, string>;
-type CSSVariablesObjectDecleration = Record<CSSVariables, CSSVariablesObject>;
 type Style = Partial<
-  StyleObject &
-    CSSVariablesObjectDecleration &
-    Record<Pseudo | MediaQuery, StyleObject | CSSVariablesObjectDecleration> &
-    Record<".", string | string[]>
+  Record<string, any> &
+  Partial<{
+    '.'?: string | string[];
+    "--"?: CSSVariablesObject;
+  }> &
+Record<Pseudo | MediaQuery, StyleObject>&
+  StyleObject
 >;
 type Styles<K extends string> = Record<K, Style>;
 type StoredStyles = Record<string, [property: string, value: string]>;
