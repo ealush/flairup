@@ -39,7 +39,9 @@ function iterateStyles<K extends string>(
     }
 
     if (is.cssVariables(property, value)) {
-      return;
+      return handleCssVariables(sheet, value, property, scopeClassName).forEach(
+        (classes) => output.add(classes)
+      );
     }
     if (is.directClass(property)) {
       return;
@@ -96,43 +98,24 @@ function handlePseudoSelector(
   return classes;
 }
 
-function iterateScopedStyles<K extends string>(
-  scope: string,
-  styles: Styles<K>,
-  sheet: Sheet
-): ClassSet {
-  const output = new Set<string>();
-
-  let scopeClassName = genUniqueHash(sheet.name, `${scope}_${sheet.count}`);
-
-  const scopedStyle = styles[scope];
-
-  forIn(scopedStyle, (property, value) => {
-    const handler = getHandler(property, value);
-
-    handler(sheet, scopeClassName, property, value).forEach((className) =>
-      output.add(className)
-    );
+function handleCssVariables(
+  sheet: Sheet,
+  value: CSSVariablesObject,
+  _: string,
+  scopeClassName: string
+) {
+  let chunkRows: string[] = [];
+  forIn(value, (property: string, value) => {
+    chunkRows.push(genLine(property, value));
   });
 
-  return output;
-}
-
-// Property handlers
-function getHandler(property: string, value: StyleObject) {
-  if (is.chunkable(property, value)) {
-    return handleChunkable;
+  if (chunkRows.length) {
+    sheet.append(
+      `${makeClassName(scopeClassName)} {\n${chunkRows.join("\n")}\n}`
+    );
   }
 
-  if (is.mediaQuery(property)) {
-    return handleMediaQuery;
-  }
-
-  if (is.directClass(property)) {
-    return handleDirectClass;
-  }
-
-  return handleRule;
+  return [scopeClassName];
 }
 
 // Simply adds the provided  classnames onto the current scope
