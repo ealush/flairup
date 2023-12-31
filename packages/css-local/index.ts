@@ -194,7 +194,7 @@ class Sheet {
     const key = `${property}:${value}`;
 
     if (this.storedClasses[key]) {
-      return key;
+      return this.storedClasses[key];
     }
 
     const hash = genUniqueHash(this.name, key);
