@@ -1,23 +1,26 @@
 {
-  "name": "flairup-scope",
-  "version": "0.0.0",
-  "license": "MIT",
-  "scripts": {},
-  "private": true,
+  "name": "flairup",
+  "version": "0.0.1-rc",
+  "main": "dist/index.js",
   "devDependencies": {
-    "@nx/eslint": "^17.2.8",
-    "@nx/js": "17.2.7",
-    "@nx/vite": "^17.2.8",
     "@typescript-eslint/eslint-plugin": "^6.16.0",
     "@typescript-eslint/parser": "^6.16.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "jsdom": "^23.0.1",
-    "nx": "17.2.7",
     "prettier": "^3.1.1",
-    "typescript": "^5.3.3"
+    "tshy": "^1.8.2",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vitest": "^1.1.1"
   },
-  "workspaces": [
-    "packages/*"
-  ]
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tshy",
+    "lint": "eslint index.ts",
+    "test": "vitest --watch=false"
+  }
 }
