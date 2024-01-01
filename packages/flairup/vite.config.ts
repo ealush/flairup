@@ -5,7 +5,7 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/packages/css-local',
+  cacheDir: '../../node_modules/.vite/packages/flairup',
 
   plugins: [nxViteTsPaths()],
 
@@ -24,7 +24,7 @@ export default defineConfig({
 
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/packages/css-local',
+      reportsDirectory: '../../coverage/packages/flairup',
       provider: 'v8',
     },
   },

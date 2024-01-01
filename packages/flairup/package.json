@@ -1,6 +1,6 @@
 {
-  "name": "css-local",
-  "version": "0.0.0",
+  "name": "flairup",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "devDependencies": {},
   "scripts": {

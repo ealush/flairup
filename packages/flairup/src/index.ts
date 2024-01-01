@@ -187,7 +187,7 @@ class Sheet {
 
     const styleTag = document.createElement('style');
     styleTag.type = 'text/css';
-    styleTag.id = `css-local-${id}`;
+    styleTag.id = `flairup-${id}`;
     document.head.appendChild(styleTag);
     return styleTag;
   }
