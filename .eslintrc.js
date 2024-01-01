@@ -11,6 +11,17 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'prettier',
   ],
+  // override max lines rule for test files
+  overrides: [
+    {
+      files: ['**/*.test.ts'],
+      rules: {
+        'max-lines-per-function': 'off',
+        'max-nested-callbacks': 'off',
+        'max-statements': 'off',
+      },
+    },
+  ],
   rules: {
     '@typescript-eslint/no-unused-vars': 2,
     '@typescript-eslint/no-explicit-any': 2,

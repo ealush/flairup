@@ -1,8 +1,8 @@
 export function cx(...styles: ClassSet[]): string {
   return styles
     .reduce((acc, curr) => {
-      return `${acc} ${Array.from(curr).join(" ")}`;
-    }, "")
+      return `${acc} ${Array.from(curr).join(' ')}`;
+    }, '')
     .trim();
 }
 
@@ -31,7 +31,7 @@ export function createSheet(name: string): createSheetReturn {
             sheet,
             value as Styles<K>,
             scopeClassName,
-            parentClass
+            parentClass,
           ).forEach((className: string) => {
             addScopedStyle(property as unknown as K, className);
           });
@@ -42,7 +42,7 @@ export function createSheet(name: string): createSheetReturn {
       iterateStyles(sheet, styles as Styles<K>, scopeClassName).forEach(
         (className) => {
           addScopedStyle(scopeName as K, className);
-        }
+        },
       );
     });
 
@@ -61,13 +61,13 @@ function iterateStyles<K extends string>(
   sheet: Sheet,
   styles: Styles<K>,
   scopeClassName: string,
-  parentClassName?: string
+  parentClassName?: string,
 ) {
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
     if (is.directClass(property, value)) {
       return handleAddedClassnames(value).forEach((classes) =>
-        output.add(classes)
+        output.add(classes),
       );
     }
     if (
@@ -76,7 +76,7 @@ function iterateStyles<K extends string>(
       is.cssVariables(property, value)
     ) {
       return handleChunks(sheet, value ?? {}, property, scopeClassName).forEach(
-        (classes) => output.add(classes)
+        (classes) => output.add(classes),
       );
     }
 
@@ -97,7 +97,7 @@ function handleChunks(
   sheet: Sheet,
   styles: StyleObject,
   property: string,
-  scopeClassName: string
+  scopeClassName: string,
 ) {
   const classes: ClassSet = new Set<string>();
 
@@ -109,19 +109,19 @@ function handleChunks(
     }
 
     iterateStyles(sheet, value ?? {}, scopeClassName).forEach((className) =>
-      classes.add(className)
+      classes.add(className),
     );
   });
 
   if (chunkRows.length) {
-    const output = chunkRows.join("\n");
+    const output = chunkRows.join(' ');
     sheet.append(
       `${chunkSelector([scopeClassName], property)} ${wrapWithCurlys(
         is.mediaQuery(property)
           ? genCssRules([scopeClassName], output)
           : output,
-        true
-      )}`
+        true,
+      )}`,
     );
   }
 
@@ -131,17 +131,17 @@ function handleChunks(
 
 // Selectors
 const is = {
-  pseudoSelector: (selector: string) => selector.startsWith(":"),
-  mediaQuery: (property: string) => property.startsWith("@media"),
+  pseudoSelector: (selector: string) => selector.startsWith(':'),
+  mediaQuery: (property: string) => property.startsWith('@media'),
   directClass: (property: string, _: unknown): _ is string | string[] =>
-    property === ".",
+    property === '.',
   cssVariables: (property: string, _: unknown): _ is StyleObject =>
-    property === "--",
+    property === '--',
   validProperty: (value: unknown): value is string =>
-    typeof value === "string" || typeof value === "number",
+    typeof value === 'string' || typeof value === 'number',
   topLevelClass: (property: string, _: unknown): _ is StyleObject =>
-    property.startsWith(".") && property.length > 1,
-  string: (value: unknown): value is string => typeof value === "string",
+    property.startsWith('.') && property.length > 1,
+  string: (value: unknown): value is string => typeof value === 'string',
 };
 
 class Sheet {
@@ -152,7 +152,7 @@ class Sheet {
 
   // styles->hash
   private storedClasses: Record<string, string> = {};
-  private style: string = "";
+  private style: string = '';
   public count = 0;
 
   constructor(public name: string) {
@@ -181,12 +181,12 @@ class Sheet {
 
   createStyleTag(id: string) {
     // check that we're in the browser and have access to the DOM
-    if (typeof document === "undefined") {
+    if (typeof document === 'undefined') {
       return;
     }
 
-    const styleTag = document.createElement("style");
-    styleTag.type = "text/css";
+    const styleTag = document.createElement('style');
+    styleTag.type = 'text/css';
     styleTag.id = `css-local-${id}`;
     document.head.appendChild(styleTag);
     return styleTag;
@@ -232,7 +232,7 @@ function makeClassName(classes: ClassList) {
   return classes
     .filter(Boolean)
     .map((c) => `.${c}`)
-    .join(" ");
+    .join(' ');
 }
 
 function genCssRule(classes: ClassList, property: string, value: string) {
@@ -244,16 +244,16 @@ function genCssRules(classes: ClassList, content: string): string {
 }
 
 function wrapWithCurlys(content: string, breakLine = false) {
-  return [breakLine ? "{\n" : "{", content, breakLine ? "\n}" : "}"].join("");
+  return [breakLine ? '{\n' : '{', content, breakLine ? '\n}' : '}'].join('');
 }
 
 function camelCaseToDash(str: string) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 // Some properties need special handling
 function handlePropertyValue(property: string, value: PropertyValue) {
-  if (property === "content") {
+  if (property === 'content') {
     return `"${value}"`;
   }
 
@@ -269,7 +269,7 @@ function genUniqueHash(prefix: string, seed: string) {
     hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  return `${prefix ?? "cl"}_${hash.toString(36)}`;
+  return `${prefix ?? 'cl'}_${hash.toString(36)}`;
 }
 
 function appendString(base: string, line: string) {
@@ -279,13 +279,13 @@ function appendString(base: string, line: string) {
 function genLine(property: string, value: PropertyValue) {
   return `${camelCaseToDash(property)}: ${handlePropertyValue(
     property,
-    value
+    value,
   )};`;
 }
 
 function forIn<O extends Record<string, unknown>>(
   obj: O,
-  fn: (key: string, value: O[string]) => void
+  fn: (key: string, value: O[string]) => void,
 ) {
   for (const key in obj) {
     fn(key.trim(), obj[key]);
@@ -301,8 +301,8 @@ type CSSVariablesObject = Record<`--${string}`, string>;
 type Style = Partial<
   Record<string, unknown> &
     Partial<{
-      "."?: string | string[];
-      "--"?: CSSVariablesObject;
+      '.'?: string | string[];
+      '--'?: CSSVariablesObject;
     }> &
     Record<Pseudo | MediaQuery, StyleObject> &
     StyleObject
