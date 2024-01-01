@@ -5,7 +5,7 @@ type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 type CSSVariablesObject = Record<`--${string}`, string>;
 type Style = Partial<
-  Record<string, unknown> &
+  Record<string, any> &
     Partial<{
       '.'?: string | string[];
       '--'?: CSSVariablesObject;
@@ -21,3 +21,4 @@ export type Styles<K extends string> = Partial<
 export type StoredStyles = Record<string, [property: string, value: string]>;
 export type ScopedStyles<K extends string> = Record<K, ClassSet>;
 export type ClassList = (string | undefined)[];
+export {};
