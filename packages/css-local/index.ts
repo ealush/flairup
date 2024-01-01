@@ -16,20 +16,40 @@ export function createSheet(name: string) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
+      if (is.topLevelClass(scopeName)) {
+        const scopeClassName = genUniqueHash(sheet.name, scopeName);
+        const parentClass = scopeName.slice(1);
+        forIn(styles, (property, value) => {
+          iterateStyles(sheet, value, scopeClassName, parentClass).forEach(
+            (className) => {
+              addScopedStyle(property, className);
+            }
+          );
+        });
+        return;
+      }
       const scopeClassName = genUniqueHash(sheet.name, scopeName);
-      scopedStyles[scopeName] = iterateStyles(sheet, styles, scopeClassName);
+      iterateStyles(sheet, styles, scopeClassName).forEach((className) => {
+        addScopedStyle(scopeName, className);
+      });
     });
 
     sheet.apply();
 
     return scopedStyles;
+
+    function addScopedStyle(name: string, className) {
+      scopedStyles[name] = scopedStyles[name] ?? new Set<string>();
+      scopedStyles[name].add(className);
+    }
   }
 }
 
 function iterateStyles<K extends string>(
   sheet: Sheet,
   styles: Styles<K>,
-  scopeClassName: string
+  scopeClassName: string,
+  parentClassName?: string
 ) {
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
@@ -39,7 +59,7 @@ function iterateStyles<K extends string>(
       );
     }
     if (is.directClass(property)) {
-      return handleDirectClass(sheet, value).forEach((classes) =>
+      return handleAddedClassnames(sheet, value).forEach((classes) =>
         output.add(classes)
       );
     }
@@ -53,7 +73,7 @@ function iterateStyles<K extends string>(
     }
 
     if (is.validProperty(value)) {
-      const ruleClassName = sheet.addRule(property, value);
+      const ruleClassName = sheet.addRule(property, value, parentClassName);
       return output.add(ruleClassName);
     }
   });
@@ -61,7 +81,7 @@ function iterateStyles<K extends string>(
   return output;
 }
 
-function handleDirectClass(sheet: Sheet, classes: string | string[]) {
+function handleAddedClassnames(sheet: Sheet, classes: string | string[]) {
   return [].concat(classes as unknown as []);
 }
 
@@ -88,8 +108,8 @@ function handlePseudoSelectorOrMediaQuery(
   if (chunkRows.length) {
     const output = chunkRows.join("\n");
     sheet.append(
-      `${chunkSelector(scopeClassName, property)} {${
-        is.mediaQuery(property) ? genCssRules(scopeClassName, output) : output
+      `${chunkSelector([scopeClassName], property)} {${
+        is.mediaQuery(property) ? genCssRules([scopeClassName], output) : output
       }}`
     );
   }
@@ -111,7 +131,7 @@ function handleCssVariables(
 
   if (chunkRows.length) {
     sheet.append(
-      `${makeClassName(scopeClassName)} {\n${chunkRows.join("\n")}\n}`
+      `${makeClassName([scopeClassName])} {\n${chunkRows.join("\n")}\n}`
     );
   }
 
@@ -127,6 +147,8 @@ const is = {
     property === "--",
   validProperty: (value: any): value is string =>
     typeof value === "string" || typeof value === "number",
+  topLevelClass: (property: string) =>
+    property.startsWith(".") && property.length > 1,
 };
 
 class Sheet {
@@ -176,7 +198,7 @@ class Sheet {
     return styleTag;
   }
 
-  addRule(property: string, value: string) {
+  addRule(property: string, value: string, parentClassName?: string) {
     const key = joinedProperty(property, value);
 
     if (this.storedClasses[key]) {
@@ -187,7 +209,7 @@ class Sheet {
     this.storedClasses[key] = hash;
     this.storedStyles[hash] = [property, value];
 
-    this.append(genCssRule(hash, property, value));
+    this.append(genCssRule([parentClassName, hash], property, value));
     return hash;
   }
 }
@@ -197,7 +219,7 @@ function joinedProperty(property: string, value: string) {
 }
 
 // Creates the css line for a chunk
-function chunkSelector(className: string, property: string, child?: string) {
+function chunkSelector(className: ClassList, property: string, child?: string) {
   const base = makeClassName(className);
 
   if (is.pseudoSelector(property)) {
@@ -209,16 +231,19 @@ function chunkSelector(className: string, property: string, child?: string) {
   }
 }
 
-function makeClassName(hash: string) {
-  return `.${hash}`;
+function makeClassName(classes: ClassList) {
+  return classes
+    .filter(Boolean)
+    .map((c) => `.${c}`)
+    .join(" ");
 }
 
-function genCssRule(hash: string, property: string, value: string) {
-  return genCssRules(hash, genLine(property, value));
+function genCssRule(classes: ClassList, property: string, value: string) {
+  return genCssRules(classes, genLine(property, value));
 }
 
-function genCssRules(hash: string, content: string): string {
-  return `${makeClassName(hash)} { ${content} }`;
+function genCssRules(classes: ClassList, content: string): string {
+  return `${makeClassName(classes)} { ${content} }`;
 }
 
 function camelCaseToDash(str: string) {
@@ -278,7 +303,11 @@ type Style = Partial<
     Record<Pseudo | MediaQuery, StyleObject> &
     StyleObject
 >;
-type Styles<K extends string> = Record<K, Style>;
+type ParentClass = `.${string}`;
+type Styles<K extends string> = Partial<
+  Record<K, Style | Record<ParentClass, Record<K, Style>>>
+>;
 type StoredStyles = Record<string, [property: string, value: string]>;
 type ScopedStyles<K extends string> = Record<K, ClassSet>;
 type ClassSet = Set<string>;
+type ClassList = (string | undefined)[];
