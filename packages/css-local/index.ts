@@ -24,7 +24,7 @@ export function createSheet(name: string) {
         forIn(styles, (property, value) => {
           iterateStyles(sheet, value, scopeClassName, parentClass).forEach(
             (className) => {
-              addScopedStyle(property, className);
+              addScopedStyle(property as unknown as K, className);
             }
           );
         });
@@ -32,7 +32,7 @@ export function createSheet(name: string) {
       }
       const scopeClassName = genUniqueHash(sheet.name, scopeName);
       iterateStyles(sheet, styles, scopeClassName).forEach((className) => {
-        addScopedStyle(scopeName, className);
+        addScopedStyle(scopeName as K, className);
       });
     });
 
@@ -40,7 +40,7 @@ export function createSheet(name: string) {
 
     return scopedStyles;
 
-    function addScopedStyle(name: string, className) {
+    function addScopedStyle(name: K, className: string) {
       scopedStyles[name] = scopedStyles[name] ?? new Set<string>();
       scopedStyles[name].add(className);
     }
@@ -56,7 +56,7 @@ function iterateStyles<K extends string>(
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
     if (is.directClass(property)) {
-      return handleAddedClassnames(sheet, value).forEach((classes) =>
+      return handleAddedClassnames(value).forEach((classes) =>
         output.add(classes)
       );
     }
@@ -79,7 +79,7 @@ function iterateStyles<K extends string>(
   return output;
 }
 
-function handleAddedClassnames(sheet: Sheet, classes: string | string[]) {
+function handleAddedClassnames(classes: string | string[]) {
   return [].concat(classes as unknown as []);
 }
 
@@ -124,12 +124,13 @@ const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
   directClass: (property: string) => property === ".",
-  cssVariables: (property: string, value: any): value is StyleObject =>
+  cssVariables: (property: string, _: any): _ is StyleObject =>
     property === "--",
   validProperty: (value: any): value is string =>
     typeof value === "string" || typeof value === "number",
   topLevelClass: (property: string) =>
     property.startsWith(".") && property.length > 1,
+  string: (value: any): value is string => typeof value === "string",
 };
 
 class Sheet {
@@ -179,11 +180,12 @@ class Sheet {
     return styleTag;
   }
 
-  addRule(property: string, value: string, parentClassName?: string) {
+  addRule(property: string, value: string, parentClassName?: string): string {
     const key = joinedProperty(property, value);
 
-    if (this.storedClasses[key]) {
-      return this.storedClasses[key];
+    const storedClass = this.storedClasses[key];
+    if (is.string(storedClass)) {
+      return storedClass;
     }
 
     const hash = genUniqueHash(this.name, key);
