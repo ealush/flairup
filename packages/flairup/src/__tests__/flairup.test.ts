@@ -1,4 +1,4 @@
-import { createSheet } from '../index.ts';
+import { createSheet } from '../index';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 const singlePropertyRegex = /^\.(\w+)\s*\{\s*(\w+)\s*:\s*(\w+);\s*\}$/;

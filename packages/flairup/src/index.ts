@@ -1,14 +1,14 @@
-import { Sheet } from './Sheet.ts';
-import { ClassSet, ScopedStyles, StyleObject, Styles } from './types.ts';
-import { forIn } from './utils/forIn.ts';
-import { is } from './utils/is.ts';
-import { stableHash } from './utils/stableHash.ts';
+import { Sheet } from './Sheet';
+import { ClassSet, ScopedStyles, StyleObject, Styles } from './types';
+import { forIn } from './utils/forIn';
+import { is } from './utils/is';
+import { stableHash } from './utils/stableHash';
 import {
   chunkSelector,
   genCssRules,
   genLine,
   wrapWithCurlys,
-} from './utils/stringManipulators.ts';
+} from './utils/stringManipulators';
 
 export function cx(...styles: ClassSet[]): string {
   return styles

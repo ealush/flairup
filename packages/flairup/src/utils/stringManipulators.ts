@@ -1,5 +1,5 @@
-import { ClassList, PropertyValue } from '../types.ts';
-import { is } from './is.ts';
+import { ClassList, PropertyValue } from '../types';
+import { is } from './is';
 
 export function genCssRule(
   classes: ClassList,
