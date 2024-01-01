@@ -7,10 +7,12 @@
   "devDependencies": {
     "@nx/eslint": "^17.2.8",
     "@nx/js": "17.2.7",
+    "@nx/vite": "^17.2.8",
     "@typescript-eslint/eslint-plugin": "^6.16.0",
     "@typescript-eslint/parser": "^6.16.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
+    "jsdom": "^23.0.1",
     "nx": "17.2.7",
     "prettier": "^3.1.1",
     "typescript": "^5.3.3"

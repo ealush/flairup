@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "dist/index.js",
   "devDependencies": {},
+  "type": "module",
   "scripts": {
     "build": "tsc ./src/index.ts --outDir dist",
     "lint": "eslint index.ts",

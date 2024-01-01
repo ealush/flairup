@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach } from 'vitest';
 import { createSheet } from '../index.ts';
+import { describe, expect, it, beforeEach } from 'vitest';
 
 const singlePropertyRegex = /^\.(\w+)\s*\{\s*(\w+)\s*:\s*(\w+);\s*\}$/;
 const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
