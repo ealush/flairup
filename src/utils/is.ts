@@ -1,4 +1,4 @@
-import { StyleObject } from '../types';
+import { StyleObject } from '../types.js';
 
 // Selectors
 export const is = {

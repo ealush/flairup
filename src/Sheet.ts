@@ -1,11 +1,11 @@
-import { StoredStyles } from './types';
-import { is } from './utils/is';
-import { stableHash } from './utils/stableHash';
+import { StoredStyles } from './types.js';
+import { is } from './utils/is.js';
+import { stableHash } from './utils/stableHash.js';
 import {
   appendString,
   genCssRule,
   joinedProperty,
-} from './utils/stringManipulators';
+} from './utils/stringManipulators.js';
 
 export class Sheet {
   private styleTag: HTMLStyleElement | undefined;
