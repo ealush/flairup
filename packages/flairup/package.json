@@ -5,7 +5,7 @@
   "devDependencies": {},
   "type": "module",
   "scripts": {
-    "build": "tsc ./src/index.ts --outDir dist",
+    "build": "tsc ./src/index.ts",
     "lint": "eslint index.ts",
     "test": "vitest --watch=false"
   }

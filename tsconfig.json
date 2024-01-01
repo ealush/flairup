@@ -2,9 +2,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "rootDir": ".",
+    "noEmit": false,
     "noUnusedLocals": true,
     "sourceMap": true,
-    "declaration": false,
+    "declaration": true,
+    "declarationMap": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
