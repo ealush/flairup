@@ -6,7 +6,12 @@ export function cx(...styles: ClassSet[]): string {
     .trim();
 }
 
-export function createSheet(name: string) {
+type createSheetReturn = {
+  create: <K extends string>(styles: Styles<K>) => ScopedStyles<K>;
+  getStyle: () => string;
+};
+
+export function createSheet(name: string): createSheetReturn {
   const sheet = new Sheet(name);
 
   return {
@@ -18,22 +23,27 @@ export function createSheet(name: string) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
-      if (is.topLevelClass(scopeName)) {
+      if (is.topLevelClass(scopeName, styles)) {
         const scopeClassName = genUniqueHash(sheet.name, scopeName);
         const parentClass = scopeName.slice(1);
         forIn(styles, (property, value) => {
-          iterateStyles(sheet, value, scopeClassName, parentClass).forEach(
-            (className) => {
-              addScopedStyle(property as unknown as K, className);
-            }
-          );
+          iterateStyles(
+            sheet,
+            value as Styles<K>,
+            scopeClassName,
+            parentClass
+          ).forEach((className: string) => {
+            addScopedStyle(property as unknown as K, className);
+          });
         });
         return;
       }
       const scopeClassName = genUniqueHash(sheet.name, scopeName);
-      iterateStyles(sheet, styles, scopeClassName).forEach((className) => {
-        addScopedStyle(scopeName as K, className);
-      });
+      iterateStyles(sheet, styles as Styles<K>, scopeClassName).forEach(
+        (className) => {
+          addScopedStyle(scopeName as K, className);
+        }
+      );
     });
 
     sheet.apply();
@@ -55,7 +65,7 @@ function iterateStyles<K extends string>(
 ) {
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
-    if (is.directClass(property)) {
+    if (is.directClass(property, value)) {
       return handleAddedClassnames(value).forEach((classes) =>
         output.add(classes)
       );
@@ -65,7 +75,7 @@ function iterateStyles<K extends string>(
       is.mediaQuery(property) ||
       is.cssVariables(property, value)
     ) {
-      return handleChunks(sheet, value, property, scopeClassName).forEach(
+      return handleChunks(sheet, value ?? {}, property, scopeClassName).forEach(
         (classes) => output.add(classes)
       );
     }
@@ -91,14 +101,14 @@ function handleChunks(
 ) {
   const classes: ClassSet = new Set<string>();
 
-  let chunkRows: string[] = [];
+  const chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
     if (is.validProperty(value)) {
       chunkRows.push(genLine(property, value));
       return;
     }
 
-    iterateStyles(sheet, value, scopeClassName).forEach((className) =>
+    iterateStyles(sheet, value ?? {}, scopeClassName).forEach((className) =>
       classes.add(className)
     );
   });
@@ -123,14 +133,15 @@ function handleChunks(
 const is = {
   pseudoSelector: (selector: string) => selector.startsWith(":"),
   mediaQuery: (property: string) => property.startsWith("@media"),
-  directClass: (property: string) => property === ".",
-  cssVariables: (property: string, _: any): _ is StyleObject =>
+  directClass: (property: string, _: unknown): _ is string | string[] =>
+    property === ".",
+  cssVariables: (property: string, _: unknown): _ is StyleObject =>
     property === "--",
-  validProperty: (value: any): value is string =>
+  validProperty: (value: unknown): value is string =>
     typeof value === "string" || typeof value === "number",
-  topLevelClass: (property: string) =>
+  topLevelClass: (property: string, _: unknown): _ is StyleObject =>
     property.startsWith(".") && property.length > 1,
-  string: (value: any): value is string => typeof value === "string",
+  string: (value: unknown): value is string => typeof value === "string",
 };
 
 class Sheet {
@@ -176,6 +187,7 @@ class Sheet {
 
     const styleTag = document.createElement("style");
     styleTag.type = "text/css";
+    styleTag.id = `css-local-${id}`;
     document.head.appendChild(styleTag);
     return styleTag;
   }
@@ -271,7 +283,10 @@ function genLine(property: string, value: PropertyValue) {
   )};`;
 }
 
-function forIn(obj: object, fn: (key: string, value: any) => void) {
+function forIn<O extends Record<string, unknown>>(
+  obj: O,
+  fn: (key: string, value: O[string]) => void
+) {
   for (const key in obj) {
     fn(key.trim(), obj[key]);
   }
@@ -284,7 +299,7 @@ type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 type CSSVariablesObject = Record<`--${string}`, string>;
 type Style = Partial<
-  Record<string, any> &
+  Record<string, unknown> &
     Partial<{
       "."?: string | string[];
       "--"?: CSSVariablesObject;
