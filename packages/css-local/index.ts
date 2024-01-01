@@ -55,23 +55,19 @@ function iterateStyles<K extends string>(
 ) {
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
-    if (is.cssVariables(property, value)) {
-      return handleCssVariables(sheet, value, property, scopeClassName).forEach(
-        (classes) => output.add(classes)
-      );
-    }
     if (is.directClass(property)) {
       return handleAddedClassnames(sheet, value).forEach((classes) =>
         output.add(classes)
       );
     }
-    if (is.pseudoSelector(property) || is.mediaQuery(property)) {
-      return handlePseudoSelectorOrMediaQuery(
-        sheet,
-        value,
-        property,
-        scopeClassName
-      ).forEach((classes) => output.add(classes));
+    if (
+      is.pseudoSelector(property) ||
+      is.mediaQuery(property) ||
+      is.cssVariables(property, value)
+    ) {
+      return handleChunks(sheet, value, property, scopeClassName).forEach(
+        (classes) => output.add(classes)
+      );
     }
 
     if (is.validProperty(value)) {
@@ -87,7 +83,7 @@ function handleAddedClassnames(sheet: Sheet, classes: string | string[]) {
   return [].concat(classes as unknown as []);
 }
 
-function handlePseudoSelectorOrMediaQuery(
+function handleChunks(
   sheet: Sheet,
   styles: StyleObject,
   property: string,
@@ -110,34 +106,17 @@ function handlePseudoSelectorOrMediaQuery(
   if (chunkRows.length) {
     const output = chunkRows.join("\n");
     sheet.append(
-      `${chunkSelector([scopeClassName], property)} {${
-        is.mediaQuery(property) ? genCssRules([scopeClassName], output) : output
-      }}`
+      `${chunkSelector([scopeClassName], property)} ${wrapWithCurlys(
+        is.mediaQuery(property)
+          ? genCssRules([scopeClassName], output)
+          : output,
+        true
+      )}`
     );
   }
 
   classes.add(scopeClassName);
   return classes;
-}
-
-function handleCssVariables(
-  sheet: Sheet,
-  value: CSSVariablesObject,
-  _: string,
-  scopeClassName: string
-) {
-  let chunkRows: string[] = [];
-  forIn(value, (property: string, value) => {
-    chunkRows.push(genLine(property, value));
-  });
-
-  if (chunkRows.length) {
-    sheet.append(
-      `${makeClassName([scopeClassName])} {\n${chunkRows.join("\n")}\n}`
-    );
-  }
-
-  return [scopeClassName];
 }
 
 // Selectors
@@ -221,7 +200,7 @@ function joinedProperty(property: string, value: string) {
 }
 
 // Creates the css line for a chunk
-function chunkSelector(className: ClassList, property: string, child?: string) {
+function chunkSelector(className: ClassList, property: string) {
   const base = makeClassName(className);
 
   if (is.pseudoSelector(property)) {
@@ -231,6 +210,8 @@ function chunkSelector(className: ClassList, property: string, child?: string) {
   if (is.mediaQuery(property)) {
     return `${property}`;
   }
+
+  return base;
 }
 
 function makeClassName(classes: ClassList) {
@@ -245,7 +226,11 @@ function genCssRule(classes: ClassList, property: string, value: string) {
 }
 
 function genCssRules(classes: ClassList, content: string): string {
-  return `${makeClassName(classes)} { ${content} }`;
+  return `${makeClassName(classes)} ${wrapWithCurlys(content)}`;
+}
+
+function wrapWithCurlys(content: string, breakLine = false) {
+  return [breakLine ? "{\n" : "{", content, breakLine ? "\n}" : "}"].join("");
 }
 
 function camelCaseToDash(str: string) {
