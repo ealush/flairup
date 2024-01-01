@@ -1,7 +1,9 @@
 export function cx(...styles: ClassSet[]): string {
-  return styles.reduce((acc, curr) => {
-    return `${acc} ${Array.from(curr).join(" ")}`;
-  }, "");
+  return styles
+    .reduce((acc, curr) => {
+      return `${acc} ${Array.from(curr).join(" ")}`;
+    }, "")
+    .trim();
 }
 
 export function createSheet(name: string) {
