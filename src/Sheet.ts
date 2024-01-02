@@ -22,7 +22,7 @@ export class Sheet {
   constructor(public name: string) {
     this.id = `flairup-${name}`;
 
-    this.styleTag = this.createStyleTag(this.id);
+    this.styleTag = this.createStyleTag();
   }
 
   getStyle(): string {
@@ -47,7 +47,7 @@ export class Sheet {
     return !!this.styleTag;
   }
 
-  createStyleTag(id: string): HTMLStyleElement | undefined {
+  createStyleTag(): HTMLStyleElement | undefined {
     // check that we're in the browser and have access to the DOM
     if (typeof document === 'undefined' || this.isApplied()) {
       return;
@@ -55,7 +55,7 @@ export class Sheet {
 
     const styleTag = document.createElement('style');
     styleTag.type = 'text/css';
-    styleTag.id = `flairup-${id}`;
+    styleTag.id = this.id;
     document.head.appendChild(styleTag);
     return styleTag;
   }
