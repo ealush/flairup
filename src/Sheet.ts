@@ -17,11 +17,12 @@ export class Sheet {
   private storedClasses: Record<string, string> = {};
   private style: string = '';
   public count = 0;
+  public id: string;
 
   constructor(public name: string) {
-    const id = `cl-${name}`;
+    this.id = `flairup-${name}`;
 
-    this.styleTag = this.createStyleTag(id);
+    this.styleTag = this.createStyleTag(this.id);
   }
 
   getStyle(): string {
@@ -42,9 +43,13 @@ export class Sheet {
     this.styleTag.innerHTML = this.style;
   }
 
+  isApplied(): boolean {
+    return !!this.styleTag;
+  }
+
   createStyleTag(id: string): HTMLStyleElement | undefined {
     // check that we're in the browser and have access to the DOM
-    if (typeof document === 'undefined') {
+    if (typeof document === 'undefined' || this.isApplied()) {
       return;
     }
 

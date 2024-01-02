@@ -20,6 +20,7 @@ export function cx(...styles: ClassSet[]): string {
 type createSheetReturn = {
   create: <K extends string>(styles: Styles<K>) => ScopedStyles<K>;
   getStyle: () => string;
+  isApplied: () => boolean;
 };
 
 export function createSheet(name: string): createSheetReturn {
@@ -28,6 +29,7 @@ export function createSheet(name: string): createSheetReturn {
   return {
     create,
     getStyle: sheet.getStyle.bind(sheet),
+    isApplied: sheet.isApplied.bind(sheet),
   };
 
   function create<K extends string>(styles: Styles<K>) {

@@ -149,7 +149,7 @@ describe('createSheet', () => {
   });
 
   describe('When using media queries', () => {
-    it.only('Should create media queries', () => {
+    it('Should create media queries', () => {
       const styles = sheet.create({
         one: {
           color: 'red',
