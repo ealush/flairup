@@ -5,7 +5,6 @@ import { is } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
 import {
   chunkSelector,
-  genCssRules,
   genLine,
   wrapWithCurlys,
 } from './utils/stringManipulators.js';
@@ -82,11 +81,17 @@ function iterateStyles<K extends string>(
         output.add(classes),
       );
     }
-    if (
-      is.pseudoSelector(property) ||
-      is.mediaQuery(property) ||
-      is.cssVariables(property, value)
-    ) {
+
+    if (is.mediaQuery(property)) {
+      return handleMediaQuery(
+        sheet,
+        value ?? {},
+        property,
+        scopeClassName,
+      ).forEach((className) => output.add(className));
+    }
+
+    if (is.pseudoSelector(property) || is.cssVariables(property, value)) {
       return handleChunks(sheet, value ?? {}, property, scopeClassName).forEach(
         (classes) => output.add(classes),
       );
@@ -129,9 +134,7 @@ function handleChunks(
     const output = chunkRows.join(' ');
     sheet.append(
       `${chunkSelector([scopeClassName], property)} ${wrapWithCurlys(
-        is.mediaQuery(property)
-          ? genCssRules([scopeClassName], output)
-          : output,
+        output,
         true,
       )}`,
     );
@@ -139,4 +142,19 @@ function handleChunks(
 
   classes.add(scopeClassName);
   return classes;
+}
+
+function handleMediaQuery(
+  sheet: Sheet,
+  styles: Styles<string>,
+  property: string,
+  scopeClassName: string,
+) {
+  sheet.append(chunkSelector([scopeClassName], property) + ' {');
+
+  const output = iterateStyles(sheet, styles, scopeClassName);
+
+  sheet.append('}');
+
+  return output;
 }

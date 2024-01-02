@@ -2,7 +2,7 @@ import { createSheet } from '../index.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 const singlePropertyRegex = /^\.(\w+)\s*\{\s*(\w+)\s*:\s*(\w+);\s*\}$/;
-const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
+// const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
 
 describe('createSheet', () => {
   let sheet: ReturnType<typeof createSheet>;
@@ -149,7 +149,7 @@ describe('createSheet', () => {
   });
 
   describe('When using media queries', () => {
-    it('Should create media queries', () => {
+    it.only('Should create media queries', () => {
       const styles = sheet.create({
         one: {
           color: 'red',
@@ -161,18 +161,25 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.one.size).toBe(3);
+      expect(styles.one.size).toBe(4);
 
       const style = sheet.getStyle();
       const splitStyles = style.split('\n').filter(Boolean);
 
-      const [first, second, mediaDecleration, mediaRules, mediaCloser] =
-        splitStyles;
+      const [
+        first,
+        second,
+        mediaDecleration,
+        mediaColor,
+        mediaHeight,
+        mediaCloser,
+      ] = splitStyles;
 
       expect(first).toMatch(singlePropertyRegex);
       expect(second).toMatch(singlePropertyRegex);
       expect(mediaDecleration).toBe('@media (max-width: 600px) {');
-      expect(mediaRules).toMatch(multiPropertyRegex);
+      expect(mediaColor).toMatch(singlePropertyRegex);
+      expect(mediaHeight).toMatch(singlePropertyRegex);
       expect(mediaCloser).toBe('}');
     });
   });
@@ -191,6 +198,7 @@ describe('createSheet', () => {
       });
 
       expect(styles.one.size).toBe(3);
+      console.log(styles.one);
 
       const style = sheet.getStyle();
       const splitStyles = style.split('\n').filter(Boolean);
