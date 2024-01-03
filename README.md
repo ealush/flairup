@@ -29,6 +29,7 @@ The way FlairUp works is by adding a `<style>` tag to the DOM, and injecting the
 ### One Class Per CSS Property
 
 To reduce bloat and improve performance, FlairUp will only add a single class per CSS property, meaning that if a certain style exists in multiple places, it will only be added as one class to the stylesheet, and be reused in all places consuming it.
+This is a much more efficient way, allowing us not to worry about de-duplication of stylis.
 
 ### The StyleSheet Object
 
@@ -138,3 +139,9 @@ const styles = sheet.create({
   },
 });
 ```
+
+## What does the output look like?
+![image](https://github.com/ealush/flairup/assets/11255103/aea8f56f-1ccb-4bf1-8fa5-c95da9684726)
+
+
+ 
