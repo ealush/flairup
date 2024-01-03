@@ -68,3 +68,73 @@ const styles = sheet.create({
 
 const Button = () => <button className={cx(styles.button)}>Hover Me</button>;
 ```
+
+### Adding Custom Class Names
+
+```javascript
+const styles = sheet.create({
+  button: {
+    '.': 'my-button', // or ["my-button", "button-main"]
+    color: 'red',
+  },
+});
+```
+
+### Adding Scoped CSS Variables
+
+Unlike regular CSS properties, CSS variables are as a single class per scope.
+
+```javascript
+const styles = sheet.create({
+  button: {
+    '--': {
+      '--color': 'red',
+      '--hover-color': 'blue',
+    },
+  },
+});
+```
+
+### Adding Media Queries
+
+```javascript
+const styles = sheet.create({
+  button: {
+    color: 'red',
+    '@media (max-width: 600px)': {
+      color: 'blue',
+    },
+  },
+});
+```
+
+### Adding Pseudo Selectors and Pseudo Elements
+
+```javascript
+const styles = sheet.create({
+  button: {
+    color: 'red',
+    ':hover': {
+      color: 'blue',
+    },
+    '::before': {
+      content: '🎩',
+    },
+  },
+});
+```
+
+### Scoping a style under a known class name
+
+```javascript
+const styles = sheet.create({
+  '.theme-dark': {
+    button: {
+      color: 'red',
+      ':hover': {
+        color: 'blue',
+      },
+    },
+  },
+});
+```
