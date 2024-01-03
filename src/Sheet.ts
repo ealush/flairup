@@ -60,8 +60,14 @@ export class Sheet {
     return styleTag;
   }
 
-  addRule(property: string, value: string, parentClassName?: string): string {
-    const key = joinedProperty(property, value);
+  addRule(
+    property: string,
+    value: string,
+    parentClassName: string = '',
+  ): string {
+    // adding the parent class name in case we're scoping under a top level class
+    // this prevents collisions in the hash
+    const key = joinedProperty(property, value) + parentClassName;
 
     const storedClass = this.storedClasses[key];
     if (is.string(storedClass)) {

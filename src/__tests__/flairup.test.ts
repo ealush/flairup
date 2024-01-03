@@ -1,7 +1,7 @@
 import { createSheet } from '../index.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 
-const singlePropertyRegex = /^\.(\w+)\s*\{\s*(\w+)\s*:\s*(\w+);\s*\}$/;
+const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
 // const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
 
 describe('createSheet', () => {
@@ -198,7 +198,6 @@ describe('createSheet', () => {
       });
 
       expect(styles.one.size).toBe(3);
-      console.log(styles.one);
 
       const style = sheet.getStyle();
       const splitStyles = style.split('\n').filter(Boolean);
@@ -212,6 +211,61 @@ describe('createSheet', () => {
       expect(pseudoDecleration).toMatch(/^\.(\w+)\s*:hover\s*\{\s*$/);
       expect(pseudoRules).toEqual('color: blue; height: 200px;');
       expect(pseudoCloser).toBe('}');
+    });
+  });
+
+  describe('Adding a top level class', () => {
+    it('Should nest styles under the top level class', () => {
+      const styles = sheet.create({
+        '.top-level-class': {
+          button: {
+            color: 'red',
+            height: '100px',
+          },
+        },
+      });
+
+      expect(styles).toHaveProperty('button');
+
+      const style = sheet.getStyle();
+      const splitStyles = style.split('\n').filter(Boolean);
+
+      expect(splitStyles.length).toBe(2);
+      splitStyles.forEach((style) => {
+        expect(style.startsWith('.top-level-class ')).toBe(true);
+        const [, value] = style.split('.top-level-class ');
+        expect(value).toMatch(singlePropertyRegex);
+      });
+    });
+
+    describe('When the same style is added outside of the top level', () => {
+      it('Should be added separately', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              color: 'red',
+            },
+          },
+          button: {
+            color: 'red',
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+
+        const style = sheet.getStyle();
+        const splitStyles = style.split('\n').filter(Boolean);
+
+        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
+        expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(false);
+
+        expect(splitStyles[0]?.split('{')[1]?.trim()).toBe(
+          splitStyles[1]?.split('{')[1]?.trim(),
+        );
+
+        expect(splitStyles.length).toBe(2);
+        expect(styles.button.size).toBe(2);
+      });
     });
   });
 });
