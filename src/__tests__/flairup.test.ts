@@ -267,5 +267,37 @@ describe('createSheet', () => {
         expect(styles.button.size).toBe(2);
       });
     });
+
+    describe('When netsed under different top level classes', () => {
+      it('Should be added separately', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              color: 'red',
+            },
+          },
+          '.top-level-class2': {
+            button: {
+              color: 'red',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+
+        const style = sheet.getStyle();
+        const splitStyles = style.split('\n').filter(Boolean);
+
+        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
+        expect(splitStyles[1]?.startsWith('.top-level-class2 ')).toBe(true);
+
+        expect(splitStyles[0]?.split('{')[1]?.trim()).toBe(
+          splitStyles[1]?.split('{')[1]?.trim(),
+        );
+
+        expect(splitStyles.length).toBe(2);
+        expect(styles.button.size).toBe(2);
+      });
+    });
   });
 });

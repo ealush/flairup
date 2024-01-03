@@ -1,5 +1,11 @@
 import { Sheet } from './Sheet.js';
-import { ClassSet, ScopedStyles, StyleObject, Styles } from './types.js';
+import {
+  ClassSet,
+  ParentClass,
+  ScopedStyles,
+  StyleObject,
+  Styles,
+} from './types.js';
 import { forIn } from './utils/forIn.js';
 import { is } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
@@ -17,8 +23,12 @@ export function cx(...styles: ClassSet[]): string {
     .trim();
 }
 
+type S<K extends string> = Exclude<K, ParentClass>;
+
 type createSheetReturn = {
-  create: <K extends string>(styles: Styles<K>) => ScopedStyles<K>;
+  create: <K extends string>(
+    styles: Styles<K> & Record<ParentClass, Styles<K>>,
+  ) => ScopedStyles<S<K>>;
   getStyle: () => string;
   isApplied: () => boolean;
 };
@@ -32,7 +42,9 @@ export function createSheet(name: string): createSheetReturn {
     isApplied: sheet.isApplied.bind(sheet),
   };
 
-  function create<K extends string>(styles: Styles<K>) {
+  function create<K extends string>(
+    styles: Styles<K> & Record<ParentClass, Styles<K>>,
+  ) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {

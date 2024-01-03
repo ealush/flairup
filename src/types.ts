@@ -13,7 +13,7 @@ type Style = Partial<
     Record<Pseudo | MediaQuery, StyleObject> &
     StyleObject
 >;
-type ParentClass = `.${string}`;
+export type ParentClass = `.${string}`;
 export type ClassSet = Set<string>;
 export type Styles<K extends string> = Partial<
   Record<K, Style | Record<ParentClass, Record<K, Style>>>
