@@ -1,6 +1,6 @@
 {
   "name": "flairup",
-  "version": "0.0.7-rc",
+  "version": "0.0.1",
   "main": "./dist/commonjs/index.js",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.16.0",
