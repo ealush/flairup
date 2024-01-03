@@ -15,13 +15,7 @@ import {
   wrapWithCurlys,
 } from './utils/stringManipulators.js';
 
-export function cx(...styles: ClassSet[]): string {
-  return styles
-    .reduce((acc, curr) => {
-      return `${acc} ${Array.from(curr).join(' ')}`;
-    }, '')
-    .trim();
-}
+export { cx } from './cx.js';
 
 type S<K extends string> = Exclude<K, ParentClass>;
 
