@@ -1,5 +1,6 @@
 import { Sheet } from './Sheet.js';
 import {
+  CSSVariablesObject,
   ClassSet,
   ParentClass,
   ScopedStyles,
@@ -94,8 +95,11 @@ function iterateStyles<K extends string>(
       );
     }
 
-    if (is.pseudoSelector(property) || is.cssVariables(property, value)) {
-      return handleChunks(sheet, value ?? {}, property, scopeClassName).forEach(
+    if (
+      is.pseudoSelector(property, value) ||
+      is.cssVariables(property, value)
+    ) {
+      return handleChunks(sheet, value, property, scopeClassName).forEach(
         (classes) => output.add(classes),
       );
     }
@@ -115,7 +119,7 @@ function handleAddedClassnames(classes: string | string[]) {
 
 function handleChunks(
   sheet: Sheet,
-  styles: StyleObject,
+  styles: StyleObject | CSSVariablesObject,
   property: string,
   scopeClassName: string,
 ) {
