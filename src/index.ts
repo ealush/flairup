@@ -42,22 +42,20 @@ export function createSheet(name: string): createSheetReturn {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
+      const scopeClassName = stableHash(sheet.name, scopeName);
       if (is.topLevelClass(scopeName, styles)) {
-        const scopeClassName = stableHash(sheet.name, scopeName);
-        const parentClass = scopeName.slice(1);
         forIn(styles, (property, value) => {
           iterateStyles(
             sheet,
             value as Styles<K>,
             scopeClassName,
-            parentClass,
+            scopeName.slice(1),
           ).forEach((className: string) => {
             addScopedStyle(property as unknown as K, className);
           });
         });
         return;
       }
-      const scopeClassName = stableHash(sheet.name, scopeName);
       iterateStyles(sheet, styles as Styles<K>, scopeClassName).forEach(
         (className) => {
           addScopedStyle(scopeName as K, className);
