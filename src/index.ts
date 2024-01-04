@@ -88,13 +88,10 @@ function iterateStyles<K extends string>(
       );
     }
 
-    if (is.mediaQuery(property)) {
-      return handleMediaQuery(
-        sheet,
-        value ?? {},
-        property,
-        scopeClassName,
-      ).forEach((className) => output.add(className));
+    if (is.mediaQuery(property, value)) {
+      return handleMediaQuery(sheet, value, property, scopeClassName).forEach(
+        (className) => output.add(className),
+      );
     }
 
     if (is.pseudoSelector(property) || is.cssVariables(property, value)) {

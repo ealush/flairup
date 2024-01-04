@@ -1,9 +1,10 @@
-import { StyleObject } from '../types.js';
+import { StyleObject, Styles } from '../types.js';
 
 // Selectors
 export const is = {
   pseudoSelector: (selector: string): boolean => selector.startsWith(':'),
-  mediaQuery: (property: string): boolean => property.startsWith('@media'),
+  mediaQuery: (property: string, _: unknown): _ is Styles<string> =>
+    property.startsWith('@media'),
   directClass: (property: string, _: unknown): _ is string | string[] =>
     property === '.',
   cssVariables: (property: string, _: unknown): _ is StyleObject =>
