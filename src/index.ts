@@ -6,6 +6,7 @@ import {
   ScopedStyles,
   StyleObject,
   Styles,
+  createSheetReturn,
 } from './types.js';
 import { forIn } from './utils/forIn.js';
 import { is } from './utils/is.js';
@@ -17,12 +18,6 @@ import {
 } from './utils/stringManipulators.js';
 
 export { cx } from './cx.js';
-
-type createSheetReturn = {
-  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<K>;
-  getStyle: () => string;
-  isApplied: () => boolean;
-};
 
 export function createSheet(name: string): createSheetReturn {
   const sheet = new Sheet(name);

@@ -36,3 +36,9 @@ type S<K extends string> = Exclude<
   K,
   ParentClass | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
 >;
+
+export type createSheetReturn = {
+  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<S<K>>;
+  getStyle: () => string;
+  isApplied: () => boolean;
+};
