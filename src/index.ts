@@ -2,6 +2,7 @@ import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
   ClassSet,
+  CreateSheetInput,
   ParentClass,
   ScopedStyles,
   StyleObject,
@@ -21,9 +22,7 @@ export { cx } from './cx.js';
 type S<K extends string> = Exclude<K, ParentClass>;
 
 type createSheetReturn = {
-  create: <K extends string>(
-    styles: Styles<K> & Record<ParentClass, Styles<K>>,
-  ) => ScopedStyles<S<K>>;
+  create: <K extends string>(styles: CreateSheetInput) => ScopedStyles<S<K>>;
   getStyle: () => string;
   isApplied: () => boolean;
 };
@@ -37,9 +36,7 @@ export function createSheet(name: string): createSheetReturn {
     isApplied: sheet.isApplied.bind(sheet),
   };
 
-  function create<K extends string>(
-    styles: Styles<K> & Record<ParentClass, Styles<K>>,
-  ) {
+  function create<K extends string>(styles: CreateSheetInput) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
@@ -48,7 +45,7 @@ export function createSheet(name: string): createSheetReturn {
         forIn(styles, (property, value) => {
           iterateStyles(
             sheet,
-            value as Styles<K>,
+            value as Styles,
             scopeClassName,
             scopeName.slice(1),
           ).forEach((className: string) => {
@@ -57,7 +54,7 @@ export function createSheet(name: string): createSheetReturn {
         });
         return;
       }
-      iterateStyles(sheet, styles as Styles<K>, scopeClassName).forEach(
+      iterateStyles(sheet, styles as Styles, scopeClassName).forEach(
         (className) => {
           addScopedStyle(scopeName as K, className);
         },
@@ -75,9 +72,9 @@ export function createSheet(name: string): createSheetReturn {
   }
 }
 
-function iterateStyles<K extends string>(
+function iterateStyles(
   sheet: Sheet,
-  styles: Styles<K>,
+  styles: Styles,
   scopeClassName: string,
   parentClassName?: string,
 ) {
@@ -153,7 +150,7 @@ function handleChunks(
 
 function handleMediaQuery(
   sheet: Sheet,
-  styles: Styles<string>,
+  styles: Styles,
   property: string,
   scopeClassName: string,
 ) {

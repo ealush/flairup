@@ -5,16 +5,12 @@ type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 
 export type CSSVariablesObject = Record<`--${string}`, string>;
-type Style =
-  | Record<string, unknown>
-  | Partial<Record<string, unknown> & FlairUpProperties & Chunks & StyleObject>;
+
 export type ParentClass = `.${string}`;
 export type ClassSet = Set<string>;
 
 // That's the create function input
-export type Styles<K extends string> = Partial<
-  Record<K, Style | Record<ParentClass, Record<K, Style>>>
->;
+export type Styles = Partial<StyleObject & FlairUpProperties & Chunks>;
 export type StoredStyles = Record<string, [property: string, value: string]>;
 
 // This is the actual type that's returned from each create function
@@ -27,3 +23,5 @@ type FlairUpProperties = Partial<{
   '--'?: CSSVariablesObject;
 }>;
 type Chunks = Record<Pseudo | MediaQuery, StyleObject>;
+
+export type CreateSheetInput = Styles & Record<ParentClass, Styles>;
