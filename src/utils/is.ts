@@ -4,7 +4,7 @@ import { CSSVariablesObject, StyleObject, Styles } from '../types.js';
 export const is = {
   pseudoSelector: (selector: string, _: unknown): _ is StyleObject =>
     selector.startsWith(':'),
-  mediaQuery: (property: string, _: unknown): _ is Styles<string> =>
+  mediaQuery: (property: string, _: unknown): _ is Styles =>
     property.startsWith('@media'),
   directClass: (property: string, _: unknown): _ is string | string[] =>
     property === '.',

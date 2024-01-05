@@ -1,6 +1,5 @@
 export type PropertyValue = string | number;
-type CSSProperties = keyof CSSStyleDeclaration;
-export type StyleObject = Partial<Record<CSSProperties, PropertyValue>>;
+export type StyleObject = Partial<CSSStyleDeclaration>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 
@@ -24,5 +23,6 @@ type FlairUpProperties = Partial<{
 }>;
 type Chunks = Record<Pseudo | MediaQuery, StyleObject>;
 
-export type CreateSheetInput = Record<string, Styles> &
-  Record<ParentClass, Record<string, Styles>>;
+export type CreateSheetInput<K extends string> =
+  | Record<K | string, Styles>
+  | Record<ParentClass, Record<K | string, Styles>>;

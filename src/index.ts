@@ -22,7 +22,7 @@ export { cx } from './cx.js';
 type S<K extends string> = Exclude<K, ParentClass>;
 
 type createSheetReturn = {
-  create: <K extends string>(styles: CreateSheetInput) => ScopedStyles<S<K>>;
+  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<S<K>>;
   getStyle: () => string;
   isApplied: () => boolean;
 };
@@ -36,7 +36,7 @@ export function createSheet(name: string): createSheetReturn {
     isApplied: sheet.isApplied.bind(sheet),
   };
 
-  function create<K extends string>(styles: CreateSheetInput) {
+  function create<K extends string>(styles: CreateSheetInput<K>) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
