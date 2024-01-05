@@ -1,7 +1,7 @@
 {
   "name": "flairup",
   "description": "🎩 Lightweight CSS-in-JS solution for npm packages",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "keywords": [
     "CSS-in-JS",
     "Component-styling",
