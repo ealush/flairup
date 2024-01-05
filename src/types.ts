@@ -32,7 +32,9 @@ type S<K extends string> = Exclude<
 >;
 
 export type createSheetReturn = {
-  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<S<K>>;
+  create: <K extends string>(
+    styles: CreateSheetInput<K>,
+  ) => ScopedStyles<S<K>> & ScopedStyles<string>;
   getStyle: () => string;
   isApplied: () => boolean;
 };
