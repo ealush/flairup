@@ -24,4 +24,5 @@ type FlairUpProperties = Partial<{
 }>;
 type Chunks = Record<Pseudo | MediaQuery, StyleObject>;
 
-export type CreateSheetInput = Styles & Record<ParentClass, Styles>;
+export type CreateSheetInput = Record<string, Styles> &
+  Record<ParentClass, Record<string, Styles>>;
