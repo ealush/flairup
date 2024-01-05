@@ -281,7 +281,6 @@ describe('createSheet', () => {
               color: 'red',
             },
           },
-          button: {},
         });
 
         expect(styles).toHaveProperty('button');

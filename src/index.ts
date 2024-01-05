@@ -3,7 +3,6 @@ import {
   CSSVariablesObject,
   ClassSet,
   CreateSheetInput,
-  ParentClass,
   ScopedStyles,
   StyleObject,
   Styles,
@@ -19,10 +18,8 @@ import {
 
 export { cx } from './cx.js';
 
-type S<K extends string> = Exclude<K, ParentClass>;
-
 type createSheetReturn = {
-  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<S<K>>;
+  create: <K extends string>(styles: CreateSheetInput<K>) => ScopedStyles<K>;
   getStyle: () => string;
   isApplied: () => boolean;
 };
@@ -66,8 +63,9 @@ export function createSheet(name: string): createSheetReturn {
     return scopedStyles;
 
     function addScopedStyle(name: K, className: string) {
-      scopedStyles[name] = scopedStyles[name] ?? new Set<string>();
-      scopedStyles[name].add(className);
+      scopedStyles[name as keyof ScopedStyles<K>] =
+        scopedStyles[name as keyof ScopedStyles<K>] ?? new Set<string>();
+      scopedStyles[name as keyof ScopedStyles<K>].add(className);
     }
   }
 }
