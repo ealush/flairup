@@ -9,6 +9,7 @@ export function genCssRule(
   return genCssRules(classes, genLine(property, value));
 }
 
+// Convets property name and value to css line
 export function genLine(property: string, value: PropertyValue): string {
   return `${camelCaseToDash(property)}: ${handlePropertyValue(
     property,
@@ -48,11 +49,11 @@ export function joinedProperty(property: string, value: string): string {
 export function chunkSelector(className: ClassList, property: string): string {
   const base = makeClassName(className);
 
-  if (is.pseudoSelector(property)) {
+  if (is.pseudoSelector(property, null)) {
     return `${base}${property}`;
   }
 
-  if (is.mediaQuery(property)) {
+  if (is.mediaQuery(property, null)) {
     return `${property}`;
   }
 

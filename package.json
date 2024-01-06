@@ -40,8 +40,9 @@
   ],
   "scripts": {
     "build": "tsup ./src/index.ts --target es5",
-    "lint": "eslint index.ts",
-    "test": "vitest --watch=false"
+    "lint": "eslint --ext .ts ./src",
+    "test": "vitest --watch=false",
+    "prepublish": "npm run test && npm run build"
   },
   "tsup": {
     "sourcemap": true,

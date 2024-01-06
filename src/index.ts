@@ -32,20 +32,29 @@ export function createSheet(name: string): createSheetReturn {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
     forIn(styles, (scopeName, styles) => {
-      const scopeClassName = stableHash(sheet.name, scopeName);
+      // This handles a class that's wrapping a scoped style.
+      // This allows us setting sort of a "precondition" selector for the scoped styles.
+
       if (is.topLevelClass(scopeName, styles)) {
-        forIn(styles, (property, value) => {
+        forIn(styles, (childScope, value) => {
+          // This is an actual scoped style, so we need to iterate over it.
+          const scopeClassName = stableHash(sheet.name, childScope);
+
           iterateStyles(
             sheet,
             value as Styles,
             scopeClassName,
-            scopeName.slice(1),
+            scopeName.slice(1), // Remove the dot
           ).forEach((className: string) => {
-            addScopedStyle(property as unknown as K, className);
+            addScopedStyle(childScope as unknown as K, className);
           });
         });
         return;
       }
+
+      const scopeClassName = stableHash(sheet.name, scopeName);
+
+      // Handles the default case in which we have a scope directly on the root level.
       iterateStyles(sheet, styles as Styles, scopeClassName).forEach(
         (className) => {
           addScopedStyle(scopeName as K, className);

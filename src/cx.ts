@@ -1,5 +1,5 @@
-export function cx(...args: any[]): string {
-  const classes = args.reduce((classes, arg) => {
+export function cx(...args: unknown[]): string {
+  const classes = args.reduce((classes: string[], arg) => {
     if (arg instanceof Set) {
       classes.push(...arg);
     } else if (typeof arg === 'string') {
@@ -7,6 +7,7 @@ export function cx(...args: any[]): string {
     } else if (Array.isArray(arg)) {
       classes.push(cx(...arg));
     } else if (typeof arg === 'object') {
+      // @ts-expect-error - it is a string
       Object.entries(arg).forEach(([key, value]) => {
         if (value) {
           classes.push(key);
@@ -15,7 +16,7 @@ export function cx(...args: any[]): string {
     }
 
     return classes;
-  }, []);
+  }, [] as string[]);
 
   return classes.filter(Boolean).join(' ').trim();
 }
