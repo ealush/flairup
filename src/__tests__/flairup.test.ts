@@ -381,5 +381,62 @@ describe('createSheet', () => {
         expect(styles.button.size).toBe(2);
       });
     });
+
+    describe('When nesting css variables', () => {
+      it('Should create css variables under the top level class and the scoped', () => {
+        sheet.create({
+          '.top-level-class': {
+            main: {
+              '--': {
+                '--base': 'red',
+                '--size': '100px',
+              },
+              color: 'var(--base)',
+            },
+          },
+        });
+
+        expect(sheet.getStyle()).toMatchInlineSnapshot(`
+          ".top-level-class .test_1zo3d {
+          --base: red; --size: 100px;
+          }
+          .top-level-class .test_9dpf7b {color: var(--base);}"
+        `);
+
+        const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
+        expect(splitStyles.length).toBe(4);
+        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
+        expect(splitStyles[3]?.startsWith('.top-level-class ')).toBe(true);
+      });
+    });
+
+    describe("When nesting pseudo selectors under the top level class's selector", () => {
+      it('Should create pseudo selectors under the top level class', () => {
+        sheet.create({
+          '.top-level-class': {
+            button: {
+              ':hover': {
+                color: 'blue',
+                height: '200px',
+              },
+            },
+          },
+        });
+
+        expect(sheet.getStyle()).toMatchInlineSnapshot(`
+          ".top-level-class .test_-ms8moe:hover {
+          color: blue; height: 200px;
+          }"
+        `);
+
+        const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
+        expect(splitStyles.length).toBe(3);
+        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
+        // eslint-disable-next-line no-unsafe-optional-chaining
+        const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ');
+        expect(topLevel).toBe('.top-level-class');
+        expect(pseudoDecleration).toBe('.test_-ms8moe:hover');
+      });
+    });
   });
 });

@@ -83,9 +83,7 @@ function iterateStyles(
   const output: ClassSet = new Set<string>();
   forIn(styles, (property, value) => {
     if (is.directClass(property, value)) {
-      return handleAddedClassnames(value).forEach((classes) =>
-        output.add(classes),
-      );
+      return asArray(value).forEach((classes) => output.add(classes));
     }
 
     if (is.mediaQuery(property, value)) {
@@ -98,9 +96,13 @@ function iterateStyles(
       is.pseudoSelector(property, value) ||
       is.cssVariables(property, value)
     ) {
-      return handleChunks(sheet, value, property, scopeClassName).forEach(
-        (classes) => output.add(classes),
-      );
+      return handleChunks(
+        sheet,
+        value,
+        property,
+        scopeClassName,
+        parentClassName,
+      ).forEach((classes) => output.add(classes));
     }
 
     if (is.validProperty(property, value)) {
@@ -112,7 +114,7 @@ function iterateStyles(
   return output;
 }
 
-function handleAddedClassnames(classes: string | string[]) {
+function asArray(classes: string | string[]) {
   return [].concat(classes as unknown as []);
 }
 
@@ -121,6 +123,7 @@ function handleChunks(
   styles: StyleObject | CSSVariablesObject,
   property: string,
   scopeClassName: string,
+  parentClassName?: string,
 ) {
   const classes: ClassSet = new Set<string>();
 
@@ -139,10 +142,10 @@ function handleChunks(
   if (chunkRows.length) {
     const output = chunkRows.join(' ');
     sheet.append(
-      `${chunkSelector([scopeClassName], property)} ${wrapWithCurlys(
-        output,
-        true,
-      )}`,
+      `${chunkSelector(
+        [parentClassName, scopeClassName],
+        property,
+      )} ${wrapWithCurlys(output, true)}`,
     );
   }
 
