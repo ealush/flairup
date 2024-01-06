@@ -146,6 +146,38 @@ describe('createSheet', () => {
       expect(rules).toBe('--base: red; --size: 100px;');
       expect(closer).toBe('}');
     });
+
+    describe('When inside of a media query', () => {
+      describe('Media query', () => {
+        it('Should create css variables under one class', () => {
+          const styles = sheet.create({
+            one: {
+              '@media (max-width: 600px)': {
+                '--': {
+                  '--base': 'red',
+                  '--size': '10px',
+                  '--height': '200px',
+                },
+              },
+            },
+          });
+
+          expect(styles.one.size).toBe(1);
+          const css = sheet.getStyle();
+          const splitStyles = css.split('\n').filter(Boolean);
+          expect(splitStyles.length).toBe(5);
+          const [mediaDecleration, classOpen, vars, classClose, mediaCloser] =
+            splitStyles;
+
+          expect(mediaDecleration).toBe('@media (max-width: 600px) {');
+          expect(classOpen).toMatch(/^\.(\w+)\s*\{\s*$/);
+          expect(vars).toBe('--base: red; --size: 10px; --height: 200px;');
+          expect(classClose).toBe('}');
+          expect(mediaCloser).toBe('}');
+          expect(css).toMatchSnapshot();
+        });
+      });
+    });
   });
 
   describe('When using media queries', () => {

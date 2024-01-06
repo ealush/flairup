@@ -20,7 +20,11 @@ type FlairUpProperties = Partial<{
   '.'?: string | string[];
   '--'?: CSSVariablesObject;
 }>;
-type Chunks = Record<Pseudo | MediaQuery, StyleObject>;
+type Chunks = Record<
+  MediaQuery,
+  StyleObject & Record<'--', CSSVariablesObject>
+> &
+  Record<Pseudo, StyleObject>;
 
 export type CreateSheetInput<K extends string> = Partial<
   Record<K, Styles> | Record<ParentClass, Record<K, Styles>>

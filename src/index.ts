@@ -94,7 +94,7 @@ function iterateStyles(
       );
     }
 
-    if (is.validProperty(value)) {
+    if (is.validProperty(property, value)) {
       const ruleClassName = sheet.addRule(property, value, parentClassName);
       return output.add(ruleClassName);
     }
@@ -117,7 +117,7 @@ function handleChunks(
 
   const chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
-    if (is.validProperty(value)) {
+    if (is.validProperty(property, value)) {
       chunkRows.push(genLine(property, value));
       return;
     }

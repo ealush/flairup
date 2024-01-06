@@ -10,8 +10,11 @@ export const is = {
     property === '.',
   cssVariables: (property: string, _: unknown): _ is CSSVariablesObject =>
     property === '--',
-  validProperty: (value: unknown): value is string =>
-    typeof value === 'string' || typeof value === 'number',
+  validProperty: (property: string, value: unknown): value is string =>
+    (typeof value === 'string' || typeof value === 'number') &&
+    !is.cssVariables(property, value) &&
+    !is.pseudoSelector(property, value) &&
+    !is.mediaQuery(property, value),
   topLevelClass: (property: string, _: unknown): _ is StyleObject =>
     property.startsWith('.') && property.length > 1,
   string: (value: unknown): value is string => typeof value === 'string',
