@@ -3,6 +3,14 @@
 Lightweight CSS-In-JS library for packages.
 Initially created for [Emoji-Picker-React](https://github.com/ealush/emoji-picker-react).
 
+# Why?
+
+When creating a third-party package, you have different concerns than when creating an application. Most existing solutions come to solve the problem of shipping styles with your application, but they are not suitable for third-party packages.
+
+There is no existing standard that makes consuming third party packages with their styles as easy as importing packages that are defined locally in your application. The process always involves some manual work or extra configuration, and no solution works out of the box with all bundlers or environment.
+
+FlairUp aims to solve this by allowing package-authors to ship their styles with their package, and automatically apply the styles with them, both during SSR and in the browser.
+
 ## Installation
 
 ```bash
@@ -141,7 +149,5 @@ const styles = sheet.create({
 ```
 
 ## What does the output look like?
+
 ![image](https://github.com/ealush/flairup/assets/11255103/aea8f56f-1ccb-4bf1-8fa5-c95da9684726)
-
-
- 
