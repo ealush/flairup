@@ -8,6 +8,14 @@ exports[`createSheet > CSS Variables Support > When inside of a media query > Me
 }"
 `;
 
+exports[`createSheet > CSS Variables Support > When inside of a media query > Media query > Should create css variables under one class 2`] = `
+"@media (max-width: 600px) {
+.test_2d0m {
+--base: red; --size: 10px; --height: 200px;
+}
+}"
+`;
+
 exports[`createSheet > CSS Variables Support > When inside of a media query or pseudo selector > Media query > Should create css variables under one class 1`] = `
 "@media (max-width: 600px) {
 .test_2d0m {

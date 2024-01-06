@@ -62,6 +62,12 @@ describe('createSheet', () => {
     });
 
     const style = sheet.getStyle();
+    expect(style).toMatchInlineSnapshot(`
+      ".test_wqxq0q {color: red;}
+      .test_kfaw12 {height: 100px;}
+      .test_kr6kup {color: blue;}
+      .test_kfuomf {height: 200px;}"
+    `);
     expect(style.split('}').filter(Boolean).length).toBe(4);
 
     const styles = style.split('\n').filter(Boolean);
@@ -89,6 +95,11 @@ describe('createSheet', () => {
       expect(styles.two.size).toBe(2);
 
       const style = sheet.getStyle();
+      expect(style).toMatchInlineSnapshot(`
+        ".test_kr6kup {color: blue;}
+        .test_kfaw12 {height: 100px;}
+        .test_kfuomf {height: 200px;}"
+      `);
 
       const splitStyles = style.split('\n').filter(Boolean);
       expect(splitStyles.length).toBe(3);
@@ -138,6 +149,11 @@ describe('createSheet', () => {
 
       expect(styles.one.size).toBe(1);
       const css = sheet.getStyle();
+      expect(css).toMatchInlineSnapshot(`
+        ".test_2d0m {
+        --base: red; --size: 100px;
+        }"
+      `);
 
       // list all the individual rules inside of a class
       const [declaration, rules, closer] = css.split('\n').filter(Boolean);
@@ -164,6 +180,13 @@ describe('createSheet', () => {
 
           expect(styles.one.size).toBe(1);
           const css = sheet.getStyle();
+          expect(css).toMatchInlineSnapshot(`
+            "@media (max-width: 600px) {
+            .test_2d0m {
+            --base: red; --size: 10px; --height: 200px;
+            }
+            }"
+          `);
           const splitStyles = css.split('\n').filter(Boolean);
           expect(splitStyles.length).toBe(5);
           const [mediaDecleration, classOpen, vars, classClose, mediaCloser] =
@@ -196,6 +219,14 @@ describe('createSheet', () => {
       expect(styles.one.size).toBe(4);
 
       const style = sheet.getStyle();
+      expect(style).toMatchInlineSnapshot(`
+        ".test_wqxq0q {color: red;}
+        .test_kfaw12 {height: 100px;}
+        @media (max-width: 600px) {
+        .test_kr6kup {color: blue;}
+        .test_kfuomf {height: 200px;}
+        }"
+      `);
       const splitStyles = style.split('\n').filter(Boolean);
 
       const [
@@ -232,6 +263,13 @@ describe('createSheet', () => {
       expect(styles.one.size).toBe(3);
 
       const style = sheet.getStyle();
+      expect(style).toMatchInlineSnapshot(`
+        ".test_wqxq0q {color: red;}
+        .test_kfaw12 {height: 100px;}
+        .test_2d0m:hover {
+        color: blue; height: 200px;
+        }"
+      `);
       const splitStyles = style.split('\n').filter(Boolean);
 
       const [first, second, pseudoDecleration, pseudoRules, pseudoCloser] =
@@ -260,6 +298,10 @@ describe('createSheet', () => {
       expect(styles).toHaveProperty('button');
 
       const style = sheet.getStyle();
+      expect(style).toMatchInlineSnapshot(`
+        ".top-level-class .test_-usj3r7 {color: red;}
+        .top-level-class .test_-9fdl2n {height: 100px;}"
+      `);
       const splitStyles = style.split('\n').filter(Boolean);
 
       expect(splitStyles.length).toBe(2);
@@ -286,6 +328,10 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
 
         const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(`
+          ".top-level-class .test_-usj3r7 {color: red;}
+          .test_wqxq0q {color: red;}"
+        `);
         const splitStyles = style.split('\n').filter(Boolean);
 
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
@@ -318,6 +364,10 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
 
         const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(`
+          ".top-level-class .test_-usj3r7 {color: red;}
+          .top-level-class2 .test_-v5zip7 {color: red;}"
+        `);
         const splitStyles = style.split('\n').filter(Boolean);
 
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
