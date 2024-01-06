@@ -22,9 +22,9 @@ type FlairUpProperties = Partial<{
 }>;
 type Chunks = Record<Pseudo | MediaQuery, StyleObject>;
 
-export type CreateSheetInput<K extends string> =
-  | Record<K, Styles>
-  | Record<ParentClass, Record<K, Styles>>;
+export type CreateSheetInput<K extends string> = Partial<
+  Record<K, Styles> | Record<ParentClass, Record<K, Styles>>
+>;
 
 type S<K extends string> = Exclude<
   K,
