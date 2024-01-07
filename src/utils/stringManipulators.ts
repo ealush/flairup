@@ -29,8 +29,8 @@ export function handlePropertyValue(
   return value;
 }
 
-export function genCssRules(classes: ClassList, content: string): string {
-  return `${makeClassName(classes)} ${wrapWithCurlys(content)}`;
+function genCssRules(classes: ClassList, content: string): string {
+  return `${joinSelectors(classes)} ${wrapWithCurlys(content)}`;
 }
 
 export function wrapWithCurlys(content: string, breakLine = false): string {
@@ -47,7 +47,7 @@ export function joinedProperty(property: string, value: string): string {
 
 // Creates the css line for a chunk
 export function chunkSelector(className: ClassList, property: string): string {
-  const base = makeClassName(className);
+  const base = joinSelectors(className);
 
   if (is.pseudoSelector(property, null)) {
     return `${base}${property}`;
@@ -60,7 +60,7 @@ export function chunkSelector(className: ClassList, property: string): string {
   return base;
 }
 
-export function makeClassName(classes: ClassList): string {
+export function joinSelectors(classes: ClassList): string {
   return classes
     .filter(Boolean)
     .map((c) => `.${c}`)
