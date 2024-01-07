@@ -6,7 +6,7 @@ import { joinSelectors, joinedProperty } from './utils/stringManipulators';
 
 export class Rule {
   private preconditions: string[] = [];
-  private pseudoSelector: string | undefined;
+  private pseudoSelector?: string | undefined;
   public hash: string = '';
   public joined: string;
   public key: string;
@@ -19,7 +19,7 @@ export class Rule {
       pseudoSelector,
       preconditions,
     }: {
-      pseudoSelector?: string;
+      pseudoSelector?: string | undefined;
       preconditions?: string[] | string | undefined;
     } = {},
   ) {
@@ -46,5 +46,31 @@ export class Rule {
     ]);
 
     return `${selectors} {${joinedProperty(this.property, this.value)};}`;
+  }
+}
+
+export class Selector {
+  private preconditions: string[] = [];
+  private pseudoSelector: string | undefined;
+
+  constructor(
+    private sheet: Sheet,
+    {
+      pseudoSelector,
+      preconditions,
+    }: {
+      pseudoSelector?: string;
+      preconditions?: string[] | string | undefined;
+    } = {},
+  ) {
+    this.pseudoSelector = pseudoSelector;
+    this.preconditions = preconditions ? asArray(preconditions) : [];
+  }
+
+  for(property: string, value: string): Rule {
+    return new Rule(this.sheet, property, value, {
+      pseudoSelector: this.pseudoSelector,
+      preconditions: this.preconditions,
+    });
   }
 }
