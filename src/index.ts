@@ -8,6 +8,7 @@ import {
   Styles,
   createSheetReturn,
 } from './types.js';
+import { asArray } from './utils/asArray.js';
 import { forIn } from './utils/forIn.js';
 import { is } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
@@ -112,10 +113,6 @@ function iterateStyles(
   });
 
   return output;
-}
-
-function asArray(classes: string | string[]) {
-  return [].concat(classes as unknown as []);
 }
 
 function handleChunks(
