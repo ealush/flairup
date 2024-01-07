@@ -50,7 +50,7 @@ export class Rule {
 }
 
 export class Selector {
-  private preconditions: string[] = [];
+  public preconditions: string[] = [];
   private pseudoSelector: string | undefined;
 
   constructor(
@@ -59,12 +59,26 @@ export class Selector {
       pseudoSelector,
       preconditions,
     }: {
-      pseudoSelector?: string;
+      pseudoSelector?: string | undefined;
       preconditions?: string[] | string | undefined;
     } = {},
   ) {
     this.pseudoSelector = pseudoSelector;
     this.preconditions = preconditions ? asArray(preconditions) : [];
+  }
+
+  addPseudoSelector(pseudoSelector: string): Selector {
+    return new Selector(this.sheet, {
+      pseudoSelector,
+      preconditions: this.preconditions,
+    });
+  }
+
+  addPrecondition(precondition: string): Selector {
+    return new Selector(this.sheet, {
+      pseudoSelector: this.pseudoSelector,
+      preconditions: this.preconditions.concat(precondition),
+    });
   }
 
   for(property: string, value: string): Rule {

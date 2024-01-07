@@ -1,4 +1,4 @@
-import { Rule } from './Rule.js';
+import { Rule, Selector } from './Rule.js';
 import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
@@ -21,6 +21,7 @@ import {
 
 export { cx } from './cx.js';
 
+// eslint-disable-next-line max-lines-per-function
 export function createSheet(name: string): createSheetReturn {
   const sheet = new Sheet(name);
 
@@ -41,12 +42,12 @@ export function createSheet(name: string): createSheetReturn {
         forIn(styles, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
           const scopeClassName = stableHash(sheet.name, childScope);
-
+          const precondition = scopeName.slice(1); // Remove the dot
           iterateStyles(
             sheet,
             value as Styles,
             scopeClassName,
-            scopeName.slice(1), // Remove the dot
+            new Selector(sheet, { preconditions: precondition }),
           ).forEach((className: string) => {
             addScopedStyle(childScope as unknown as K, className);
           });
@@ -57,11 +58,14 @@ export function createSheet(name: string): createSheetReturn {
       const scopeClassName = stableHash(sheet.name, scopeName);
 
       // Handles the default case in which we have a scope directly on the root level.
-      iterateStyles(sheet, styles as Styles, scopeClassName).forEach(
-        (className) => {
-          addScopedStyle(scopeName as K, className);
-        },
-      );
+      iterateStyles(
+        sheet,
+        styles as Styles,
+        scopeClassName,
+        new Selector(sheet, {}),
+      ).forEach((className) => {
+        addScopedStyle(scopeName as K, className);
+      });
     });
 
     sheet.apply();
@@ -80,7 +84,7 @@ function iterateStyles(
   sheet: Sheet,
   styles: Styles,
   scopeClassName: string,
-  parentClassName?: string,
+  selector: Selector,
 ) {
   const output: ClassSet = new Set<string>();
   // eslint-disable-next-line max-statements
@@ -90,9 +94,13 @@ function iterateStyles(
     }
 
     if (is.mediaQuery(property, value)) {
-      return handleMediaQuery(sheet, value, property, scopeClassName).forEach(
-        (className) => output.add(className),
-      );
+      return handleMediaQuery(
+        sheet,
+        value,
+        property,
+        scopeClassName,
+        selector,
+      ).forEach((className) => output.add(className));
     }
 
     if (
@@ -104,14 +112,12 @@ function iterateStyles(
         value,
         property,
         scopeClassName,
-        parentClassName,
+        selector,
       ).forEach((classes) => output.add(classes));
     }
 
     if (is.validProperty(property, value)) {
-      const rule = new Rule(sheet, property, value, {
-        preconditions: parentClassName,
-      });
+      const rule = selector.for(property, value);
       const ruleClassName = sheet.addRule(rule);
       return output.add(ruleClassName);
     }
@@ -125,7 +131,7 @@ function handleChunks(
   styles: StyleObject | CSSVariablesObject,
   property: string,
   scopeClassName: string,
-  parentClassName?: string,
+  selector: Selector,
 ) {
   const classes: ClassSet = new Set<string>();
 
@@ -136,10 +142,12 @@ function handleChunks(
       return;
     }
 
-    iterateStyles(sheet, value ?? {}, scopeClassName).forEach((className) =>
-      classes.add(className),
+    iterateStyles(sheet, value ?? {}, scopeClassName, selector).forEach(
+      (className) => classes.add(className),
     );
   });
+
+  const parentClassName = selector.preconditions[0];
 
   if (chunkRows.length) {
     const output = chunkRows.join(' ');
@@ -160,10 +168,11 @@ function handleMediaQuery(
   styles: Styles,
   property: string,
   scopeClassName: string,
+  selector: Selector,
 ) {
   sheet.append(chunkSelector([scopeClassName], property) + ' {');
 
-  const output = iterateStyles(sheet, styles, scopeClassName);
+  const output = iterateStyles(sheet, styles, scopeClassName, selector);
 
   sheet.append('}');
 
