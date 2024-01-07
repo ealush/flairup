@@ -1,14 +1,6 @@
 import { ClassList, PropertyValue } from '../types.js';
 import { is } from './is.js';
 
-export function genCssRule(
-  classes: ClassList,
-  property: string,
-  value: string,
-): string {
-  return genCssRules(classes, genLine(property, value));
-}
-
 // Convets property name and value to css line
 export function genLine(property: string, value: PropertyValue): string {
   return `${camelCaseToDash(property)}: ${handlePropertyValue(
@@ -27,10 +19,6 @@ export function handlePropertyValue(
   }
 
   return value;
-}
-
-function genCssRules(classes: ClassList, content: string): string {
-  return `${joinSelectors(classes)} ${wrapWithCurlys(content)}`;
 }
 
 export function wrapWithCurlys(content: string, breakLine = false): string {

@@ -63,10 +63,10 @@ describe('createSheet', () => {
 
     const style = sheet.getStyle();
     expect(style).toMatchInlineSnapshot(`
-      ".test_wqxq0q {color: red;}
-      .test_kfaw12 {height: 100px;}
-      .test_kr6kup {color: blue;}
-      .test_kfuomf {height: 200px;}"
+      ".test_wqxq0q {color:red;}
+      .test_kfaw12 {height:100px;}
+      .test_kr6kup {color:blue;}
+      .test_kfuomf {height:200px;}"
     `);
     expect(style.split('}').filter(Boolean).length).toBe(4);
 
@@ -96,9 +96,9 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".test_kr6kup {color: blue;}
-        .test_kfaw12 {height: 100px;}
-        .test_kfuomf {height: 200px;}"
+        ".test_kr6kup {color:blue;}
+        .test_kfaw12 {height:100px;}
+        .test_kfuomf {height:200px;}"
       `);
 
       const splitStyles = style.split('\n').filter(Boolean);
@@ -220,11 +220,11 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".test_wqxq0q {color: red;}
-        .test_kfaw12 {height: 100px;}
+        ".test_wqxq0q {color:red;}
+        .test_kfaw12 {height:100px;}
         @media (max-width: 600px) {
-        .test_kr6kup {color: blue;}
-        .test_kfuomf {height: 200px;}
+        .test_kr6kup {color:blue;}
+        .test_kfuomf {height:200px;}
         }"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
@@ -264,8 +264,8 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".test_wqxq0q {color: red;}
-        .test_kfaw12 {height: 100px;}
+        ".test_wqxq0q {color:red;}
+        .test_kfaw12 {height:100px;}
         .test_2d0m:hover {
         color: blue; height: 200px;
         }"
@@ -299,8 +299,8 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".top-level-class .test_-usj3r7 {color: red;}
-        .top-level-class .test_-9fdl2n {height: 100px;}"
+        ".top-level-class .test_-usj3r7 {color:red;}
+        .top-level-class .test_-9fdl2n {height:100px;}"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
 
@@ -329,8 +329,8 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_-usj3r7 {color: red;}
-          .test_wqxq0q {color: red;}"
+          ".top-level-class .test_-usj3r7 {color:red;}
+          .test_wqxq0q {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
 
@@ -365,8 +365,8 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_-usj3r7 {color: red;}
-          .top-level-class2 .test_-v5zip7 {color: red;}"
+          ".top-level-class .test_-usj3r7 {color:red;}
+          .top-level-class2 .test_-v5zip7 {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
 
@@ -400,7 +400,7 @@ describe('createSheet', () => {
           ".top-level-class .test_1zo3d {
           --base: red; --size: 100px;
           }
-          .top-level-class .test_9dpf7b {color: var(--base);}"
+          .top-level-class .test_9dpf7b {color:var(--base);}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);

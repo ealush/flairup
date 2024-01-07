@@ -1,11 +1,7 @@
+import { Rule } from './Rule.js';
 import { StoredStyles } from './types.js';
 import { is } from './utils/is.js';
-import { stableHash } from './utils/stableHash.js';
-import {
-  appendString,
-  genCssRule,
-  joinedProperty,
-} from './utils/stringManipulators.js';
+import { appendString } from './utils/stringManipulators.js';
 
 export class Sheet {
   private styleTag: HTMLStyleElement | undefined;
@@ -60,25 +56,17 @@ export class Sheet {
     return styleTag;
   }
 
-  addRule(
-    property: string,
-    value: string,
-    parentClassName: string = '',
-  ): string {
-    // adding the parent class name in case we're scoping under a top level class
-    // this prevents collisions in the hash
-    const key = joinedProperty(property, value) + parentClassName;
+  addRule(rule: Rule): string {
+    const storedClass = this.storedClasses[rule.key];
 
-    const storedClass = this.storedClasses[key];
     if (is.string(storedClass)) {
       return storedClass;
     }
 
-    const hash = stableHash(this.name, key);
-    this.storedClasses[key] = hash;
-    this.storedStyles[hash] = [property, value];
+    this.storedClasses[rule.key] = rule.hash;
+    this.storedStyles[rule.hash] = [rule.property, rule.value];
 
-    this.append(genCssRule([parentClassName, hash], property, value));
-    return hash;
+    this.append(rule.toString());
+    return rule.hash;
   }
 }

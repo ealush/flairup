@@ -1,3 +1,5 @@
+import { joinTruthy } from './utils/joinTruthy';
+
 export function cx(...args: unknown[]): string {
   const classes = args.reduce((classes: string[], arg) => {
     if (arg instanceof Set) {
@@ -18,5 +20,5 @@ export function cx(...args: unknown[]): string {
     return classes;
   }, [] as string[]);
 
-  return classes.filter(Boolean).join(' ').trim();
+  return joinTruthy(classes, ' ').trim();
 }

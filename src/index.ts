@@ -1,3 +1,4 @@
+import { Rule } from './Rule.js';
 import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
@@ -82,6 +83,7 @@ function iterateStyles(
   parentClassName?: string,
 ) {
   const output: ClassSet = new Set<string>();
+  // eslint-disable-next-line max-statements
   forIn(styles, (property, value) => {
     if (is.directClass(property, value)) {
       return asArray(value).forEach((classes) => output.add(classes));
@@ -107,7 +109,10 @@ function iterateStyles(
     }
 
     if (is.validProperty(property, value)) {
-      const ruleClassName = sheet.addRule(property, value, parentClassName);
+      const rule = new Rule(sheet, property, value, {
+        preconditions: parentClassName,
+      });
+      const ruleClassName = sheet.addRule(rule);
       return output.add(ruleClassName);
     }
   });
