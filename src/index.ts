@@ -63,6 +63,9 @@ export function createSheet(name: string): createSheetReturn {
       });
     });
 
+    // Commit the styles to the sheet.
+    // Done only once per create call.
+    // This way we do not update the DOM on every style.
     sheet.apply();
 
     return scopedStyles;
@@ -145,6 +148,8 @@ function handleMediaQuery(
 ) {
   sheet.append(mediaQuery + ' {');
 
+  // iterateStyles will internally append each rule to the sheet
+  // as needed. All we have to do is just open the block and close it after.
   const output = iterateStyles(sheet, styles, selector);
 
   sheet.append('}');
