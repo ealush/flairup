@@ -2,8 +2,6 @@ export type StyleObject = Partial<CSSStyleDeclaration>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
 
-export type PropertyValue = string | number;
-
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
 export type ParentClass = `.${string}`;

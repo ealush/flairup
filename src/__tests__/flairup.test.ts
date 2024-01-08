@@ -4,7 +4,6 @@ import { describe, expect, it, beforeEach } from 'vitest';
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
 const singlePropertyWithPseudoRegex =
   /^\.([\w-]+):([\w-]+)\s*{\s*([\w-]+)\s*:\s*([^;]+);\s*}$/;
-const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
 
 describe('createSheet', () => {
   let sheet: ReturnType<typeof createSheet>;
@@ -33,6 +32,48 @@ describe('createSheet', () => {
     expect(styles).toHaveProperty('one');
     expect(styles).toHaveProperty('two');
     expect(styles).not.toHaveProperty('three');
+  });
+
+  it("Should convert camelCase to dash-case for the property's name", () => {
+    const styles = sheet.create({
+      one: {
+        backgroundColor: 'red',
+        maxHeight: '100px',
+      },
+      two: {
+        backgroundColor: 'blue',
+        maxHeight: '200px',
+      },
+    });
+
+    expect(styles.one.size).toBe(2);
+    expect(styles.two.size).toBe(2);
+
+    const css = sheet.getStyle();
+    expect(css).toMatchInlineSnapshot(`
+      ".test_-maqphw {background-color:red;}
+      .test_-2526za {max-height:100px;}
+      .test_j1uj8f {background-color:blue;}
+      .test_-24iedx {max-height:200px;}"
+    `);
+    const splitStyles = css.split('\n').filter(Boolean);
+    expect(splitStyles[0]).toMatch('background-color:red;');
+    expect(splitStyles[1]).toMatch('max-height:100px;');
+    expect(splitStyles[2]).toMatch('background-color:blue;');
+    expect(splitStyles[3]).toMatch('max-height:200px;');
+  });
+
+  it('Should stringify content property', () => {
+    const styles = sheet.create({
+      one: {
+        content: 'red',
+      },
+    });
+
+    expect(styles.one.size).toBe(1);
+
+    const css = sheet.getStyle();
+    expect(css).toMatchInlineSnapshot(`".test_-6g56uo {content:"red";}"`);
   });
 
   it('Should create one class per property', () => {
@@ -152,11 +193,11 @@ describe('createSheet', () => {
       expect(styles.one.size).toBe(1);
       const css = sheet.getStyle();
       expect(css).toMatchInlineSnapshot(
-        `".test_2d0m {--base: red; --size: 100px;}"`,
+        `".test_2d0m {--base:red; --size:100px;}"`,
       );
 
       // list all the individual rules inside of a class
-      expect(css).toMatch('--base: red; --size: 100px;');
+      expect(css).toMatch('--base:red; --size:100px;');
       expect(css).toMatch('.test_2d0m {');
     });
 
@@ -179,7 +220,7 @@ describe('createSheet', () => {
           const css = sheet.getStyle();
           expect(css).toMatchInlineSnapshot(`
             "@media (max-width: 600px) {
-            .test_2d0m {--base: red; --size: 10px; --height: 200px;}
+            .test_2d0m {--base:red; --size:10px; --height:200px;}
             }"
           `);
           const splitStyles = css.split('\n').filter(Boolean);
@@ -187,7 +228,7 @@ describe('createSheet', () => {
           const [mediaDecleration, vars] = splitStyles;
 
           expect(mediaDecleration).toBe('@media (max-width: 600px) {');
-          expect(vars).toContain('--base: red; --size: 10px; --height: 200px;');
+          expect(vars).toContain('--base:red; --size:10px; --height:200px;');
         });
       });
     });
@@ -381,7 +422,7 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_1zo3d {--base: red; --size: 100px;}
+          ".top-level-class .test_1zo3d {--base:red; --size:100px;}
           .top-level-class .test_9dpf7b {color:var(--base);}"
         `);
 

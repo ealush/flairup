@@ -1,4 +1,4 @@
-import { Selector } from './Rule.js';
+import { Rule, Selector } from './Rule.js';
 import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
@@ -12,10 +12,7 @@ import { asArray } from './utils/asArray.js';
 import { forIn } from './utils/forIn.js';
 import { is } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
-import {
-  genLine,
-  joinSelectors,
-} from './utils/stringManipulators.js';
+import { joinSelectors } from './utils/stringManipulators.js';
 
 export { cx } from './cx.js';
 
@@ -93,9 +90,9 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
     } else if (is.pseudoSelector(property, value)) {
       res = iterateStyles(sheet, value, selector.addPseudoSelector(property));
     } else if (is.validProperty(property, value)) {
-      const rule = selector.for(property, value);
-      const ruleClassName = sheet.addRule(rule);
-      return output.add(ruleClassName);
+      const rule = selector.createRule(property, value);
+      sheet.addRule(rule);
+      return output.add(rule.hash);
     }
 
     return addEachClass(res, output);
@@ -119,7 +116,7 @@ function cssVariablesBlock(
   const chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
     if (is.validProperty(property, value)) {
-      chunkRows.push(genLine(property, value));
+      chunkRows.push(Rule.genRule(property, value));
       return;
     }
 

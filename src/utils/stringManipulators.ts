@@ -1,18 +1,7 @@
-import { ClassList, PropertyValue } from '../types.js';
-
-// Convets property name and value to css line
-export function genLine(property: string, value: PropertyValue): string {
-  return `${camelCaseToDash(property)}: ${handlePropertyValue(
-    property,
-    value,
-  )};`;
-}
+import { ClassList } from '../types.js';
 
 // Some properties need special handling
-export function handlePropertyValue(
-  property: string,
-  value: PropertyValue,
-): string | number {
+export function handlePropertyValue(property: string, value: string): string {
   if (property === 'content') {
     return `"${value}"`;
   }

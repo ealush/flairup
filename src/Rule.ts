@@ -2,9 +2,14 @@ import { Sheet } from './Sheet';
 import { asArray } from './utils/asArray';
 import { joinTruthy } from './utils/joinTruthy';
 import { stableHash } from './utils/stableHash';
-import { joinSelectors, joinedProperty } from './utils/stringManipulators';
+import {
+  camelCaseToDash,
+  handlePropertyValue,
+  joinSelectors,
+  joinedProperty,
+} from './utils/stringManipulators';
 
-class Rule {
+export class Rule {
   public hash: string = '';
   public joined: string;
   public key: string;
@@ -35,7 +40,17 @@ class Rule {
       this.selector.pseudoSelector,
     ]);
 
-    return `${selectors} {${joinedProperty(this.property, this.value)};}`;
+    return `${selectors} {${Rule.genRule(this.property, this.value)}}`;
+  }
+
+  static genRule(property: string, value: string): string {
+    const transformedProperty = camelCaseToDash(property);
+    return (
+      joinedProperty(
+        transformedProperty,
+        handlePropertyValue(property, value),
+      ) + ';'
+    );
   }
 }
 
@@ -74,7 +89,7 @@ export class Selector {
     });
   }
 
-  for(property: string, value: string): Rule {
+  createRule(property: string, value: string): Rule {
     return new Rule(this.sheet, property, value, this);
   }
 }
