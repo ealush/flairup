@@ -4,7 +4,7 @@ import { joinTruthy } from './utils/joinTruthy';
 import { stableHash } from './utils/stableHash';
 import { joinSelectors, joinedProperty } from './utils/stringManipulators';
 
-export class Rule {
+class Rule {
   private preconditions: string[] = [];
   private pseudoSelector?: string | undefined;
   public hash: string = '';
@@ -52,9 +52,11 @@ export class Rule {
 export class Selector {
   public preconditions: string[] = [];
   private pseudoSelector: string | undefined;
+  public scopeClassName: string;
 
   constructor(
     private sheet: Sheet,
+    public scopeName: string,
     {
       pseudoSelector,
       preconditions,
@@ -65,17 +67,18 @@ export class Selector {
   ) {
     this.pseudoSelector = pseudoSelector;
     this.preconditions = preconditions ? asArray(preconditions) : [];
+    this.scopeClassName = scopeName;
   }
 
   addPseudoSelector(pseudoSelector: string): Selector {
-    return new Selector(this.sheet, {
+    return new Selector(this.sheet, this.scopeClassName, {
       pseudoSelector,
       preconditions: this.preconditions,
     });
   }
 
   addPrecondition(precondition: string): Selector {
-    return new Selector(this.sheet, {
+    return new Selector(this.sheet, this.scopeClassName, {
       pseudoSelector: this.pseudoSelector,
       preconditions: this.preconditions.concat(precondition),
     });

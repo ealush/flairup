@@ -1,4 +1,4 @@
-import { Rule, Selector } from './Rule.js';
+import { Selector } from './Rule.js';
 import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
@@ -46,8 +46,9 @@ export function createSheet(name: string): createSheetReturn {
           iterateStyles(
             sheet,
             value as Styles,
-            scopeClassName,
-            new Selector(sheet, { preconditions: precondition }),
+            new Selector(sheet, scopeClassName, {
+              preconditions: precondition,
+            }),
           ).forEach((className: string) => {
             addScopedStyle(childScope as unknown as K, className);
           });
@@ -61,8 +62,7 @@ export function createSheet(name: string): createSheetReturn {
       iterateStyles(
         sheet,
         styles as Styles,
-        scopeClassName,
-        new Selector(sheet, {}),
+        new Selector(sheet, scopeClassName, {}),
       ).forEach((className) => {
         addScopedStyle(scopeName as K, className);
       });
@@ -80,57 +80,42 @@ export function createSheet(name: string): createSheetReturn {
   }
 }
 
-function iterateStyles(
-  sheet: Sheet,
-  styles: Styles,
-  scopeClassName: string,
-  selector: Selector,
-) {
+function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   const output: ClassSet = new Set<string>();
   // eslint-disable-next-line max-statements
   forIn(styles, (property, value) => {
+    let res: string[] | Set<string> = [];
+
     if (is.directClass(property, value)) {
-      return asArray(value).forEach((classes) => output.add(classes));
-    }
-
-    if (is.mediaQuery(property, value)) {
-      return handleMediaQuery(
-        sheet,
-        value,
-        property,
-        scopeClassName,
-        selector,
-      ).forEach((className) => output.add(className));
-    }
-
-    if (
-      is.pseudoSelector(property, value) ||
-      is.cssVariables(property, value)
-    ) {
-      return handleChunks(
-        sheet,
-        value,
-        property,
-        scopeClassName,
-        selector,
-      ).forEach((classes) => output.add(classes));
-    }
-
-    if (is.validProperty(property, value)) {
+      res = asArray(value);
+    } else if (is.mediaQuery(property, value)) {
+      res = handleMediaQuery(sheet, value, property, selector);
+    } else if (is.cssVariables(property, value)) {
+      res = handleChunks(sheet, value, property, selector);
+    } else if (is.pseudoSelector(property, value)) {
+      selector = selector.addPseudoSelector(property);
+      res = iterateStyles(sheet, value, selector);
+    } else if (is.validProperty(property, value)) {
       const rule = selector.for(property, value);
       const ruleClassName = sheet.addRule(rule);
       return output.add(ruleClassName);
     }
+
+    return addEachClass(res, output);
   });
 
   return output;
+}
+
+function addEachClass(list: string[] | Set<string>, to: Set<string>) {
+  list.forEach((className) => to.add(className));
+  return to;
 }
 
 function handleChunks(
   sheet: Sheet,
   styles: StyleObject | CSSVariablesObject,
   property: string,
-  scopeClassName: string,
   selector: Selector,
 ) {
   const classes: ClassSet = new Set<string>();
@@ -142,8 +127,8 @@ function handleChunks(
       return;
     }
 
-    iterateStyles(sheet, value ?? {}, scopeClassName, selector).forEach(
-      (className) => classes.add(className),
+    iterateStyles(sheet, value ?? {}, selector).forEach((className) =>
+      classes.add(className),
     );
   });
 
@@ -153,13 +138,13 @@ function handleChunks(
     const output = chunkRows.join(' ');
     sheet.append(
       `${chunkSelector(
-        [parentClassName, scopeClassName],
+        [parentClassName, selector.scopeClassName],
         property,
       )} ${wrapWithCurlys(output, true)}`,
     );
   }
 
-  classes.add(scopeClassName);
+  classes.add(selector.scopeClassName);
   return classes;
 }
 
@@ -167,12 +152,11 @@ function handleMediaQuery(
   sheet: Sheet,
   styles: Styles,
   property: string,
-  scopeClassName: string,
   selector: Selector,
 ) {
-  sheet.append(chunkSelector([scopeClassName], property) + ' {');
+  sheet.append(chunkSelector([selector.scopeClassName], property) + ' {');
 
-  const output = iterateStyles(sheet, styles, scopeClassName, selector);
+  const output = iterateStyles(sheet, styles, selector);
 
   sheet.append('}');
 

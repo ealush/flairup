@@ -2,6 +2,8 @@ import { createSheet } from '../index.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
+const singlePropertyWithPseudoRegex =
+  /^\.([\w-]+):([\w-]+)\s*{\s*([\w-]+)\s*:\s*([^;]+);\s*}$/;
 // const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
 
 describe('createSheet', () => {
@@ -260,27 +262,21 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.one.size).toBe(3);
+      expect(styles.one.size).toBe(4);
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
         ".test_wqxq0q {color:red;}
         .test_kfaw12 {height:100px;}
-        .test_2d0m:hover {
-        color: blue; height: 200px;
-        }"
+        .test_kr6kup:hover {color:blue;}
+        .test_kfuomf:hover {height:200px;}"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
 
-      const [first, second, pseudoDecleration, pseudoRules, pseudoCloser] =
-        splitStyles;
-
-      expect(first).toMatch(singlePropertyRegex);
-      expect(second).toMatch(singlePropertyRegex);
-      // matches .%hash%:hover {
-      expect(pseudoDecleration).toMatch(/^\.(\w+)\s*:hover\s*\{\s*$/);
-      expect(pseudoRules).toEqual('color: blue; height: 200px;');
-      expect(pseudoCloser).toBe('}');
+      expect(splitStyles[0]).toMatch(singlePropertyRegex);
+      expect(splitStyles[1]).toMatch(singlePropertyRegex);
+      expect(splitStyles[2]).toMatch(singlePropertyWithPseudoRegex);
+      expect(splitStyles[3]).toMatch(singlePropertyWithPseudoRegex);
     });
   });
 
@@ -424,18 +420,17 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_-ms8moe:hover {
-          color: blue; height: 200px;
-          }"
+          ".top-level-class .test_9l08cm:hover {color:blue;}
+          .top-level-class .test_-g6s3v4:hover {height:200px;}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
-        expect(splitStyles.length).toBe(3);
+        expect(splitStyles.length).toBe(2);
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
         // eslint-disable-next-line no-unsafe-optional-chaining
         const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ');
         expect(topLevel).toBe('.top-level-class');
-        expect(pseudoDecleration).toBe('.test_-ms8moe:hover');
+        expect(pseudoDecleration).toBe('.test_9l08cm:hover');
       });
     });
   });
