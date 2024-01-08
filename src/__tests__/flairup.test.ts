@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach } from 'vitest';
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
 const singlePropertyWithPseudoRegex =
   /^\.([\w-]+):([\w-]+)\s*{\s*([\w-]+)\s*:\s*([^;]+);\s*}$/;
-// const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
+const multiPropertyRegex = /^\.(\w+)\s*\{(\s*\w+\s*:\s*\w+;\s*){2,}\}$/;
 
 describe('createSheet', () => {
   let sheet: ReturnType<typeof createSheet>;
@@ -151,18 +151,13 @@ describe('createSheet', () => {
 
       expect(styles.one.size).toBe(1);
       const css = sheet.getStyle();
-      expect(css).toMatchInlineSnapshot(`
-        ".test_2d0m {
-        --base: red; --size: 100px;
-        }"
-      `);
+      expect(css).toMatchInlineSnapshot(
+        `".test_2d0m {--base: red; --size: 100px;}"`,
+      );
 
       // list all the individual rules inside of a class
-      const [declaration, rules, closer] = css.split('\n').filter(Boolean);
-      // should match: .%hash% {
-      expect(declaration).toMatch(/^\.(\w+)\s*\{\s*$/);
-      expect(rules).toBe('--base: red; --size: 100px;');
-      expect(closer).toBe('}');
+      expect(css).toMatch('--base: red; --size: 100px;');
+      expect(css).toMatch('.test_2d0m {');
     });
 
     describe('When inside of a media query', () => {
@@ -184,22 +179,15 @@ describe('createSheet', () => {
           const css = sheet.getStyle();
           expect(css).toMatchInlineSnapshot(`
             "@media (max-width: 600px) {
-            .test_2d0m {
-            --base: red; --size: 10px; --height: 200px;
-            }
+            .test_2d0m {--base: red; --size: 10px; --height: 200px;}
             }"
           `);
           const splitStyles = css.split('\n').filter(Boolean);
-          expect(splitStyles.length).toBe(5);
-          const [mediaDecleration, classOpen, vars, classClose, mediaCloser] =
-            splitStyles;
+          expect(splitStyles.length).toBe(3);
+          const [mediaDecleration, vars] = splitStyles;
 
           expect(mediaDecleration).toBe('@media (max-width: 600px) {');
-          expect(classOpen).toMatch(/^\.(\w+)\s*\{\s*$/);
-          expect(vars).toBe('--base: red; --size: 10px; --height: 200px;');
-          expect(classClose).toBe('}');
-          expect(mediaCloser).toBe('}');
-          expect(css).toMatchSnapshot();
+          expect(vars).toContain('--base: red; --size: 10px; --height: 200px;');
         });
       });
     });
@@ -393,16 +381,14 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_1zo3d {
-          --base: red; --size: 100px;
-          }
+          ".top-level-class .test_1zo3d {--base: red; --size: 100px;}
           .top-level-class .test_9dpf7b {color:var(--base);}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
-        expect(splitStyles.length).toBe(4);
+        expect(splitStyles.length).toBe(2);
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
-        expect(splitStyles[3]?.startsWith('.top-level-class ')).toBe(true);
+        expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(true);
       });
     });
 

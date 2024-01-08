@@ -5,7 +5,6 @@ import {
   ClassSet,
   CreateSheetInput,
   ScopedStyles,
-  StyleObject,
   Styles,
   createSheetReturn,
 } from './types.js';
@@ -14,9 +13,8 @@ import { forIn } from './utils/forIn.js';
 import { is } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
 import {
-  chunkSelector,
   genLine,
-  wrapWithCurlys,
+  joinSelectors,
 } from './utils/stringManipulators.js';
 
 export { cx } from './cx.js';
@@ -91,10 +89,9 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
     } else if (is.mediaQuery(property, value)) {
       res = handleMediaQuery(sheet, value, property, selector);
     } else if (is.cssVariables(property, value)) {
-      res = handleChunks(sheet, value, property, selector);
+      res = cssVariablesBlock(sheet, value, selector);
     } else if (is.pseudoSelector(property, value)) {
-      selector = selector.addPseudoSelector(property);
-      res = iterateStyles(sheet, value, selector);
+      res = iterateStyles(sheet, value, selector.addPseudoSelector(property));
     } else if (is.validProperty(property, value)) {
       const rule = selector.for(property, value);
       const ruleClassName = sheet.addRule(rule);
@@ -112,10 +109,9 @@ function addEachClass(list: string[] | Set<string>, to: Set<string>) {
   return to;
 }
 
-function handleChunks(
+function cssVariablesBlock(
   sheet: Sheet,
-  styles: StyleObject | CSSVariablesObject,
-  property: string,
+  styles: CSSVariablesObject,
   selector: Selector,
 ) {
   const classes: ClassSet = new Set<string>();
@@ -127,20 +123,16 @@ function handleChunks(
       return;
     }
 
-    iterateStyles(sheet, value ?? {}, selector).forEach((className) =>
-      classes.add(className),
-    );
+    const res = iterateStyles(sheet, value ?? {}, selector);
+    addEachClass(res, classes);
   });
-
-  const parentClassName = selector.preconditions[0];
 
   if (chunkRows.length) {
     const output = chunkRows.join(' ');
     sheet.append(
-      `${chunkSelector(
-        [parentClassName, selector.scopeClassName],
-        property,
-      )} ${wrapWithCurlys(output, true)}`,
+      `${joinSelectors(
+        selector.preconditions.concat(selector.scopeClassName),
+      )} {${output}}`,
     );
   }
 
@@ -151,10 +143,10 @@ function handleChunks(
 function handleMediaQuery(
   sheet: Sheet,
   styles: Styles,
-  property: string,
+  mediaQuery: string,
   selector: Selector,
 ) {
-  sheet.append(chunkSelector([selector.scopeClassName], property) + ' {');
+  sheet.append(mediaQuery + ' {');
 
   const output = iterateStyles(sheet, styles, selector);
 
