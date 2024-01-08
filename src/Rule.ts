@@ -5,8 +5,6 @@ import { stableHash } from './utils/stableHash';
 import { joinSelectors, joinedProperty } from './utils/stringManipulators';
 
 class Rule {
-  private preconditions: string[] = [];
-  private pseudoSelector?: string | undefined;
   public hash: string = '';
   public joined: string;
   public key: string;
@@ -15,34 +13,26 @@ class Rule {
     private sheet: Sheet,
     public property: string,
     public value: string,
-    {
-      pseudoSelector,
-      preconditions,
-    }: {
-      pseudoSelector?: string | undefined;
-      preconditions?: string[] | string | undefined;
-    } = {},
+    private selector: Selector,
   ) {
     this.property = property;
     this.value = value;
-    this.pseudoSelector = pseudoSelector;
-    this.preconditions = preconditions ? asArray(preconditions) : [];
     this.joined = joinedProperty(property, value);
     this.key = joinTruthy([
       this.joined,
-      joinSelectors(this.preconditions),
-      this.pseudoSelector,
+      joinSelectors(this.selector.preconditions),
+      this.selector.addPseudoSelector,
     ]);
   }
 
   public toString(): string {
     this.hash = stableHash(
       this.sheet.name,
-      this.joined + joinTruthy(this.preconditions),
+      this.joined + joinTruthy(this.selector.preconditions),
     );
     const selectors = joinTruthy([
-      joinSelectors(this.preconditions.concat(this.hash)),
-      this.pseudoSelector,
+      joinSelectors(this.selector.preconditions.concat(this.hash)),
+      this.selector.pseudoSelector,
     ]);
 
     return `${selectors} {${joinedProperty(this.property, this.value)};}`;
@@ -51,7 +41,7 @@ class Rule {
 
 export class Selector {
   public preconditions: string[] = [];
-  private pseudoSelector: string | undefined;
+  public pseudoSelector: string | undefined;
   public scopeClassName: string;
 
   constructor(
@@ -85,9 +75,6 @@ export class Selector {
   }
 
   for(property: string, value: string): Rule {
-    return new Rule(this.sheet, property, value, {
-      pseudoSelector: this.pseudoSelector,
-      preconditions: this.preconditions,
-    });
+    return new Rule(this.sheet, property, value, this);
   }
 }
