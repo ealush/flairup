@@ -3,6 +3,10 @@
 Lightweight CSS-In-JS library for packages.
 Initially created for [Emoji-Picker-React](https://github.com/ealush/emoji-picker-react).
 
+# Status
+
+The package is still in development and the API is not stable. It is used only in emoji-picker-react. It works well, but the API might change. Use at your own risk.
+
 # Why?
 
 When creating a third-party package, you have different concerns than when creating an application. Most existing solutions come to solve the problem of shipping styles with your application, but they are not suitable for third-party packages.
