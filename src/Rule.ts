@@ -10,7 +10,7 @@ import {
 } from './utils/stringManipulators';
 
 export class Rule {
-  public hash: string = '';
+  public hash: string;
   public joined: string;
   public key: string;
 
@@ -26,15 +26,19 @@ export class Rule {
     this.key = joinTruthy([
       this.joined,
       joinSelectors(this.selector.preconditions),
-      this.selector.addPseudoSelector,
+      this.selector.pseudoSelector,
     ]);
+    this.hash = stableHash(
+      this.sheet.name,
+      this.joined +
+        joinTruthy(this.selector.preconditions) +
+        (this.selector.pseudoSelector
+          ? (this.selector.pseudoSelector as string)
+          : ''),
+    );
   }
 
   public toString(): string {
-    this.hash = stableHash(
-      this.sheet.name,
-      this.joined + joinTruthy(this.selector.preconditions),
-    );
     const selectors = joinTruthy([
       joinSelectors(this.selector.preconditions.concat(this.hash)),
       this.selector.pseudoSelector,

@@ -95,7 +95,7 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
     } else if (is.validProperty(property, value)) {
       const rule = selector.createRule(property, value);
       sheet.addRule(rule);
-      return output.add(rule.hash);
+      output.add(rule.hash);
     }
 
     return addEachClass(res, output);

@@ -297,8 +297,8 @@ describe('createSheet', () => {
       expect(style).toMatchInlineSnapshot(`
         ".test_wqxq0q {color:red;}
         .test_kfaw12 {height:100px;}
-        .test_kr6kup:hover {color:blue;}
-        .test_kfuomf:hover {height:200px;}"
+        .test_-8guyct:hover {color:blue;}
+        .test_j2egx5:hover {height:200px;}"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
 
@@ -306,6 +306,64 @@ describe('createSheet', () => {
       expect(splitStyles[1]).toMatch(singlePropertyRegex);
       expect(splitStyles[2]).toMatch(singlePropertyWithPseudoRegex);
       expect(splitStyles[3]).toMatch(singlePropertyWithPseudoRegex);
+    });
+
+    it('Should scope pseudo selector separately from regular selectors with the same property:value', () => {
+      const styles = sheet.create({
+        one: {
+          color: 'red',
+          ':hover': {
+            color: 'red',
+          },
+        },
+      });
+
+      expect(styles.one.size).toBe(2);
+      expect(sheet.getStyle()).toMatchInlineSnapshot(`
+        ".test_wqxq0q {color:red;}
+        .test_qmf8ak:hover {color:red;}"
+      `);
+    });
+
+    it('Should create unique selector per pseudo selector and property:value combo', () => {
+      const styles = sheet.create({
+        one: {
+          color: 'red',
+          ':hover': {
+            color: 'red',
+          },
+          ':hover': {
+            color: 'red',
+          },
+          ':focus': {
+            color: 'red',
+          },
+        },
+        two: {
+          color: 'red',
+          ':hover': {
+            color: 'red',
+          },
+          ':hover': {
+            color: 'red',
+          },
+          ':focus': {
+            color: 'red',
+          },
+        },
+      });
+
+      expect(styles.one.size).toBe(3);
+      expect(styles.one).toEqual(styles.two);
+      expect(sheet.getStyle()).toMatchInlineSnapshot(`
+        ".test_wqxq0q {color:red;}
+        .test_qmf8ak:hover {color:red;}
+        .test_qlb9eg:focus {color:red;}"
+      `);
+      const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
+      expect(splitStyles[0]).toMatch(singlePropertyRegex);
+      expect(splitStyles[1]).toMatch(singlePropertyWithPseudoRegex);
+      expect(splitStyles[2]).toMatch(singlePropertyWithPseudoRegex);
     });
   });
 
@@ -447,8 +505,8 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_9l08cm:hover {color:blue;}
-          .top-level-class .test_-g6s3v4:hover {height:200px;}"
+          ".top-level-class .test_-59tr7c:hover {color:blue;}
+          .top-level-class .test_puykz6:hover {height:200px;}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
@@ -457,7 +515,7 @@ describe('createSheet', () => {
         // eslint-disable-next-line no-unsafe-optional-chaining
         const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ');
         expect(topLevel).toBe('.top-level-class');
-        expect(pseudoDecleration).toBe('.test_9l08cm:hover');
+        expect(pseudoDecleration).toMatch(/^\.test_[\w-]+:hover$/);
       });
     });
   });
