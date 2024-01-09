@@ -22,7 +22,7 @@ type FlairUpProperties = Partial<{
 }>;
 type Chunks = Record<
   MediaQuery,
-  StyleObject & Record<'--', CSSVariablesObject>
+  StyleObject | Record<'--', CSSVariablesObject>
 > &
   Record<Pseudo, StyleObject>;
 

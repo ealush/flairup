@@ -332,18 +332,12 @@ describe('createSheet', () => {
           ':hover': {
             color: 'red',
           },
-          ':hover': {
-            color: 'red',
-          },
           ':focus': {
             color: 'red',
           },
         },
         two: {
           color: 'red',
-          ':hover': {
-            color: 'red',
-          },
           ':hover': {
             color: 'red',
           },
@@ -367,7 +361,7 @@ describe('createSheet', () => {
     });
   });
 
-  describe('Adding a top level class', () => {
+  describe('Preconditions', () => {
     it('Should nest styles under the top level class', () => {
       const styles = sheet.create({
         '.top-level-class': {
@@ -516,6 +510,94 @@ describe('createSheet', () => {
         const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ');
         expect(topLevel).toBe('.top-level-class');
         expect(pseudoDecleration).toMatch(/^\.test_[\w-]+:hover$/);
+      });
+    });
+
+    describe('Multiple scopes under the same precondition', () => {
+      it('Should create separate classes', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              color: 'red',
+            },
+            button2: {
+              color: 'blue',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        expect(styles).toHaveProperty('button2');
+
+        const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(
+          `
+          ".top-level-class .test_-usj3r7 {color:red;}
+          .top-level-class .test_9l08cm {color:blue;}"
+        `,
+        );
+        const splitStyles = style.split('\n').filter(Boolean);
+
+        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
+        expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(true);
+
+        expect(splitStyles[0]).toMatch('color:red;');
+        expect(splitStyles[1]).toMatch('color:blue;');
+        expect(splitStyles[0]).not.toBe(splitStyles[1]);
+      });
+
+      it('Should consolidate matching styles', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              color: 'red',
+            },
+            button2: {
+              color: 'red',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        expect(styles).toHaveProperty('button2');
+
+        const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(
+          `".top-level-class .test_-usj3r7 {color:red;}"`,
+        );
+        expect(styles.button).toEqual(styles.button2);
+        expect(style.split('\n').filter(Boolean).length).toBe(1);
+      });
+    });
+
+    describe('With media query', () => {
+      it('Should nest precondition style under media query', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              '@media (max-width: 600px)': {
+                color: 'red',
+              },
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+
+        const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(`
+          "@media (max-width: 600px) {
+          .top-level-class .test_-usj3r7 {color:red;}
+          }"
+        `);
+        const splitStyles = style.split('\n').filter(Boolean);
+
+        expect(splitStyles[0]?.startsWith('@media (max-width: 600px) {')).toBe(
+          true,
+        );
+        expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(true);
+
+        expect(splitStyles[1]).toMatch('color:red;');
       });
     });
   });
