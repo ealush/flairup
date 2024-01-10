@@ -15,7 +15,10 @@ export type Styles = Partial<
 >;
 
 type PostConditionStyles = {
-  [k: PostCondition]: Styles;
+  [k: PostCondition]: StyleObject &
+    FlairUpProperties &
+    Chunks &
+    PostConditionStyles;
 };
 export type StoredStyles = Record<string, [property: string, value: string]>;
 
@@ -29,11 +32,14 @@ type FlairUpProperties = Partial<{
   '--'?: CSSVariablesObject;
 }>;
 type Chunks = {
-  [k: MediaQuery]: StyleObject | Record<'--', CSSVariablesObject>;
+  [k: MediaQuery]:
+    | StyleObject
+    | Record<'--', CSSVariablesObject>
+    | PostConditionStyles;
 } & { [k: Pseudo]: StyleObject };
 
 export type CreateSheetInput<K extends string> = Partial<
-  Record<K, Styles> | Record<PreCondition, Record<K, Styles>>
+  { [k in K]: Styles } | { [k: PreCondition]: { [k in K]: Styles } }
 >;
 
 type S<K extends string> = Exclude<
