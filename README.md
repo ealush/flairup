@@ -60,8 +60,9 @@ Defining your style has two parts:
 
 ### Added Features
 
-1. Scoping styles under a known class name
-2. Adding custom class names to the stylesheet object
+1. Scoping styles under a known class name (Preconditions)
+2. Scoping lower level styles under a selector (Postconditions)
+3. Adding custom class names to the stylesheet object
 
 ## Usage Example
 
@@ -137,7 +138,7 @@ const styles = sheet.create({
 });
 ```
 
-### Scoping a style under a known class name
+### Scoping a style under a known class name (Preconditions)
 
 ```javascript
 const styles = sheet.create({
@@ -147,6 +148,30 @@ const styles = sheet.create({
       ':hover': {
         color: 'blue',
       },
+    },
+  },
+});
+```
+
+### Scoping lower level styles under a selector (Postconditions)
+
+Supports all the following selectors:
+
+- `>`
+- `~`
+- `+`
+- `*`
+
+```javascript
+const styles = sheet.create({
+  button: {
+    '.lower_level_class': {
+      color: 'red',
+    },
+  },
+  paragraph: {
+    '*': {
+      color: 'blue',
     },
   },
 });
