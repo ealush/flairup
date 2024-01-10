@@ -84,7 +84,7 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (is.className(property, value)) {
+    if (is.className(property, value) || is.pseudoSelector(property, value)) {
       res = iterateStyles(sheet, value, selector.addPostcondition(property));
     } else if (is.directClass(property, value)) {
       res = asArray(value);
@@ -92,8 +92,6 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
       res = handleMediaQuery(sheet, value, property, selector);
     } else if (is.cssVariables(property, value)) {
       res = cssVariablesBlock(sheet, value, selector);
-    } else if (is.pseudoSelector(property, value)) {
-      res = iterateStyles(sheet, value, selector.addPseudoSelector(property));
     } else if (is.validProperty(property, value)) {
       const rule = selector.createRule(property, value);
       sheet.addRule(rule);

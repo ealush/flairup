@@ -1,5 +1,6 @@
 import { Sheet } from './Sheet';
 import { asArray } from './utils/asArray';
+import { is } from './utils/is';
 import { joinTruthy } from './utils/joinTruthy';
 import { stableHash } from './utils/stableHash';
 import {
@@ -26,27 +27,28 @@ export class Rule {
     this.key = joinTruthy([
       this.joined,
       joinSelectors(this.selector.preconditions),
-      this.selector.pseudoSelector,
       joinSelectors(this.selector.postconditions),
     ]);
     this.hash = stableHash(
       this.sheet.name,
       this.joined +
         joinTruthy(this.selector.preconditions) +
-        (this.selector.pseudoSelector
-          ? (this.selector.pseudoSelector as string)
-          : '') +
         joinTruthy(this.selector.postconditions),
     );
   }
 
   public toString(): string {
-    let selectors = joinTruthy([
-      joinSelectors(this.selector.preconditions.concat(this.hash)),
-      this.selector.pseudoSelector,
-    ]);
-    const post = joinTruthy(this.selector.postconditions, ' ');
-    selectors += post ? ` ${post}` : '';
+    let selectors = joinSelectors(
+      this.selector.preconditions.concat(this.hash),
+    );
+
+    selectors = this.selector.postconditions.reduce(
+      (selectors, current) =>
+        is.pseudoSelector(current, null)
+          ? selectors + current
+          : `${selectors} ${current}`,
+      selectors,
+    );
 
     return `${selectors} {${Rule.genRule(this.property, this.value)}}`;
   }
@@ -64,7 +66,6 @@ export class Rule {
 
 export class Selector {
   public preconditions: string[] = [];
-  public pseudoSelector: string | undefined;
   public scopeClassName: string;
   public postconditions: string[] = [];
 
@@ -72,38 +73,27 @@ export class Selector {
     private sheet: Sheet,
     public scopeName: string,
     {
-      pseudoSelector,
       preconditions,
       postconditions,
     }: {
-      pseudoSelector?: string | undefined;
       preconditions?: string[] | string | undefined;
       postconditions?: string[] | string | undefined;
     } = {},
   ) {
-    this.pseudoSelector = pseudoSelector;
     this.preconditions = preconditions ? asArray(preconditions) : [];
     this.postconditions = postconditions ? asArray(postconditions) : [];
     this.scopeClassName = scopeName;
   }
 
-  addPseudoSelector(pseudoSelector: string): Selector {
-    return new Selector(this.sheet, this.scopeClassName, {
-      pseudoSelector,
-      preconditions: this.preconditions,
-    });
-  }
-
   addPrecondition(precondition: string): Selector {
     return new Selector(this.sheet, this.scopeClassName, {
-      pseudoSelector: this.pseudoSelector,
+      postconditions: this.postconditions,
       preconditions: this.preconditions.concat(precondition),
     });
   }
 
   addPostcondition(postcondition: string): Selector {
     return new Selector(this.sheet, this.scopeClassName, {
-      pseudoSelector: this.pseudoSelector,
       preconditions: this.preconditions,
       postconditions: this.postconditions.concat(postcondition),
     });

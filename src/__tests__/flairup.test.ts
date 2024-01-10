@@ -697,5 +697,78 @@ describe('createSheet', () => {
         expect(css.split('\n').filter(Boolean).length).toBe(1);
       });
     });
+
+    describe('With media query', () => {
+      it('Should support postcondition with media query', () => {
+        const styles = sheet.create({
+          button: {
+            '@media (max-width: 600px)': {
+              '.lower_level_class': {
+                color: 'red',
+              },
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(`
+          "@media (max-width: 600px) {
+          .test_vy8e6j .lower_level_class {color:red;}
+          }"
+        `);
+        expect(css.split('\n').filter(Boolean).length).toBe(3);
+        expect(css).toMatch(' .lower_level_class {color:red;}');
+      });
+    });
+
+    describe('With CSS Variables', () => {
+      it("Should nest styles under the precondition's selector", () => {
+        const styles = sheet.create({
+          button: {
+            '.lower_level_class': {
+              '--': {
+                '--base': 'red',
+                '--size': '100px',
+              },
+              color: 'var(--base)',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+
+        const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(`
+          ".test_-ms8moe {--base:red; --size:100px;}
+          .test_xdgfwx .lower_level_class {color:var(--base);}"
+        `);
+        expect(style).toMatch('.lower_level_class');
+        expect(style).toMatch('color:var(--base);');
+      });
+    });
+
+    describe('With pseudo selectors', () => {
+      it("Should nest styles under the precondition's selector", () => {
+        const styles = sheet.create({
+          button: {
+            '.lower_level_class': {
+              ':hover': {
+                color: 'red',
+              },
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+
+        const style = sheet.getStyle();
+        expect(style).toMatchInlineSnapshot(
+          `".test_3cve19 .lower_level_class:hover {color:red;}"`,
+        );
+        expect(style).toMatch('.lower_level_class:hover');
+        expect(style).toMatch('color:red;');
+      });
+    });
   });
 });
