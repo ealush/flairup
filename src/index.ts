@@ -84,8 +84,12 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (IS.className(property, value) || IS.pseudoSelector(property, value)) {
-      res = iterateStyles(sheet, value, selector.addPostcondition(property));
+    if (IS.postcondition(property)) {
+      res = iterateStyles(
+        sheet,
+        value as Styles,
+        selector.addPostcondition(property),
+      );
     } else if (IS.directClass(property, value)) {
       res = asArray(value);
     } else if (IS.mediaQuery(property, value)) {

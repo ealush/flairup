@@ -769,5 +769,43 @@ describe('createSheet', () => {
         expect(style).toMatch('color:red;');
       });
     });
+
+    describe('Alternate selectors (>+~+*)', () => {
+      it("Should append to the selector's class with a space", () => {
+        const styles = sheet.create({
+          button: {
+            '> .lower_level_class': {
+              color: 'red',
+            },
+            '+ .lower_level_class': {
+              color: 'red',
+            },
+            '~ .lower_level_class': {
+              color: 'red',
+            },
+            '* .lower_level_class': {
+              color: 'red',
+            },
+            '::placeholder': {
+              color: 'red',
+            },
+            '*': {
+              color: 'red',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(`
+          ".test_-g82kcz > .lower_level_class {color:red;}
+          .test_-ttmra8 + .lower_level_class {color:red;}
+          .test_-mr7n4j ~ .lower_level_class {color:red;}
+          .test_-n288hr * .lower_level_class {color:red;}
+          .test_h16tmh::placeholder {color:red;}
+          .test_krgn00 * {color:red;}"
+        `);
+      });
+    });
   });
 });

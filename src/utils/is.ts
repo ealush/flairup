@@ -18,4 +18,8 @@ export const IS = {
   className: (property: string, _: unknown): _ is StyleObject =>
     property.startsWith('.') && property.length > 1,
   string: (value: unknown): value is string => typeof value === 'string',
+  postcondition: (value: unknown): value is string =>
+    IS.string(value) &&
+    (value === '*' ||
+      (value.length > 1 && ':>~.+*'.includes(value.slice(0, 1)))),
 };
