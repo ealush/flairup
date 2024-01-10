@@ -1,3 +1,4 @@
+import { e } from 'vitest/dist/reporters-O4LBziQ_.js';
 import { createSheet } from '../index.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -598,6 +599,102 @@ describe('createSheet', () => {
         expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(true);
 
         expect(splitStyles[1]).toMatch('color:red;');
+      });
+    });
+  });
+
+  describe('Postconditions', () => {
+    it("Should nest styles under the precondition's selector", () => {
+      const styles = sheet.create({
+        button: {
+          '.lower_level_class': {
+            color: 'red',
+          },
+        },
+      });
+
+      expect(styles).toHaveProperty('button');
+
+      const style = sheet.getStyle();
+      expect(style).toMatchInlineSnapshot(
+        `".test_vy8e6j .lower_level_class {color:red;}"`,
+      );
+      expect(style).toMatch('.lower_level_class');
+      expect(style).toMatch('color:red;');
+    });
+
+    describe('Deduplication of styles across different scopes', () => {
+      it('Should deduplicate across scopes', () => {
+        const styles = sheet.create({
+          button: {
+            '.lower_level_class': {
+              color: 'red',
+            },
+          },
+          button_1: {
+            '.lower_level_class': {
+              color: 'red',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        expect(styles).toHaveProperty('button_1');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(
+          `".test_vy8e6j .lower_level_class {color:red;}"`,
+        );
+        expect(css.split('\n').filter(Boolean).length).toBe(1);
+      });
+    });
+
+    describe('When nesting multiple postconditions', () => {
+      it('Should join all postconditions in the same selector with a space between them', () => {
+        const styles = sheet.create({
+          button: {
+            '.class_a': {
+              '.class_b': {
+                color: 'red',
+              },
+              color: 'blue',
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(
+          `
+          ".test_-itlc19 .class_a .class_b {color:red;}
+          .test_-zcp5dv .class_a {color:blue;}"
+        `,
+        );
+        const lines = css.split('\n').filter(Boolean);
+        expect(lines.length).toBe(2);
+
+        expect(lines[0]).toMatch('.class_a .class_b {color:red;}');
+        expect(lines[1]).toMatch('.class_a {color:blue;}');
+      });
+    });
+
+    describe('When mixing preconditions and postconditions', () => {
+      it('Should chain all preconditions and postconditions together', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: {
+              '.lower_level_class': {
+                color: 'red',
+              },
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(
+          `".top-level-class .test_-2nhyq .lower_level_class {color:red;}"`,
+        );
+        expect(css.split('\n').filter(Boolean).length).toBe(1);
       });
     });
   });

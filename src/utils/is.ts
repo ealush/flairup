@@ -15,7 +15,7 @@ export const is = {
     !is.cssVariables(property, value) &&
     !is.pseudoSelector(property, value) &&
     !is.mediaQuery(property, value),
-  topLevelClass: (property: string, _: unknown): _ is StyleObject =>
+  className: (property: string, _: unknown): _ is StyleObject =>
     property.startsWith('.') && property.length > 1,
   string: (value: unknown): value is string => typeof value === 'string',
 };

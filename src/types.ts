@@ -4,7 +4,8 @@ type MediaQuery = `@media ${string}`;
 
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
-export type ParentClass = `.${string}`;
+type PreCondition = `.${string}`;
+
 export type ClassSet = Set<string>;
 
 // That's the create function input
@@ -27,12 +28,12 @@ type Chunks = Record<
   Record<Pseudo, StyleObject>;
 
 export type CreateSheetInput<K extends string> = Partial<
-  Record<K, Styles> | Record<ParentClass, Record<K, Styles>>
+  Record<K, Styles> | Record<PreCondition, Record<K, Styles>>
 >;
 
 type S<K extends string> = Exclude<
   K,
-  ParentClass | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
+  PreCondition | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
 >;
 
 export type createSheetReturn = {

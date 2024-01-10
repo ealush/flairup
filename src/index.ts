@@ -33,7 +33,7 @@ export function createSheet(name: string): createSheetReturn {
       // This handles a class that's wrapping a scoped style.
       // This allows us setting sort of a "precondition" selector for the scoped styles.
 
-      if (is.topLevelClass(scopeName, styles)) {
+      if (is.className(scopeName, styles)) {
         forIn(styles, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
           const scopeClassName = stableHash(sheet.name, childScope);
@@ -84,7 +84,9 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (is.directClass(property, value)) {
+    if (is.className(property, value)) {
+      res = iterateStyles(sheet, value, selector.addPostcondition(property));
+    } else if (is.directClass(property, value)) {
       res = asArray(value);
     } else if (is.mediaQuery(property, value)) {
       res = handleMediaQuery(sheet, value, property, selector);
