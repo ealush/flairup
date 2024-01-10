@@ -5,11 +5,18 @@ type MediaQuery = `@media ${string}`;
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
 type PreCondition = `.${string}`;
+type PostCondition = `.${string}`;
 
 export type ClassSet = Set<string>;
 
 // That's the create function input
-export type Styles = Partial<StyleObject & FlairUpProperties & Chunks>;
+export type Styles = Partial<
+  StyleObject & FlairUpProperties & Chunks & PostConditionStyles
+>;
+
+type PostConditionStyles = {
+  [k: PostCondition]: Styles;
+};
 export type StoredStyles = Record<string, [property: string, value: string]>;
 
 // This is the actual type that's returned from each create function
@@ -21,11 +28,9 @@ type FlairUpProperties = Partial<{
   '.'?: string | string[];
   '--'?: CSSVariablesObject;
 }>;
-type Chunks = Record<
-  MediaQuery,
-  StyleObject | Record<'--', CSSVariablesObject>
-> &
-  Record<Pseudo, StyleObject>;
+type Chunks = {
+  [k: MediaQuery]: StyleObject | Record<'--', CSSVariablesObject>;
+} & { [k: Pseudo]: StyleObject };
 
 export type CreateSheetInput<K extends string> = Partial<
   Record<K, Styles> | Record<PreCondition, Record<K, Styles>>

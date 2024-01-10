@@ -10,7 +10,7 @@ import {
 } from './types.js';
 import { asArray } from './utils/asArray.js';
 import { forIn } from './utils/forIn.js';
-import { is } from './utils/is.js';
+import { IS } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
 import { joinSelectors } from './utils/stringManipulators.js';
 
@@ -33,7 +33,7 @@ export function createSheet(name: string): createSheetReturn {
       // This handles a class that's wrapping a scoped style.
       // This allows us setting sort of a "precondition" selector for the scoped styles.
 
-      if (is.className(scopeName, styles)) {
+      if (IS.className(scopeName, styles)) {
         forIn(styles, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
           const scopeClassName = stableHash(sheet.name, childScope);
@@ -84,15 +84,15 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (is.className(property, value) || is.pseudoSelector(property, value)) {
+    if (IS.className(property, value) || IS.pseudoSelector(property, value)) {
       res = iterateStyles(sheet, value, selector.addPostcondition(property));
-    } else if (is.directClass(property, value)) {
+    } else if (IS.directClass(property, value)) {
       res = asArray(value);
-    } else if (is.mediaQuery(property, value)) {
+    } else if (IS.mediaQuery(property, value)) {
       res = handleMediaQuery(sheet, value, property, selector);
-    } else if (is.cssVariables(property, value)) {
+    } else if (IS.cssVariables(property, value)) {
       res = cssVariablesBlock(sheet, value, selector);
-    } else if (is.validProperty(property, value)) {
+    } else if (IS.validProperty(property, value)) {
       const rule = selector.createRule(property, value);
       sheet.addRule(rule);
       output.add(rule.hash);
@@ -118,7 +118,7 @@ function cssVariablesBlock(
 
   const chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
-    if (is.validProperty(property, value)) {
+    if (IS.validProperty(property, value)) {
       chunkRows.push(Rule.genRule(property, value));
       return;
     }

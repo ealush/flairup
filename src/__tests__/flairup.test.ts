@@ -1,4 +1,3 @@
-import { e } from 'vitest/dist/reporters-O4LBziQ_.js';
 import { createSheet } from '../index.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 

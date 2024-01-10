@@ -1,7 +1,7 @@
 import { CSSVariablesObject, StyleObject, Styles } from '../types.js';
 
 // Selectors
-export const is = {
+export const IS = {
   pseudoSelector: (selector: string, _: unknown): _ is StyleObject =>
     selector.startsWith(':'),
   mediaQuery: (property: string, _: unknown): _ is Styles =>
@@ -12,9 +12,9 @@ export const is = {
     property === '--',
   validProperty: (property: string, value: unknown): value is string =>
     (typeof value === 'string' || typeof value === 'number') &&
-    !is.cssVariables(property, value) &&
-    !is.pseudoSelector(property, value) &&
-    !is.mediaQuery(property, value),
+    !IS.cssVariables(property, value) &&
+    !IS.pseudoSelector(property, value) &&
+    !IS.mediaQuery(property, value),
   className: (property: string, _: unknown): _ is StyleObject =>
     property.startsWith('.') && property.length > 1,
   string: (value: unknown): value is string => typeof value === 'string',

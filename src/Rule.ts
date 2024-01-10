@@ -1,6 +1,6 @@
 import { Sheet } from './Sheet';
 import { asArray } from './utils/asArray';
-import { is } from './utils/is';
+import { IS } from './utils/is';
 import { joinTruthy } from './utils/joinTruthy';
 import { stableHash } from './utils/stableHash';
 import {
@@ -44,7 +44,7 @@ export class Rule {
 
     selectors = this.selector.postconditions.reduce(
       (selectors, current) =>
-        is.pseudoSelector(current, null)
+        IS.pseudoSelector(current, null)
           ? selectors + current
           : `${selectors} ${current}`,
       selectors,
