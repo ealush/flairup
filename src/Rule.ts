@@ -24,17 +24,11 @@ export class Rule {
     this.property = property;
     this.value = value;
     this.joined = joinedProperty(property, value);
-    this.key = joinTruthy([
-      this.joined,
-      joinSelectors(this.selector.preconditions),
-      joinSelectors(this.selector.postconditions),
-    ]);
-    this.hash = stableHash(
-      this.sheet.name,
-      this.joined +
-        joinTruthy(this.selector.preconditions) +
-        joinTruthy(this.selector.postconditions),
+    const joinedConditions = this.selector.preconditions.concat(
+      this.selector.postconditions,
     );
+    this.key = joinTruthy([this.joined, joinedConditions]);
+    this.hash = stableHash(this.sheet.name, this.joined + joinedConditions);
   }
 
   public toString(): string {

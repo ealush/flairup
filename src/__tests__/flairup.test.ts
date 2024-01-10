@@ -499,8 +499,8 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_-59tr7c:hover {color:blue;}
-          .top-level-class .test_puykz6:hover {height:200px;}"
+          ".top-level-class .test_zcgmlk:hover {color:blue;}
+          .top-level-class .test_61acji:hover {height:200px;}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
@@ -664,7 +664,7 @@ describe('createSheet', () => {
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
           `
-          ".test_-itlc19 .class_a .class_b {color:red;}
+          ".test_nhanzn .class_a .class_b {color:red;}
           .test_-zcp5dv .class_a {color:blue;}"
         `,
         );
@@ -691,7 +691,7 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
-          `".top-level-class .test_-2nhyq .lower_level_class {color:red;}"`,
+          `".top-level-class .test_uoitk0 .lower_level_class {color:red;}"`,
         );
         expect(css.split('\n').filter(Boolean).length).toBe(1);
       });
@@ -763,7 +763,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(
-          `".test_3cve19 .lower_level_class:hover {color:red;}"`,
+          `".test_irnx37 .lower_level_class:hover {color:red;}"`,
         );
         expect(style).toMatch('.lower_level_class:hover');
         expect(style).toMatch('color:red;');
