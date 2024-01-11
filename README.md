@@ -161,6 +161,7 @@ Supports all the following selectors:
 - `~`
 - `+`
 - `*`
+- `&.class` (Adds the class directly to the selector without a space)
 
 ```javascript
 const styles = sheet.create({

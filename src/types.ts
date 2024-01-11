@@ -4,7 +4,7 @@ type MediaQuery = `@media ${string}`;
 
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
-type PostPrefixes = '.' | ':' | '~' | '+' | '*' | '>';
+type PostPrefixes = '.' | ':' | '~' | '+' | '*' | '>' | '&.' | '&:';
 type PreCondition = `.${string}`;
 type PostCondition = `${PostPrefixes}${string}`;
 

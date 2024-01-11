@@ -21,5 +21,9 @@ export const IS = {
   postcondition: (value: unknown): value is string =>
     IS.string(value) &&
     (value === '*' ||
-      (value.length > 1 && ':>~.+*'.includes(value.slice(0, 1)))),
+      (value.length > 1 && ':>~.+*'.includes(value.slice(0, 1))) ||
+      IS.immediatePostcondition(value)),
+  immediatePostcondition: (value: unknown): value is `&${string}` =>
+    IS.string(value) &&
+    (value.startsWith('&') || IS.pseudoSelector(value, null)),
 };

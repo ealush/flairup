@@ -38,7 +38,7 @@ export class Rule {
 
     selectors = this.selector.postconditions.reduce(
       (selectors, current) =>
-        IS.pseudoSelector(current, null)
+        IS.immediatePostcondition(current)
           ? selectors + current
           : `${selectors} ${current}`,
       selectors,
