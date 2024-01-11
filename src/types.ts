@@ -1,11 +1,11 @@
 export type StyleObject = Partial<CSSStyleDeclaration>;
 type Pseudo = `:${string}`;
 type MediaQuery = `@media ${string}`;
-
+export type ClassName = `.${string}`;
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
 type PostPrefixes = '.' | ':' | '~' | '+' | '*' | '>' | '&.' | '&:';
-type PreCondition = `.${string}`;
+type PreConditionKey = ClassName;
 type PostCondition = `${PostPrefixes}${string}`;
 
 export type ClassSet = Set<string>;
@@ -28,8 +28,10 @@ export type ScopedStyles<K extends string = string> = Record<S<K>, ClassSet>;
 export type ClassList = (string | undefined)[];
 export {};
 
+export type DirectClass = string | string[];
+
 type FlairUpProperties = Partial<{
-  '.'?: string | string[];
+  '.'?: DirectClass;
   '--'?: CSSVariablesObject;
 }>;
 type Chunks = {
@@ -40,12 +42,16 @@ type Chunks = {
 } & { [k: Pseudo]: StyleObject };
 
 export type CreateSheetInput<K extends string> = Partial<
-  { [k in K]: Styles } | { [k: PreCondition]: { [k in K]: Styles } }
+  { [k in K]: Styles } | PreConditions<K>
 >;
+
+export type PreConditions<K extends string> = {
+  [k: PreConditionKey]: { [k in K]: Styles };
+};
 
 type S<K extends string> = Exclude<
   K,
-  PreCondition | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
+  PreConditionKey | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
 >;
 
 export type createSheetReturn = {

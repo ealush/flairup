@@ -1,6 +1,6 @@
 import { Rule } from './Rule.js';
 import { StoredStyles } from './types.js';
-import { IS } from './utils/is.js';
+import { isString } from './utils/is.js';
 import { appendString } from './utils/stringManipulators.js';
 
 export class Sheet {
@@ -59,7 +59,7 @@ export class Sheet {
   addRule(rule: Rule): string {
     const storedClass = this.storedClasses[rule.key];
 
-    if (IS.string(storedClass)) {
+    if (isString(storedClass)) {
       return storedClass;
     }
 

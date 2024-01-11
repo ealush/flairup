@@ -4,13 +4,22 @@ import {
   CSSVariablesObject,
   ClassSet,
   CreateSheetInput,
+  DirectClass,
+  PreConditions,
   ScopedStyles,
   Styles,
   createSheetReturn,
 } from './types.js';
 import { asArray } from './utils/asArray.js';
 import { forIn } from './utils/forIn.js';
-import { IS } from './utils/is.js';
+import {
+  isClassName,
+  isCssVariables,
+  isDirectClass,
+  isMediaQuery,
+  isPostCondition,
+  isValidProperty,
+} from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
 import { joinSelectors } from './utils/stringManipulators.js';
 
@@ -33,8 +42,8 @@ export function createSheet(name: string): createSheetReturn {
       // This handles a class that's wrapping a scoped style.
       // This allows us setting sort of a "precondition" selector for the scoped styles.
 
-      if (IS.className(scopeName, styles)) {
-        forIn(styles, (childScope, value) => {
+      if (isClassName(scopeName)) {
+        forIn(styles as PreConditions<K>, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
           const scopeClassName = stableHash(sheet.name, childScope);
           const precondition = scopeName.slice(1); // Remove the dot
@@ -84,19 +93,19 @@ function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (IS.postcondition(property)) {
+    if (isPostCondition(property)) {
       res = iterateStyles(
         sheet,
         value as Styles,
         selector.addPostcondition(property),
       );
-    } else if (IS.directClass(property, value)) {
-      res = asArray(value);
-    } else if (IS.mediaQuery(property, value)) {
-      res = handleMediaQuery(sheet, value, property, selector);
-    } else if (IS.cssVariables(property, value)) {
-      res = cssVariablesBlock(sheet, value, selector);
-    } else if (IS.validProperty(property, value)) {
+    } else if (isDirectClass(property)) {
+      res = asArray(value as DirectClass);
+    } else if (isMediaQuery(property)) {
+      res = handleMediaQuery(sheet, value as Styles, property, selector);
+    } else if (isCssVariables(property)) {
+      res = cssVariablesBlock(sheet, value as CSSVariablesObject, selector);
+    } else if (isValidProperty(property, value)) {
       const rule = selector.createRule(property, value);
       sheet.addRule(rule);
       output.add(rule.hash);
@@ -122,7 +131,7 @@ function cssVariablesBlock(
 
   const chunkRows: string[] = [];
   forIn(styles, (property: string, value) => {
-    if (IS.validProperty(property, value)) {
+    if (isValidProperty(property, value)) {
       chunkRows.push(Rule.genRule(property, value));
       return;
     }

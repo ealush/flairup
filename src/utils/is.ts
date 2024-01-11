@@ -1,29 +1,52 @@
-import { CSSVariablesObject, StyleObject, Styles } from '../types.js';
+import { ClassName } from '../types.js';
 
-// Selectors
-export const IS = {
-  pseudoSelector: (selector: string, _: unknown): _ is StyleObject =>
-    selector.startsWith(':'),
-  mediaQuery: (property: string, _: unknown): _ is Styles =>
-    property.startsWith('@media'),
-  directClass: (property: string, _: unknown): _ is string | string[] =>
-    property === '.',
-  cssVariables: (property: string, _: unknown): _ is CSSVariablesObject =>
-    property === '--',
-  validProperty: (property: string, value: unknown): value is string =>
-    (typeof value === 'string' || typeof value === 'number') &&
-    !IS.cssVariables(property, value) &&
-    !IS.pseudoSelector(property, value) &&
-    !IS.mediaQuery(property, value),
-  className: (property: string, _: unknown): _ is StyleObject =>
-    property.startsWith('.') && property.length > 1,
-  string: (value: unknown): value is string => typeof value === 'string',
-  postcondition: (value: unknown): value is string =>
-    IS.string(value) &&
-    (value === '*' ||
-      (value.length > 1 && ':>~.+*'.includes(value.slice(0, 1))) ||
-      IS.immediatePostcondition(value)),
-  immediatePostcondition: (value: unknown): value is `&${string}` =>
-    IS.string(value) &&
-    (value.startsWith('&') || IS.pseudoSelector(value, null)),
-};
+function isPsuedoSelector(selector: string): boolean {
+  return selector.startsWith(':');
+}
+
+export function isPostCondition(selector: string): boolean {
+  return (
+    isString(selector) &&
+    (selector === '*' ||
+      (selector.length > 1 && ':>~.+*'.includes(selector.slice(0, 1))) ||
+      isImmediatePostcondition(selector))
+  );
+}
+
+export function isValidProperty(
+  property: string,
+  value: unknown,
+): value is string {
+  return (
+    (isString(value) || typeof value === 'number') &&
+    !isCssVariables(property) &&
+    !isPsuedoSelector(property) &&
+    !isMediaQuery(property)
+  );
+}
+
+export function isMediaQuery(selector: string): boolean {
+  return selector.startsWith('@media');
+}
+
+export function isDirectClass(selector: string): boolean {
+  return selector === '.';
+}
+
+export function isCssVariables(selector: string): boolean {
+  return selector === '--';
+}
+
+export function isString(value: unknown): value is string {
+  return value + '' === value;
+}
+
+export function isClassName(value: unknown): value is ClassName {
+  return isString(value) && value.length > 1 && value.startsWith('.');
+}
+
+export function isImmediatePostcondition(
+  value: unknown,
+): value is `&${string}` {
+  return isString(value) && (value.startsWith('&') || isPsuedoSelector(value));
+}
