@@ -1,6 +1,6 @@
 import { Sheet } from './Sheet';
 import { asArray } from './utils/asArray';
-import { isImmediatePostcondition } from './utils/is';
+import { isImmediatePostcondition, isPsuedoSelector } from './utils/is';
 import { joinTruthy } from './utils/joinTruthy';
 import { stableHash } from './utils/stableHash';
 import {
@@ -36,13 +36,17 @@ export class Rule {
       this.selector.preconditions.concat(this.hash),
     );
 
-    selectors = this.selector.postconditions.reduce(
-      (selectors, current) =>
-        isImmediatePostcondition(current)
-          ? selectors + current
-          : `${selectors} ${current}`,
-      selectors,
-    );
+    selectors = this.selector.postconditions.reduce((selectors, current) => {
+      if (isPsuedoSelector(current)) {
+        return selectors + current;
+      }
+
+      if (isImmediatePostcondition(current)) {
+        return selectors + current.slice(1);
+      }
+
+      return `${selectors} ${current}`;
+    }, selectors);
 
     return `${selectors} {${Rule.genRule(this.property, this.value)}}`;
   }

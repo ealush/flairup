@@ -1,6 +1,6 @@
 import { ClassName } from '../types.js';
 
-function isPsuedoSelector(selector: string): boolean {
+export function isPsuedoSelector(selector: string): boolean {
   return selector.startsWith(':');
 }
 

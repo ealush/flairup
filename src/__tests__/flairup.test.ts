@@ -824,8 +824,8 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(`
-          ".test_-t95lj7&.lower_level_class {color:red;}
-          .test_cncrzi&:hover {color:red;}"
+          ".test_-t95lj7.lower_level_class {color:red;}
+          .test_cncrzi:hover {color:red;}"
         `);
       });
     });
