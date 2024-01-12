@@ -78,12 +78,12 @@ export function mergeSelectors(
 
 export class Selector {
   public preconditions: string[] = [];
-  public scopeClassName: string;
+  public scopeClassName: string | null;
   public postconditions: string[] = [];
 
   constructor(
     private sheet: Sheet,
-    public scopeName: string,
+    public scopeName: string | null,
     {
       preconditions,
       postconditions,
@@ -95,6 +95,14 @@ export class Selector {
     this.preconditions = preconditions ? asArray(preconditions) : [];
     this.postconditions = postconditions ? asArray(postconditions) : [];
     this.scopeClassName = scopeName;
+  }
+
+  setScope(scopeName: string): Selector {
+    if (!this.scopeClassName) {
+      this.scopeClassName = scopeName;
+    }
+
+    return this;
   }
 
   addPrecondition(precondition: string): Selector {
