@@ -830,4 +830,18 @@ describe('createSheet', () => {
       });
     });
   });
+
+  describe('Multiple preconditions', () => {
+    it("Should prepend all peconditions to the scope's class", () => {
+      const styles = sheet.create({
+        '.top-level-class': {
+          '.lower_level_class': {
+            button: {
+              color: 'red',
+            },
+          },
+        },
+      });
+    });
+  });
 });
