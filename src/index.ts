@@ -1,4 +1,4 @@
-import { Rule, Selector } from './Rule.js';
+import { Rule, Selector, mergeSelectors } from './Rule.js';
 import { Sheet } from './Sheet.js';
 import {
   CSSVariablesObject,
@@ -21,7 +21,6 @@ import {
   isValidProperty,
 } from './utils/is.js';
 import { stableHash } from './utils/stableHash.js';
-import { joinSelectors } from './utils/stringManipulators.js';
 
 export { cx } from './cx.js';
 
@@ -46,12 +45,11 @@ export function createSheet(name: string): createSheetReturn {
         forIn(styles as PreConditions<K>, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
           const scopeClassName = stableHash(sheet.name, childScope);
-          const precondition = scopeName.slice(1); // Remove the dot
           iterateStyles(
             sheet,
             value as Styles,
             new Selector(sheet, scopeClassName, {
-              preconditions: precondition,
+              preconditions: scopeName,
             }),
           ).forEach((className: string) => {
             addScopedStyle(childScope as unknown as K, className);
@@ -143,9 +141,9 @@ function cssVariablesBlock(
   if (chunkRows.length) {
     const output = chunkRows.join(' ');
     sheet.append(
-      `${joinSelectors(
-        selector.preconditions.concat(selector.scopeClassName),
-      )} {${output}}`,
+      `${mergeSelectors(selector.preconditions, {
+        right: selector.scopeClassName,
+      })} {${output}}`,
     );
   }
 

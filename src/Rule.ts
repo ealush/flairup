@@ -6,8 +6,8 @@ import { stableHash } from './utils/stableHash';
 import {
   camelCaseToDash,
   handlePropertyValue,
-  joinSelectors,
   joinedProperty,
+  toClass,
 } from './utils/stringManipulators';
 
 export class Rule {
@@ -32,21 +32,13 @@ export class Rule {
   }
 
   public toString(): string {
-    let selectors = joinSelectors(
-      this.selector.preconditions.concat(this.hash),
-    );
+    let selectors = mergeSelectors(this.selector.preconditions, {
+      right: this.hash,
+    });
 
-    selectors = this.selector.postconditions.reduce((selectors, current) => {
-      if (isPsuedoSelector(current)) {
-        return selectors + current;
-      }
-
-      if (isImmediatePostcondition(current)) {
-        return selectors + current.slice(1);
-      }
-
-      return `${selectors} ${current}`;
-    }, selectors);
+    selectors = mergeSelectors(this.selector.postconditions, {
+      left: selectors,
+    });
 
     return `${selectors} {${Rule.genRule(this.property, this.value)}}`;
   }
@@ -60,6 +52,28 @@ export class Rule {
       ) + ';'
     );
   }
+}
+
+export function mergeSelectors(
+  selectors: string[],
+  { left = '', right = '' }: { left?: string; right?: string } = {},
+): string {
+  const output = selectors.reduce((selectors, current) => {
+    if (isPsuedoSelector(current)) {
+      return selectors + current;
+    }
+
+    if (isImmediatePostcondition(current)) {
+      return selectors + current.slice(1);
+    }
+
+    return joinTruthy([selectors, current], ' ');
+
+    // selector then postcondition
+  }, left);
+
+  // preconditions, then selector
+  return joinTruthy([output, toClass(right)], ' ');
 }
 
 export class Selector {

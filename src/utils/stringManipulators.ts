@@ -1,5 +1,3 @@
-import { ClassList } from '../types.js';
-
 // Some properties need special handling
 export function handlePropertyValue(property: string, value: string): string {
   if (property === 'content') {
@@ -17,11 +15,8 @@ export function joinedProperty(property: string, value: string): string {
   return `${property}:${value}`;
 }
 
-export function joinSelectors(classes: ClassList): string {
-  return classes
-    .filter(Boolean)
-    .map((c) => `.${c}`)
-    .join(' ');
+export function toClass(str: string): string {
+  return str ? `.${str}` : '';
 }
 
 export function appendString(base: string, line: string): string {

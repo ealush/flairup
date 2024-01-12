@@ -376,8 +376,8 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".top-level-class .test_-usj3r7 {color:red;}
-        .top-level-class .test_-9fdl2n {height:100px;}"
+        ".top-level-class .test_-ejlo59 {color:red;}
+        .top-level-class .test_8i4x7z {height:100px;}"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
 
@@ -406,7 +406,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_-usj3r7 {color:red;}
+          ".top-level-class .test_-ejlo59 {color:red;}
           .test_wqxq0q {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
@@ -442,8 +442,8 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_-usj3r7 {color:red;}
-          .top-level-class2 .test_-v5zip7 {color:red;}"
+          ".top-level-class .test_-ejlo59 {color:red;}
+          .top-level-class2 .test_-oozgmp {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
 
@@ -475,7 +475,7 @@ describe('createSheet', () => {
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
           ".top-level-class .test_1zo3d {--base:red; --size:100px;}
-          .top-level-class .test_9dpf7b {color:var(--base);}"
+          .top-level-class .test_natpzd {color:var(--base);}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
@@ -499,8 +499,8 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_zcgmlk:hover {color:blue;}
-          .top-level-class .test_61acji:hover {height:200px;}"
+          ".top-level-class .test_74l02c:hover {color:blue;}
+          .top-level-class .test_lwn1z2:hover {height:200px;}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
@@ -532,8 +532,8 @@ describe('createSheet', () => {
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(
           `
-          ".top-level-class .test_-usj3r7 {color:red;}
-          .top-level-class .test_9l08cm {color:blue;}"
+          ".top-level-class .test_-ejlo59 {color:red;}
+          .top-level-class .test_tl4tju {color:blue;}"
         `,
         );
         const splitStyles = style.split('\n').filter(Boolean);
@@ -563,7 +563,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(
-          `".top-level-class .test_-usj3r7 {color:red;}"`,
+          `".top-level-class .test_-ejlo59 {color:red;}"`,
         );
         expect(styles.button).toEqual(styles.button2);
         expect(style.split('\n').filter(Boolean).length).toBe(1);
@@ -587,7 +587,7 @@ describe('createSheet', () => {
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
           "@media (max-width: 600px) {
-          .top-level-class .test_-usj3r7 {color:red;}
+          .top-level-class .test_-ejlo59 {color:red;}
           }"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
@@ -691,7 +691,7 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
-          `".top-level-class .test_uoitk0 .lower_level_class {color:red;}"`,
+          `".top-level-class .test_mbwgm2 .lower_level_class {color:red;}"`,
         );
         expect(css.split('\n').filter(Boolean).length).toBe(1);
       });
