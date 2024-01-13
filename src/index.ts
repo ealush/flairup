@@ -21,7 +21,6 @@ import {
 
 export { cx } from './cx.js';
 
-// eslint-disable-next-line max-lines-per-function
 export function createSheet(name: string): createSheetReturn {
   const sheet = new Sheet(name);
 
@@ -59,6 +58,8 @@ export function createSheet(name: string): createSheetReturn {
   }
 }
 
+// This one plucks out all of the preconditions
+// and creates selector objects from them
 function iteratePreconditions(
   sheet: Sheet,
   styles: Styles,
@@ -75,30 +76,42 @@ function iteratePreconditions(
       ).forEach((item) => output.push(item));
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - this is a valid case
     output.push([key, styles[key], selector.addScope(key)]);
   });
 
   return output;
 }
 
-function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
+function iterateStyles(
+  sheet: Sheet,
+  styles: Styles,
+  selector: Selector,
+): ClassSet {
   const output: ClassSet = new Set<string>();
   // eslint-disable-next-line max-statements
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
+    // Postconditions
     if (isStyleCondition(property)) {
       res = iterateStyles(
         sheet,
         value as Styles,
         selector.addPostcondition(property),
       );
+      // Direct classes: ".": "className"
     } else if (isDirectClass(property)) {
       res = asArray(value as DirectClass);
     } else if (isMediaQuery(property)) {
       res = handleMediaQuery(sheet, value as Styles, property, selector);
+
+      // "--": { "--variable": "value" }
     } else if (isCssVariables(property)) {
       res = cssVariablesBlock(sheet, value as CSSVariablesObject, selector);
+
+      // "property": "value"
     } else if (isValidProperty(property, value)) {
       const rule = selector.createRule(property, value);
       sheet.addRule(rule);
