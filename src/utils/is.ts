@@ -4,7 +4,7 @@ export function isPsuedoSelector(selector: string): boolean {
   return selector.startsWith(':');
 }
 
-export function isPostCondition(selector: string): boolean {
+export function isStyleCondition(selector: string): boolean {
   return (
     isString(selector) &&
     (selector === '*' ||
