@@ -739,7 +739,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".test_-ms8moe {--base:red; --size:100px;}
+          ".test_-hpcfdb {--base:red; --size:100px;}
           .test_xdgfwx .lower_level_class {color:var(--base);}"
         `);
         expect(style).toMatch('.lower_level_class');

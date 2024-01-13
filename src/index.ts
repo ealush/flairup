@@ -20,7 +20,6 @@ import {
   isPostCondition,
   isValidProperty,
 } from './utils/is.js';
-import { stableHash } from './utils/stableHash.js';
 
 export { cx } from './cx.js';
 
@@ -44,11 +43,10 @@ export function createSheet(name: string): createSheetReturn {
       if (isClassName(scopeName)) {
         forIn(styles as PreConditions<K>, (childScope, value) => {
           // This is an actual scoped style, so we need to iterate over it.
-          const scopeClassName = stableHash(sheet.name, childScope);
           iterateStyles(
             sheet,
             value as Styles,
-            new Selector(sheet, scopeClassName, {
+            new Selector(sheet, childScope, {
               preconditions: scopeName,
             }),
           ).forEach((className: string) => {
@@ -58,13 +56,11 @@ export function createSheet(name: string): createSheetReturn {
         return;
       }
 
-      const scopeClassName = stableHash(sheet.name, scopeName);
-
       // Handles the default case in which we have a scope directly on the root level.
       iterateStyles(
         sheet,
         styles as Styles,
-        new Selector(sheet, scopeClassName, {}),
+        new Selector(sheet, scopeName, {}),
       ).forEach((className) => {
         addScopedStyle(scopeName as K, className);
       });
@@ -120,6 +116,7 @@ function addEachClass(list: string[] | Set<string>, to: Set<string>) {
   return to;
 }
 
+// eslint-disable-next-line max-statements
 function cssVariablesBlock(
   sheet: Sheet,
   styles: CSSVariablesObject,
@@ -137,6 +134,10 @@ function cssVariablesBlock(
     const res = iterateStyles(sheet, value ?? {}, selector);
     addEachClass(res, classes);
   });
+
+  if (!selector.scopeClassName) {
+    return classes;
+  }
 
   if (chunkRows.length) {
     const output = chunkRows.join(' ');
