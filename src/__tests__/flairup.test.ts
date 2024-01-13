@@ -842,6 +842,126 @@ describe('createSheet', () => {
           },
         },
       });
+
+      expect(styles).toHaveProperty('button');
+      const css = sheet.getStyle();
+      expect(css).toMatchInlineSnapshot(
+        `".top-level-class .lower_level_class .test_mbwgm2 {color:red;}"`,
+      );
+      expect(css.startsWith('.top-level-class .lower_level_class')).toBe(true);
+    });
+
+    describe("Multi layer nesting of the same selector's class", () => {
+      it('Should deduplicate the selector', () => {
+        const styles = sheet.create({
+          '.top-level-class': {
+            button: { color: 'yellow' },
+            '.mid_level_class': {
+              button: { color: 'blue' },
+              '.lower_level_class': {
+                button: {
+                  color: 'red',
+                },
+              },
+            },
+          },
+        });
+
+        expect(styles).toHaveProperty('button');
+        const css = sheet.getStyle();
+        expect(css).toMatchInlineSnapshot(
+          `
+          ".top-level-class .test_-61j570 {color:yellow;}
+          .top-level-class .mid_level_class .test_ngvwq2 {color:blue;}
+          .top-level-class .mid_level_class .lower_level_class .test_-tls0xw {color:red;}"
+        `,
+        );
+        expect(styles.button.size).toBe(3);
+
+        styles.button.forEach((className) => {
+          expect(css).toMatch(className);
+        });
+        const splitStyles = css.split('\n').filter(Boolean);
+        expect(splitStyles.filter(Boolean).length).toBe(3);
+        expect(splitStyles[0]).toMatch(/^\.top-level-class \.test_[\w-]+ {/);
+        expect(splitStyles[1]).toMatch(
+          /^\.top-level-class \.mid_level_class \.test_[\w-]+ {/,
+        );
+        expect(splitStyles[2]).toMatch(
+          /^\.top-level-class \.mid_level_class \.lower_level_class \.test_[\w-]+ {/,
+        );
+      });
+
+      describe('Multiple scopes and multiple preconditions', () => {
+        it('Should all all styles under the correct nesting level', () => {
+          const styles = sheet.create({
+            '.top-level-class': {
+              button: { color: 'yellow' },
+              '.mid_level_class': {
+                paragraph: { color: 'blue' },
+                '.lower_level_class': {
+                  button: {
+                    color: 'red',
+                  },
+                },
+              },
+            },
+          });
+          expect(styles).toHaveProperty('button');
+          expect(styles).toHaveProperty('paragraph');
+          const css = sheet.getStyle();
+          expect(css).toMatchInlineSnapshot(`
+            ".top-level-class .test_-61j570 {color:yellow;}
+            .top-level-class .mid_level_class .test_ngvwq2 {color:blue;}
+            .top-level-class .mid_level_class .lower_level_class .test_-tls0xw {color:red;}"
+          `);
+          styles.button.forEach((className) => {
+            expect(css).toMatch(className);
+          });
+          const splitStyles = css.split('\n').filter(Boolean);
+          styles.paragraph.forEach((className) => {
+            expect(splitStyles[0]).not.toMatch(className);
+            expect(splitStyles[2]).not.toMatch(className);
+            expect(splitStyles[1]).toMatch(className);
+          });
+          expect(splitStyles.filter(Boolean).length).toBe(3);
+          expect(splitStyles[0]).toMatch(/^\.top-level-class \.test_[\w-]+ {/);
+          expect(splitStyles[1]).toMatch(
+            /^\.top-level-class \.mid_level_class \.test_[\w-]+ {/,
+          );
+          expect(splitStyles[2]).toMatch(
+            /^\.top-level-class \.mid_level_class \.lower_level_class \.test_[\w-]+ {/,
+          );
+          expect(styles.paragraph.size).toBe(1);
+          expect(styles.button.size).toBe(2);
+        });
+      });
+
+      describe('Multiple predonditions with postconditions', () => {
+        it('Should correctly nest all styles', () => {
+          const styles = sheet.create({
+            '.top-level-class': {
+              '.mid_level_class': {
+                button: {
+                  '.lower_level_class': {
+                    color: 'red',
+                  },
+                },
+              },
+            },
+          });
+
+          expect(styles).toHaveProperty('button');
+          const css = sheet.getStyle();
+          expect(css).toMatchInlineSnapshot(
+            `".top-level-class .mid_level_class .test_-tls0xw .lower_level_class {color:red;}"`,
+          );
+          expect(css).toMatch(
+            /\.top-level-class \.mid_level_class \.test_[\w-]+ \.lower_level_class {color:red;}/,
+          );
+          expect(styles.button.size).toBe(1);
+        });
+      });
     });
   });
 });
