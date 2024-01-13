@@ -5,7 +5,6 @@ import {
   ClassSet,
   CreateSheetInput,
   DirectClass,
-  PreConditions,
   ScopedStyles,
   Styles,
   createSheetReturn,
@@ -13,11 +12,10 @@ import {
 import { asArray } from './utils/asArray.js';
 import { forIn } from './utils/forIn.js';
 import {
-  isClassName,
   isCssVariables,
   isDirectClass,
   isMediaQuery,
-  isPostCondition,
+  isStyleCondition,
   isValidProperty,
 } from './utils/is.js';
 
@@ -36,35 +34,15 @@ export function createSheet(name: string): createSheetReturn {
   function create<K extends string>(styles: CreateSheetInput<K>) {
     const scopedStyles: ScopedStyles<K> = {} as ScopedStyles<K>;
 
-    forIn(styles, (scopeName, styles) => {
-      // This handles a class that's wrapping a scoped style.
-      // This allows us setting sort of a "precondition" selector for the scoped styles.
-
-      if (isClassName(scopeName)) {
-        forIn(styles as PreConditions<K>, (childScope, value) => {
-          // This is an actual scoped style, so we need to iterate over it.
-          iterateStyles(
-            sheet,
-            value as Styles,
-            new Selector(sheet, childScope, {
-              preconditions: scopeName,
-            }),
-          ).forEach((className: string) => {
-            addScopedStyle(childScope as unknown as K, className);
-          });
-        });
-        return;
-      }
-
-      // Handles the default case in which we have a scope directly on the root level.
-      iterateStyles(
-        sheet,
-        styles as Styles,
-        new Selector(sheet, scopeName, {}),
-      ).forEach((className) => {
-        addScopedStyle(scopeName as K, className);
-      });
-    });
+    iteratePreconditions(sheet, styles, new Selector(sheet)).forEach(
+      ([scopeName, styles, selector]) => {
+        iterateStyles(sheet, styles as Styles, selector).forEach(
+          (className) => {
+            addScopedStyle(scopeName as K, className);
+          },
+        );
+      },
+    );
 
     // Commit the styles to the sheet.
     // Done only once per create call.
@@ -81,13 +59,35 @@ export function createSheet(name: string): createSheetReturn {
   }
 }
 
+function iteratePreconditions(
+  sheet: Sheet,
+  styles: Styles,
+  selector: Selector,
+) {
+  const output: Array<[string, Styles, Selector]> = [];
+
+  forIn(styles, (key: string, value) => {
+    if (isStyleCondition(key)) {
+      return iteratePreconditions(
+        sheet,
+        value as Styles,
+        selector.addPrecondition(key),
+      ).forEach((item) => output.push(item));
+    }
+
+    output.push([key, styles[key], selector.addScope(key)]);
+  });
+
+  return output;
+}
+
 function iterateStyles(sheet: Sheet, styles: Styles, selector: Selector) {
   const output: ClassSet = new Set<string>();
   // eslint-disable-next-line max-statements
   forIn(styles, (property, value) => {
     let res: string[] | Set<string> = [];
 
-    if (isPostCondition(property)) {
+    if (isStyleCondition(property)) {
       res = iterateStyles(
         sheet,
         value as Styles,

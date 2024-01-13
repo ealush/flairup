@@ -84,7 +84,7 @@ export class Selector {
 
   constructor(
     private sheet: Sheet,
-    scopeName: string | null,
+    scopeName: string | null = null,
     {
       preconditions,
       postconditions,
@@ -98,7 +98,7 @@ export class Selector {
     this.setScope(scopeName);
   }
 
-  setScope(scopeName: string | null): Selector {
+  private setScope(scopeName: string | null): Selector {
     if (!scopeName) {
       return this;
     }
@@ -109,6 +109,13 @@ export class Selector {
     }
 
     return this;
+  }
+
+  addScope(scopeName: string): Selector {
+    return new Selector(this.sheet, scopeName, {
+      preconditions: this.preconditions,
+      postconditions: this.postconditions,
+    });
   }
 
   addPrecondition(precondition: string): Selector {
