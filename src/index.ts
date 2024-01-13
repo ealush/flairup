@@ -143,7 +143,6 @@ function cssVariablesBlock(
       chunkRows.push(Rule.genRule(property, value));
       return;
     }
-
     const res = iterateStyles(sheet, value ?? {}, selector);
     addEachClass(res, classes);
   });
