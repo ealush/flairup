@@ -844,6 +844,7 @@ describe('createSheet', () => {
       });
 
       expect(styles).toHaveProperty('button');
+      expect(styles.button.size).toBe(1);
       const css = sheet.getStyle();
       expect(css).toMatchInlineSnapshot(
         `".top-level-class .lower_level_class .test_mbwgm2 {color:red;}"`,
@@ -951,6 +952,7 @@ describe('createSheet', () => {
             },
           });
 
+          expect(styles.button.size).toBe(1);
           expect(styles).toHaveProperty('button');
           const css = sheet.getStyle();
           expect(css).toMatchInlineSnapshot(

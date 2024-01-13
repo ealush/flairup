@@ -46,7 +46,11 @@ export type CreateSheetInput<K extends string> = Partial<
 >;
 
 export type PreConditions<K extends string> = {
-  [k: PreConditionKey]: { [k in K]: Styles };
+  [k: PreConditionKey]:
+    | {
+        [k in K]: Styles;
+      }
+    | PreConditions<K>;
 };
 
 type S<K extends string> = Exclude<
