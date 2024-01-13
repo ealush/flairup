@@ -16,10 +16,11 @@ export type Styles = Partial<
 >;
 
 type PostConditionStyles = {
-  [k: PostCondition]: StyleObject &
-    FlairUpProperties &
-    Chunks &
-    PostConditionStyles;
+  [k: PostCondition]:
+    | StyleObject
+    | FlairUpProperties
+    | Chunks
+    | PostConditionStyles;
 };
 export type StoredStyles = Record<string, [property: string, value: string]>;
 
