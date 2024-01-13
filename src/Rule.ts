@@ -27,8 +27,10 @@ export class Rule {
     const joinedConditions = this.selector.preconditions.concat(
       this.selector.postconditions,
     );
-    this.key = joinTruthy([this.joined, joinedConditions]);
-    this.hash = stableHash(this.sheet.name, this.joined + joinedConditions);
+    this.hash = this.selector.hasConditions
+      ? (this.selector.scopeClassName as string)
+      : stableHash(this.sheet.name, this.joined);
+    this.key = joinTruthy([this.joined, joinedConditions, this.hash]);
   }
 
   public toString(): string {
@@ -105,10 +107,18 @@ export class Selector {
 
     if (!this.scopeClassName) {
       this.scopeName = scopeName;
-      this.scopeClassName = stableHash(this.sheet.name, scopeName);
+      this.scopeClassName = stableHash(
+        this.sheet.name,
+        // adding the count guarantees uniqueness across style.create calls
+        scopeName + this.sheet.count,
+      );
     }
 
     return this;
+  }
+
+  get hasConditions(): boolean {
+    return this.preconditions.length > 0 || this.postconditions.length > 0;
   }
 
   addScope(scopeName: string): Selector {
