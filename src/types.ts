@@ -4,9 +4,9 @@ type MediaQuery = `@media ${string}`;
 export type ClassName = `.${string}`;
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
-type PostPrefixes = '.' | ':' | '~' | '+' | '*' | '>' | '&.' | '&:';
-type PreConditionKey = ClassName;
-type PostCondition = `${PostPrefixes}${string}`;
+type ConditionPrefix = '.' | ':' | '~' | '+' | '*' | '>' | '&.' | '&:';
+type PreConditionKey = `${ConditionPrefix}${string}`;
+type PostCondition = `${ConditionPrefix}${string}`;
 
 export type ClassSet = Set<string>;
 
