@@ -46,7 +46,7 @@ export class Sheet {
   createStyleTag(): HTMLStyleElement | undefined {
     // check that we're in the browser and have access to the DOM
     if (typeof document === 'undefined' || this.isApplied()) {
-      return;
+      return this.styleTag;
     }
 
     const styleTag = document.createElement('style');
