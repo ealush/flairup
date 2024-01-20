@@ -150,6 +150,9 @@ const styles = sheet.create({
       },
     },
   },
+  button: {
+    color: 'green',
+  },
 });
 ```
 
@@ -176,6 +179,43 @@ const styles = sheet.create({
     },
   },
 });
+```
+
+# SSR Support
+
+While the library supports SSR, we need to do a little bit of work in our component to make it work.
+All we need to do is render a style tag inside our component and put the styles inside it.
+
+## React
+
+Create the following component:
+
+```jsx
+export function SSRStyles() {
+  if (stylesheet.isApplied()) {
+    return null;
+  }
+
+  return (
+    <style
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: stylesheet.getStyle() }}
+    />
+  );
+}
+```
+
+And place it anywhere inside your component, like this:
+
+```jsx
+export default function MyComponentMain({ children }: Props) {
+  return (
+    <div>
+      <SSRStyles /> // <-- Here
+      <ChildComponent>{children}</ChildComponent>
+    </div>
+  );
+}
 ```
 
 ## What does the output look like?
