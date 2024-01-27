@@ -21,7 +21,7 @@ import {
 
 export { cx } from './cx.js';
 
-export type { CreateSheetInput };
+export type { CreateSheetInput, Styles };
 
 export function createSheet(name: string): createSheetReturn {
   const sheet = new Sheet(name);
