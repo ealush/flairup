@@ -1,5 +1,5 @@
 import { createSheet } from '../index.js';
-import { describe, expect, it, beforeEach, assert } from 'vitest';
+import { describe, expect, it, beforeEach, assert, afterEach } from 'vitest';
 
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
 const singlePropertyWithPseudoRegex =
@@ -10,6 +10,13 @@ describe('createSheet', () => {
 
   beforeEach(() => {
     sheet = createSheet('test');
+  });
+
+  afterEach(() => {
+    const styleTags = document.querySelectorAll('style');
+    styleTags.forEach((styleTag) => {
+      styleTag.remove();
+    });
   });
 
   it('should create a sheet', () => {
@@ -1048,19 +1055,22 @@ describe('createSheet', () => {
       ).toBe(true);
     });
 
-    it('Should add the style content to the style tag', () => {
-      sheet.create({
-        button: {
-          color: 'red',
-        },
-        paragraph: {
-          color: 'blue',
-        },
-      });
+    it('Should append the content of the sheet to the style element', () => {
+      createSheet('example');
+      const styleTag = document.querySelector('style#flairup-example');
+      expect(styleTag).not.toBeNull();
+      expect(styleTag?.textContent).toEqual(sheet.getStyle());
+    });
 
-      const style = document.querySelector('style#flairup-test');
-      assert(style);
-      expect(style.textContent).toEqual(sheet.getStyle());
+    describe('Alternative root node', () => {
+      it('Should nest the style tag under the root node', () => {
+        const root = document.createElement('div');
+        document.body.appendChild(root);
+        createSheet('example', root);
+        const styleTag = document.querySelector('style#flairup-example');
+        assert(styleTag instanceof HTMLStyleElement);
+        expect(styleTag.parentElement).toBe(root);
+      });
     });
   });
 });

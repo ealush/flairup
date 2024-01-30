@@ -23,8 +23,11 @@ export { cx } from './cx.js';
 
 export type { CreateSheetInput, Styles };
 
-export function createSheet(name: string): createSheetReturn {
-  const sheet = new Sheet(name);
+export function createSheet(
+  name: string,
+  rootNode?: HTMLElement,
+): createSheetReturn {
+  const sheet = new Sheet(name, rootNode);
 
   return {
     create,

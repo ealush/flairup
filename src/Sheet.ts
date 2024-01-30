@@ -15,7 +15,10 @@ export class Sheet {
   public count = 0;
   public id: string;
 
-  constructor(public name: string) {
+  constructor(
+    public name: string,
+    private rootNode?: HTMLElement,
+  ) {
     this.id = `flairup-${name}`;
 
     this.styleTag = this.createStyleTag();
@@ -52,7 +55,7 @@ export class Sheet {
     const styleTag = document.createElement('style');
     styleTag.type = 'text/css';
     styleTag.id = this.id;
-    document.head.appendChild(styleTag);
+    (this.rootNode ?? document.head).appendChild(styleTag);
     return styleTag;
   }
 
