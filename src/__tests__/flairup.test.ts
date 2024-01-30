@@ -1032,4 +1032,20 @@ describe('createSheet', () => {
       expect(splitStyles.length).toBe(new Set(splitStyles).size);
     });
   });
+
+  describe('Applying the sheet to the dom', () => {
+    it("Should add a style element to the dom with the sheet's name as its id", () => {
+      expect(document.querySelector('style#flairup-example')).toBeNull();
+
+      createSheet('example');
+      expect(
+        document.querySelector('style#flairup-example') instanceof
+          HTMLStyleElement,
+      ).toBe(true);
+      expect(
+        document.querySelector('style#flairup-test') instanceof
+          HTMLStyleElement,
+      ).toBe(true);
+    });
+  });
 });
