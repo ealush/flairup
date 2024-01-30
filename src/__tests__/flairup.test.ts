@@ -1,5 +1,5 @@
 import { createSheet } from '../index.js';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, assert } from 'vitest';
 
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
 const singlePropertyWithPseudoRegex =
@@ -1046,6 +1046,21 @@ describe('createSheet', () => {
         document.querySelector('style#flairup-test') instanceof
           HTMLStyleElement,
       ).toBe(true);
+    });
+
+    it('Should add the style content to the style tag', () => {
+      sheet.create({
+        button: {
+          color: 'red',
+        },
+        paragraph: {
+          color: 'blue',
+        },
+      });
+
+      const style = document.querySelector('style#flairup-test');
+      assert(style);
+      expect(style.textContent).toEqual(sheet.getStyle());
     });
   });
 });
