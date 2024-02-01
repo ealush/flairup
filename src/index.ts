@@ -25,7 +25,7 @@ export type { CreateSheetInput, Styles };
 
 export function createSheet(
   name: string,
-  rootNode?: HTMLElement,
+  rootNode?: HTMLElement | null,
 ): createSheetReturn {
   const sheet = new Sheet(name, rootNode);
 

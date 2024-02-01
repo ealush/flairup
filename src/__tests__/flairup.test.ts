@@ -1056,20 +1056,31 @@ describe('createSheet', () => {
     });
 
     it('Should append the content of the sheet to the style element', () => {
-      createSheet('example');
+      const sheet = createSheet('example');
       const styleTag = document.querySelector('style#flairup-example');
       expect(styleTag).not.toBeNull();
       expect(styleTag?.textContent).toEqual(sheet.getStyle());
+      expect(sheet.isApplied()).toBe(true);
     });
 
     describe('Alternative root node', () => {
       it('Should nest the style tag under the root node', () => {
         const root = document.createElement('div');
         document.body.appendChild(root);
-        createSheet('example', root);
+        const sheet = createSheet('example', root);
         const styleTag = document.querySelector('style#flairup-example');
         assert(styleTag instanceof HTMLStyleElement);
         expect(styleTag.parentElement).toBe(root);
+        expect(sheet.isApplied()).toBe(true);
+      });
+    });
+
+    describe('Disable mounting', () => {
+      it("Should not mount the sheet's style tag", () => {
+        const sheet = createSheet('example', null);
+        const styleTag = document.querySelector('style#flairup-example');
+        expect(styleTag).toBeNull();
+        expect(sheet.isApplied()).toBe(false);
       });
     });
   });

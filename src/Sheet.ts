@@ -17,7 +17,7 @@ export class Sheet {
 
   constructor(
     public name: string,
-    private rootNode?: HTMLElement,
+    private rootNode?: HTMLElement | null,
   ) {
     this.id = `flairup-${name}`;
 
@@ -48,7 +48,12 @@ export class Sheet {
 
   createStyleTag(): HTMLStyleElement | undefined {
     // check that we're in the browser and have access to the DOM
-    if (typeof document === 'undefined' || this.isApplied()) {
+    if (
+      typeof document === 'undefined' ||
+      this.isApplied() ||
+      // Explicitly disallow mounting to the DOM
+      this.rootNode === null
+    ) {
       return this.styleTag;
     }
 
