@@ -5,23 +5,21 @@ export type ClassName = `.${string}`;
 export type CSSVariablesObject = Record<`--${string}`, string>;
 
 type ConditionPrefix = '.' | ':' | '~' | '+' | '*' | '>' | '&.' | '&:';
-type PreConditionKey = `${ConditionPrefix}${string}`;
-type PostCondition = `${ConditionPrefix}${string}`;
+type ConditionKey = `${ConditionPrefix}${string}`;
 
 export type ClassSet = Set<string>;
 
 // That's the create function input
-export type Styles = Partial<
-  StyleObject & FlairUpProperties & Chunks & PostConditionStyles
->;
+export type Styles = Partial<StyleObject & Chunks & PostConditionStyles>;
 
-type PostConditionStyles = {
-  [k: PostCondition]:
+export type PostConditionStyles = {
+  [k: ConditionKey]:
     | StyleObject
     | FlairUpProperties
     | Chunks
     | PostConditionStyles;
 };
+
 export type StoredStyles = Record<string, [property: string, value: string]>;
 
 // This is the actual type that's returned from each create function
@@ -35,6 +33,7 @@ type FlairUpProperties = Partial<{
   '.'?: DirectClass;
   '--'?: CSSVariablesObject;
 }>;
+
 type Chunks = {
   [k: MediaQuery]:
     | StyleObject
@@ -43,11 +42,11 @@ type Chunks = {
 } & { [k: Pseudo]: StyleObject };
 
 export type CreateSheetInput<K extends string> = Partial<
-  { [k in K]: Styles } | PreConditions<K>
+  { [k in K]: Styles | FlairUpProperties } | PreConditions<K>
 >;
 
 export type PreConditions<K extends string> = {
-  [k: PreConditionKey]:
+  [k: ConditionKey]:
     | {
         [k in K]: Styles;
       }
@@ -56,7 +55,7 @@ export type PreConditions<K extends string> = {
 
 type S<K extends string> = Exclude<
   K,
-  PreConditionKey | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
+  ConditionKey | '--' | '.' | keyof CSSStyleDeclaration | Pseudo | MediaQuery
 >;
 
 export type createSheetReturn = {
