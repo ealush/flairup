@@ -1,7 +1,7 @@
 {
   "name": "flairup",
   "description": "🎩 Lightweight CSS-in-JS solution for npm packages",
-  "version": "0.0.39",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",

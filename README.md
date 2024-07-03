@@ -1,11 +1,7 @@
 # FlairUp 🎩
 
-Lightweight CSS-In-JS library for packages.
-Initially created for [Emoji-Picker-React](https://github.com/ealush/emoji-picker-react).
-
-# Status
-
-The package is still in development and the API is not stable. It is used only in emoji-picker-react. It works well, but the API might change. Use at your own risk.
+Lightweight CSS-In-JS library for UI packages.
+Battle tested on [Emoji-Picker-React](https://github.com/ealush/emoji-picker-react).
 
 # Why?
 
@@ -186,7 +182,7 @@ const styles = sheet.create({
 While the library supports SSR, we need to do a little bit of work in our component to make it work.
 All we need to do is render a style tag inside our component and put the styles inside it.
 
-## React
+## React SSR Example
 
 Create the following component:
 
