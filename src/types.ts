@@ -62,6 +62,19 @@ export type createSheetReturn = {
   create: <K extends string>(
     styles: CreateSheetInput<K>,
   ) => ScopedStyles<S<K>> & ScopedStyles<string>;
+  keyframes: KeyframesFunction;
   getStyle: () => string;
   isApplied: () => boolean;
 };
+
+export type KeyframeStages = {
+  [stage: string]: StyleObject;
+};
+
+export type keyframesInput<KF extends string> = Record<KF, KeyframeStages>;
+
+export type KeyframesFunction = <KF extends string>(
+  keyframesInput: keyframesInput<KF>,
+) => Record<KF, string>;
+
+export type KeyframesOutput<KF extends string> = Record<KF, string>;

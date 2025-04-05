@@ -20,5 +20,13 @@ export function toClass(str: string): string {
 }
 
 export function appendString(base: string, line: string): string {
-  return base ? `${base}\n${line}` : line;
+  return appendStringInline(base, line, '\n');
+}
+
+export function appendStringInline(
+  base: string,
+  line: string,
+  separator: string = ' ',
+): string {
+  return base ? `${base}${separator}${line}` : line;
 }

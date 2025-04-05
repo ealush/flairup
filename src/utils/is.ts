@@ -29,6 +29,10 @@ export function isMediaQuery(selector: string): boolean {
   return selector.startsWith('@media');
 }
 
+export function isKeyframes(selector: string): boolean {
+  return selector.startsWith('@keyframes');
+}
+
 export function isDirectClass(selector: string): boolean {
   return selector === '.';
 }

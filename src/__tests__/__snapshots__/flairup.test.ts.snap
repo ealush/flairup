@@ -1,0 +1,40 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`createSheet > Keyframes > Should create keyframes > 
+        "@keyframes test {
+        0% {color:red;}
+        100% {color:blue;}
+        }"
+       1`] = `
+"@keyframes test {
+0% {
+color:red;
+}
+100% {
+color:blue;
+}
+}"
+`;
+
+exports[`createSheet > Keyframes > Should create keyframes > 
+       1`] = `
+"@keyframes test {
+0% {
+color:red;
+}
+100% {
+color:blue;
+}
+}"
+`;
+
+exports[`createSheet > Keyframes > Should create keyframes 1`] = `
+"@keyframes test {
+0% {
+color:red;
+}
+100% {
+color:blue;
+}
+}"
+`;

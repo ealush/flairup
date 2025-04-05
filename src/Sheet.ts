@@ -1,7 +1,10 @@
 import { Rule } from './Rule.js';
 import { StoredStyles } from './types.js';
 import { isString } from './utils/is.js';
-import { appendString } from './utils/stringManipulators.js';
+import {
+  appendString,
+  appendStringInline,
+} from './utils/stringManipulators.js';
 
 export class Sheet {
   private styleTag: HTMLStyleElement | undefined;
@@ -32,8 +35,16 @@ export class Sheet {
     this.style = appendString(this.style, css);
   }
 
+  appendInline(css: string): void {
+    this.style = appendStringInline(this.style, css);
+  }
+
+  seq(): number {
+    return this.count++;
+  }
+
   apply(): void {
-    this.count++;
+    this.seq();
 
     if (!this.styleTag) {
       return;
