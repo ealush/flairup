@@ -1084,4 +1084,124 @@ describe('createSheet', () => {
       });
     });
   });
+
+  describe('Keyframes', () => {
+    it('Should add prefixed and incremented keyframes names to the sheet', () => {
+      sheet.keyframes({
+        kf: {
+          '0%': {
+            color: 'red',
+            opacity: '0',
+          },
+          '100%': {
+            color: 'blue',
+            opacity: '1',
+          },
+        },
+        leftToRight: {
+          from: {
+            left: '0',
+          },
+          to: {
+            right: '100%',
+          },
+        },
+      });
+      const css = sheet.getStyle();
+      expect(css).toMatchInlineSnapshot(`
+        "@keyframes test_0_kf {
+        0% { color:red; opacity:0; }
+        100% { color:blue; opacity:1; }
+        }
+        @keyframes test_1_leftToRight {
+        from { left:0; }
+        to { right:100%; }
+        }"
+      `);
+    });
+    it('Should prevent name collision across invocations', () => {
+      sheet.keyframes({
+        kf: {
+          '0%': {
+            opacity: '0',
+          },
+          '100%': {
+            opacity: '1',
+          },
+        },
+      });
+      sheet.keyframes({
+        kf: {
+          '0%': {
+            color: 'red',
+          },
+          '100%': {
+            color: 'blue',
+          },
+        },
+      });
+      const css = sheet.getStyle();
+      expect(css).toMatchInlineSnapshot(`
+        "@keyframes test_0_kf {
+        0% { opacity:0; }
+        100% { opacity:1; }
+        }
+        @keyframes test_1_kf {
+        0% { color:red; }
+        100% { color:blue; }
+        }"
+      `);
+    });
+    it('Should output an object with the keyframe names', () => {
+      const keyframes = sheet.keyframes({
+        kf: {
+          '0%': {
+            color: 'red',
+            opacity: '0',
+          },
+          '100%': {
+            color: 'blue',
+            opacity: '1',
+          },
+        },
+        leftToRight: {
+          from: {
+            left: '0',
+          },
+          to: {
+            right: '100%',
+          },
+        },
+      });
+
+      expect(keyframes.kf).toBeDefined();
+      expect(keyframes.leftToRight).toBeDefined();
+    });
+
+    it('Should return a string matching the hasned names in the sheet', () => {
+      const keyframes = sheet.keyframes({
+        kf: {
+          '0%': {
+            color: 'red',
+            opacity: '0',
+          },
+          '100%': {
+            color: 'blue',
+            opacity: '1',
+          },
+        },
+        leftToRight: {
+          from: {
+            left: '0',
+          },
+          to: {
+            right: '100%',
+          },
+        },
+      });
+
+      expect(keyframes.kf).toBe('test_0_kf');
+      expect(keyframes.leftToRight).toBe('test_1_leftToRight');
+    });
+  });
 });
