@@ -104,7 +104,7 @@ const styles = sheet.create({
   },
 });
 ```
-
+  
 ### Adding Media Queries
 
 ```javascript
