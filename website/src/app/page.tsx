@@ -3,10 +3,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { createSheet, cx } from 'flairup';
-// import { Keyframes } from 'flairup/src/types';
 
 // --- Flairup Styles ---
 const sheet = createSheet('main');
+
+const keyframes = sheet.keyframes({
+  slideIn: {
+    from: {
+      opacity: '0',
+      transform: 'translateX(-20px)',
+    },
+    to: {
+      opacity: '1',
+      transform: 'translateX(0)',
+    },
+  },
+});
 
 const styles = sheet.create({
   // --- Container & Layout ---
@@ -118,6 +130,9 @@ const styles = sheet.create({
     borderRadius: '8px',
     margin: '10px 0',
   },
+  error: {
+    color: 'red',
+  },
   mqExample: {
     color: 'purple',
     '@media (max-width: 600px)': {
@@ -140,22 +155,9 @@ const styles = sheet.create({
     fontWeight: 'bold',
   },
   keyframesExample: {
-    animation: 'slideIn 1s ease-in-out',
+    animation: `${keyframes.slideIn} infinite 1s ease-in-out`,
   },
 });
-
-// const keyframes = sheet.keyframes({
-//   slideIn: {
-//     from: {
-//       opacity: '0',
-//       transform: 'translateX(-20px)',
-//     },
-//     to: {
-//       opacity: '1',
-//       transform: 'translateX(0)',
-//     },
-//   },
-// });
 
 function SSRStyles() {
   const [isMounted, setIsMounted] = useState(false);
@@ -481,7 +483,7 @@ const keyframes = sheet.keyframes({
 
 const styles = sheet.create({
   animatedBox: {
-    animation: \`\${keyframes.slideIn} 1s ease-in-out\`,
+    animation: \`\${keyframes.slideIn} 1s infinite ease-in-out\`,
     // ... other styles
   },
 });
