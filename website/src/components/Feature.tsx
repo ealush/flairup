@@ -4,7 +4,7 @@ import { stylesheet } from '../app/stylesheet';
 
 const styles = stylesheet.create({
   featureItem: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--card-background)',
     padding: '15px',
     borderRadius: '5px',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -16,7 +16,7 @@ const styles = stylesheet.create({
     color: '#3498db',
   },
   featureDescription: {
-    color: '#555',
+    color: 'var(--card-text)',
   },
 });
 
@@ -32,4 +32,4 @@ export function Feature({ title, children }: FeatureProps) {
       <p className={cx(styles.featureDescription)}>{children}</p>
     </div>
   );
-} 
+}

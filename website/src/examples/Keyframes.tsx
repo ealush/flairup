@@ -49,8 +49,8 @@ const styles = stylesheet.create({
 
 export function Keyframes() {
   return (
-    <Example 
-      title="Keyframes Animations" 
+    <Example
+      title="Keyframes Animations"
       description="Demonstrates how to create and use keyframe animations in FlairUp. This example shows two animated boxes: one using a bounce animation and another using a pulse animation. The keyframes are defined using the `keyframes` function and applied to elements using the `animation` property."
       exampleStyle={`// First, define your keyframes
 const keyframes = stylesheet.keyframes({
@@ -104,4 +104,4 @@ function AnimatedBoxes() {
       </div>
     </Example>
   );
-} 
+}

@@ -15,7 +15,7 @@ const styles = stylesheet.create({
   introText: {
     fontSize: '1.1em',
     lineHeight: '1.6',
-    color: '#444',
+    color: 'var(--card-text)',
   },
   introList: {
     margin: '0.5em 0',
@@ -44,7 +44,7 @@ const styles = stylesheet.create({
     },
   },
   introCard: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--card-background)',
     padding: '1.5em',
     borderRadius: '8px',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -53,7 +53,7 @@ const styles = stylesheet.create({
   introTitle: {
     fontSize: '1.2em',
     fontWeight: '600',
-    color: '#2c3e50',
+    color: 'var(--title-color)',
     marginBottom: '1em',
     display: 'flex',
     alignItems: 'center',

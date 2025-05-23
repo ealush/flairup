@@ -10,16 +10,16 @@ const styles = stylesheet.create({
   title: {
     fontSize: '1.2em',
     fontWeight: '600',
-    color: '#2c3e50',
+    color: 'var(--title-color)',
     marginBottom: '0.5em',
   },
   description: {
-    color: '#666',
+    color: 'var(--card-text)',
     marginBottom: '1em',
     lineHeight: '1.5',
   },
   example: {
-    backgroundColor: '#fff',
+    backgroundColor: 'var(--card-background)',
     padding: '1.5em',
     borderRadius: '8px',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -32,7 +32,7 @@ const styles = stylesheet.create({
   codeTitle: {
     fontSize: '1em',
     fontWeight: '600',
-    color: '#2c3e50',
+    color: 'var(--title-color)',
     marginBottom: '0.5em',
   },
 });
@@ -63,7 +63,7 @@ export function Example({
   return (
     <div className={cx(styles.container)}>
       <h3 className={cx(styles.title)}>{title}</h3>
-      <p className={cx(styles.description)}>{description}</p>
+      <div className={cx(styles.description)}>{description}</div>
       <div className={cx(styles.example)}>{children}</div>
       <div className={cx(styles.codeSection)}>
         <h4 className={cx(styles.codeTitle)}>Styles</h4>

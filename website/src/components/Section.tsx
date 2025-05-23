@@ -16,7 +16,7 @@ const styles = stylesheet.create({
     fontSize: '1.8em',
     fontWeight: 'bold',
     marginBottom: '1.2em',
-    color: '#2c3e50',
+    color: 'var(--title-color)',
     position: 'relative',
     '&::after': {
       content: '',

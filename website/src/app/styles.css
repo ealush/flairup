@@ -3,12 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-background: #f5f5f5;
+  --card-text: #171717;
+  --title-color: #3498db;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #222432;
     --foreground: #ededed;
+    --card-background: rgba(23, 23, 23, 0.7);
+    --card-text: #ededed;
   }
 }
 
@@ -21,13 +26,13 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Open Sans", Arial, Helvetica, sans-serif;
+  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
-  font-variation-settings: "wdth" 100;
+  font-variation-settings: 'wdth' 100;
 }
 
 * {

@@ -41,7 +41,7 @@ const styles = stylesheet.create({
   },
   themeLight: {
     backgroundColor: '#ecf0f1',
-    color: '#2c3e50',
+    color: 'var(--title-color)',
   },
   button: {
     padding: '10px 20px',

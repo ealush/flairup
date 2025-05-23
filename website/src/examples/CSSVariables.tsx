@@ -56,8 +56,8 @@ const styles = stylesheet.create({
 
 export function CSSVariables() {
   return (
-    <Example 
-      title="CSS Variables" 
+    <Example
+      title="CSS Variables"
       description="Shows how to use CSS variables in FlairUp. Unlike regular CSS properties, CSS variables are added as a single class per scope. This example demonstrates how to define and use CSS variables to create themeable components with different color variants."
       exampleStyle={exampleStyle}
       usage={`function Boxes() {
@@ -72,13 +72,25 @@ export function CSSVariables() {
     >
       <div className={cx(styles.box)}>Default Box</div>
       <div className={cx(styles.box, styles['box--primary'])}>Primary Box</div>
-      <div className={cx(styles.box, styles['box--secondary'])}>Secondary Box</div>
+      <div className={cx(styles.box, styles['box--secondary'])}>
+        Secondary Box
+      </div>
 
       <div style={{ marginTop: '20px' }}>
         <button className={cx(styles.button)}>Default Button</button>
-        <button className={cx(styles.button, styles['button--danger'])} style={{ marginLeft: '10px' }}>Danger Button</button>
-        <button className={cx(styles.button, styles['button--success'])} style={{ marginLeft: '10px' }}>Success Button</button>
+        <button
+          className={cx(styles.button, styles['button--danger'])}
+          style={{ marginLeft: '10px' }}
+        >
+          Danger Button
+        </button>
+        <button
+          className={cx(styles.button, styles['button--success'])}
+          style={{ marginLeft: '10px' }}
+        >
+          Success Button
+        </button>
       </div>
     </Example>
   );
-} 
+}
