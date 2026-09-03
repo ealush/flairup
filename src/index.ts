@@ -55,14 +55,27 @@ function reuseOrCreateSheet(
   rootNode: Exclude<SheetRootNode, null>,
   nonce: string | undefined,
 ): Sheet {
-  const cached = findCachedSheet(name, rootNode);
+  const cacheKey = normalizeCacheRoot(rootNode);
+  const cached = findCachedSheet(name, cacheKey);
   if (cached && !cached.isDetached()) {
     syncNonce(cached, nonce);
     return cached;
   }
   const sheet = new Sheet(name, root);
-  storeCachedSheet(name, rootNode, sheet);
+  storeCachedSheet(name, cacheKey, sheet);
   return sheet;
+}
+
+function normalizeCacheRoot(
+  rootNode: Exclude<SheetRootNode, null> | undefined,
+): Exclude<SheetRootNode, null> | undefined {
+  // An omitted root mounts into document.head (see Sheet's mount fallback),
+  // so it must share the explicit-document.head cache scope. Lookup only:
+  // sheet construction still receives the original root.
+  if (rootNode === undefined && typeof document !== 'undefined') {
+    return document.head;
+  }
+  return rootNode;
 }
 
 function isCacheableContext(

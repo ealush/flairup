@@ -51,7 +51,7 @@ const entries: Array<{ signature: string; text: string; sample?: string }> = [
   },
   {
     signature: 'cx(...args)',
-    text: 'Combines class sets, strings, arrays, and { className: boolean } maps into a single class string for className. Every class stays in the output, so when two set the same property the stylesheet rule order decides — give each visual state its own complete scope (see Variants) and use cx() to combine scopes that set different properties.',
+    text: 'Combines class sets, strings, arrays, and { className: boolean } maps into a single class string for className. When two classes set the same declaration the later one wins and removes the earlier one from the output; non-conflicting and unknown classes are preserved. Atomic shorthands resolve as one unit, so give each visual state its own complete scope (see Variants) when overriding them.',
     sample: `cx(styles.card, isActive && styles.active, extraClass);`,
   },
   {
