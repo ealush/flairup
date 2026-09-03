@@ -1,5 +1,7 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
+
+const __dirname = new URL('.', import.meta.url).pathname;
 
 export default defineConfig({
   root: __dirname,

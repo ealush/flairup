@@ -43,5 +43,9 @@
     "rootDir": ".",
     "noEmit": false,
     "noUnusedLocals": true
-  }
+  },
+  // The library gate checks the library. website/ is a separate Next.js
+  // app with its own tsconfig (jsx preserve, bundler resolution) and is
+  // type-checked by `next build`; dist/ is build output.
+  "exclude": ["node_modules", "website", "dist"]
 }
