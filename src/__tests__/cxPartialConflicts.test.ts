@@ -41,6 +41,16 @@ describe('cx partial conflicts', () => {
     expect(cx(first, second)).toBe(names(second));
   });
 
+  it('lets a later zeroing reset win over an earlier size', () => {
+    const { first, second } = pair(
+      'cxResetZeroSize',
+      { fontSize: 'var(--size)' },
+      { fontSize: '0' },
+    );
+
+    expect(cx(first, second)).toBe(names(second));
+  });
+
   it('drops an earlier reset shorthand when a later class specializes one longhand', () => {
     const { first, second } = pair(
       'cxPartialResetSpecialize',
