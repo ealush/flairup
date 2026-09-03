@@ -18,7 +18,6 @@ const styles = stylesheet.create({
     fontSize: '1.75rem',
     fontWeight: '700',
     lineHeight: '1.25',
-    textWrap: 'balance',
     marginBottom: '1.5rem',
     color: 'var(--ink)',
   },

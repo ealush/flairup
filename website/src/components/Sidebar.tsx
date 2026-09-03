@@ -15,7 +15,6 @@ const styles = stylesheet.create({
     maxHeight: 'calc(100vh - 6rem)',
     overflowY: 'auto',
     paddingBottom: '2rem',
-    scrollbarWidth: 'thin',
   },
   heading: {
     fontSize: '0.8rem',
