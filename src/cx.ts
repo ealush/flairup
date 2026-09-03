@@ -54,7 +54,10 @@ function splitCxToken(token: string, tokens: string[]): void {
 // When several classes set the same declaration in the same context, only
 // the last one survives, so the winner follows cx() order instead of the
 // order the styles were created in. Classes from different contexts (pseudo
-// states, media queries) never conflict with each other.
+// states, media queries) never conflict with each other. A class is
+// dropped as soon as any of its declarations is overridden, so non-
+// distributive shorthands resolve as one atomic unit and the winner always
+// follows cx() order instead of the order the styles were created in.
 function resolveCxConflicts(tokens: string[]): string {
   const claimed = new Set<string>();
   const keep: boolean[] = tokens.map(() => false);

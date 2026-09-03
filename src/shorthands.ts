@@ -75,6 +75,12 @@ const longhands: Record<string, string[]> = {
     'border-left-width',
     'border-left-style',
     'border-left-color',
+    'border-image',
+    'border-image-source',
+    'border-image-slice',
+    'border-image-width',
+    'border-image-outset',
+    'border-image-repeat',
   ],
   'border-radius': [
     'border-top-left-radius',
