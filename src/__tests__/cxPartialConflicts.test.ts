@@ -41,6 +41,30 @@ describe('cx partial conflicts', () => {
     expect(cx(first, second)).toBe(names(second));
   });
 
+  it('drops an earlier reset shorthand when a later class specializes one longhand', () => {
+    const { first, second } = pair(
+      'cxPartialResetSpecialize',
+      { background: 'none' },
+      { backgroundImage: 'url(b.png)' },
+    );
+
+    expect(cx(first, second)).toBe(names(second));
+  });
+
+  it('keeps the non-conflicting declarations of a partially overridden scope', () => {
+    const sheet = createSheet('cxPartialScopeKeepsSiblings');
+    const base = sheet.create({ base: { border: '0', background: 'none' } });
+    const over = sheet.create({ over: { backgroundImage: 'url(b.png)' } });
+
+    const output = cx(base.base, over.over);
+    const [borderClass, backgroundClass] = Array.from(base.base ?? []);
+    const [imageClass] = Array.from(over.over ?? []);
+
+    expect(output).toContain(borderClass);
+    expect(output).not.toContain(backgroundClass);
+    expect(output).toContain(imageClass);
+  });
+
   it('renders no image once the shorthand loses', () => {
     const sheet = createSheet('cxPartialImage');
     const base = sheet.create({ base: { background: 'red url(a.png)' } });
