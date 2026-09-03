@@ -54,7 +54,11 @@ One atomic class is generated per CSS declaration:
 
 - Each plain declaration (for example `color: 'red'`) gets its own class and
   its own single-declaration rule. Identical declarations are emitted once
-  and shared across scopes.
+  and shared across scopes. Distributive shorthands are the exception:
+  `margin: '2px'` expands into one class per physical side (never
+  logicals), multi-value forms distribute positionally, and anything
+  that cannot be split soundly stays one atomic class — see the
+  shorthand rules under `cx()` below.
 - Each conditional declaration (inside a pseudo selector, postcondition, or
   media query) gets its own class, so conditional styles compose
   independently.

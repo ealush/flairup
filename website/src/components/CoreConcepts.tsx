@@ -1,106 +1,119 @@
 import React from 'react';
 import { cx } from 'flairup';
 import { stylesheet } from '../app/stylesheet';
-import { Section } from './Section';
 import { Code } from './Code';
 
 const styles = stylesheet.create({
-  coreConcepts: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    marginBottom: '40px',
-  },
-  coreConceptCard: {
-    backgroundColor: 'var(--card-background)',
-    padding: '1.5em',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #eee',
-  },
-  introTitle: {
-    fontSize: '1.2em',
-    fontWeight: '600',
-    color: 'var(--title-color)',
-    marginBottom: '1em',
-    display: 'flex',
-    alignItems: 'center',
-    '&::before': {
-      content: '🎩',
-      marginRight: '0.5em',
+  list: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '2em',
+    '@media (min-width: 860px)': {
+      gridTemplateColumns: '1fr 1fr',
     },
   },
-  introText: {
-    fontSize: '1.1em',
-    lineHeight: '1.6',
-    color: 'var(--card-text)',
+  itemTitle: {
+    fontSize: '1.1rem',
+    fontWeight: '650',
+    marginBottom: '0.5em',
+  },
+  itemText: {
+    color: 'var(--muted)',
+  },
+  itemTextCode: {
+    fontFamily: 'var(--font-code)',
+    fontSize: '0.9em',
+    color: 'var(--ink)',
   },
 });
 
+const concepts: Array<{ title: string; body: React.ReactNode }> = [
+  {
+    title: 'One sheet per name',
+    body: (
+      <>
+        <code className={cx(styles.itemTextCode)}>createSheet(&apos;name&apos;)</code>{' '}
+        gives a package its own stylesheet. Identical declarations
+        deduplicate into a single class, so popular styles cost nothing
+        extra no matter how many components use them.
+      </>
+    ),
+  },
+  {
+    title: 'Atomic classes, composed with cx()',
+    body: (
+      <>
+        Every scope returns a set of classes — one per declaration. Pass
+        sets, strings, arrays, and{' '}
+        <code className={cx(styles.itemTextCode)}>{'{ name: boolean }'}</code>{' '}
+        maps to <code className={cx(styles.itemTextCode)}>cx()</code> and get
+        one class string back.
+      </>
+    ),
+  },
+  {
+    title: 'Conditions travel with the style',
+    body: (
+      <>
+        Pseudo selectors, parent markers, media queries, and CSS variables
+        live inside the style object next to the declarations they modify.
+        No separate files, no selector bookkeeping.
+      </>
+    ),
+  },
+  {
+    title: 'SSR is just a string',
+    body: (
+      <>
+        <code className={cx(styles.itemTextCode)}>sheet.getStyle()</code>{' '}
+        returns the full stylesheet as text. Create the sheet with a{' '}
+        <code className={cx(styles.itemTextCode)}>null</code> root on the
+        server, inject the string into a{' '}
+        <code className={cx(styles.itemTextCode)}>{'<style>'}</code> tag,
+        and the client continues from the same CSS.
+      </>
+    ),
+  },
+];
+
 export function CoreConcepts() {
   return (
-    <Section title="Core Concepts">
-      <div className={cx(styles.coreConcepts)}>
-        <div className={cx(styles.coreConceptCard)}>
-          <h3 className={cx(styles.introTitle)}>The StyleSheet Singleton</h3>
-          <p className={cx(styles.introText)}>
-            At the heart of FlairUp is the StyleSheet object, which serves as a
-            singleton for your entire package. This means that all styles across
-            your library share the same stylesheet instance, allowing for
-            efficient style deduplication and management.
-          </p>
-          <p className={cx(styles.introText)}>
-            The StyleSheet is created once using the `createSheet` function and
-            can be used throughout your package. All styles defined using this
-            stylesheet will be automatically deduplicated, ensuring optimal
-            performance and minimal CSS output.
-          </p>
-          <Code language="typescript">
-            {`import { createSheet } from 'flairup';
+    <div>
+      <div className={cx(styles.list)}>
+        {concepts.map((concept) => (
+          <div key={concept.title}>
+            <h3 className={cx(styles.itemTitle)}>{concept.title}</h3>
+            <p className={cx(styles.itemText)}>{concept.body}</p>
+          </div>
+        ))}
+      </div>
+      <Code language="typescript" label="Core FlairUp loop">
+        {`import { createSheet, cx } from 'flairup';
 
-// Create a stylesheet for your package
-const stylesheet = createSheet('MyPackageName');
+const sheet = createSheet('my-package');
 
-// Use the stylesheet to create styles
-const styles = stylesheet.create({
+const styles = sheet.create({
   button: {
-    color: 'red',
-    ':hover': {
-      color: 'blue',
+    padding: '8px 16px',
+    borderRadius: '6px',
+    '&:hover': {
+      backgroundColor: '#eee',
     },
   },
-});`}
-          </Code>
-        </div>
+  primary: {
+    backgroundColor: '#a31621',
+    color: '#fff',
+  },
+});
 
-        <div className={cx(styles.coreConceptCard)}>
-          <h3 className={cx(styles.introTitle)}>One Class Per Property</h3>
-          <p className={cx(styles.introText)}>
-            FlairUp optimizes performance by generating a single class for each
-            unique CSS property value. This means that if the same style is used
-            in multiple places, it will only be added to the stylesheet once.
-          </p>
-          <p className={cx(styles.introText)}>
-            For example, if you use the color &apos;red&apos; in multiple
-            components, FlairUp will create a single class for it and reuse it
-            across all instances, reducing the overall CSS bundle size.
-          </p>
-        </div>
-
-        <div className={cx(styles.coreConceptCard)}>
-          <h3 className={cx(styles.introTitle)}>Style Tag Injection</h3>
-          <p className={cx(styles.introText)}>
-            FlairUp works by injecting a single {'<style>'} tag into the DOM.
-            This tag contains all the styles for your package, and it is
-            automatically managed by FlairUp.
-          </p>
-          <p className={cx(styles.introText)}>
-            During server-side rendering, FlairUp ensures that the styles are
-            properly injected into the HTML, and on the client side, it manages
-            the style tag to prevent duplicate injections.
-          </p>
-        </div>
-      </div>
-    </Section>
+function Button({ primary, className }) {
+  return (
+    <button className={cx(styles.button, primary && styles.primary, className)}>
+      Click me
+    </button>
+  );
+}`}
+      </Code>
+    </div>
   );
 }

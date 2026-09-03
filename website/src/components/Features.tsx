@@ -1,35 +1,46 @@
 import React from 'react';
 import { cx } from 'flairup';
 import { stylesheet } from '../app/stylesheet';
-import { Section } from './Section';
-import { Feature } from './Feature';
 
 const styles = stylesheet.create({
-  features: {
+  list: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px',
-    marginBottom: '40px',
+    gridTemplateColumns: '1fr',
+    gap: '1.75em',
+    '@media (min-width: 860px)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+  item: {
+    borderTop: '2px solid var(--line)',
+    paddingTop: '1em',
+  },
+  title: {
+    fontSize: '1.05rem',
+    fontWeight: '650',
+    marginBottom: '0.35em',
+  },
+  text: {
+    color: 'var(--muted)',
   },
 });
 
+const features: Array<[string, string]> = [
+  ['2 KB runtime, zero dependencies', 'Small enough to bundle into any package without a second thought.'],
+  ['TypeScript throughout', 'Style objects are typed; scopes come back as named sets of classes.'],
+  ['Scoped by construction', 'Hashed atomic classes mean two packages never fight over a name.'],
+  ['Framework-agnostic SSR', 'Styles render to a string anywhere JavaScript runs — no DOM required.'],
+];
+
 export function Features() {
   return (
-    <Section title="Features">
-      <div className={cx(styles.features)}>
-        <Feature title="Simple API">
-          Easy to use with a familiar CSS-like syntax
-        </Feature>
-        <Feature title="TypeScript Support">
-          Full TypeScript support for better development experience
-        </Feature>
-        <Feature title="Scoped Styles">
-          Automatic style scoping to prevent conflicts
-        </Feature>
-        <Feature title="SSR Ready">
-          Built-in support for server-side rendering
-        </Feature>
-      </div>
-    </Section>
+    <div className={cx(styles.list)}>
+      {features.map(([title, text]) => (
+        <div key={title} className={cx(styles.item)}>
+          <h3 className={cx(styles.title)}>{title}</h3>
+          <p className={cx(styles.text)}>{text}</p>
+        </div>
+      ))}
+    </div>
   );
-} 
+}

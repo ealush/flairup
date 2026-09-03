@@ -5,35 +5,45 @@ import { Code } from './Code';
 
 const styles = stylesheet.create({
   container: {
-    marginBottom: '2em',
+    marginBottom: '2.5em',
   },
   title: {
-    fontSize: '1.2em',
-    fontWeight: '600',
-    color: 'var(--title-color)',
-    marginBottom: '0.5em',
+    fontSize: '1.15rem',
+    fontWeight: '650',
+    color: 'var(--ink)',
+    marginBottom: '0.4em',
   },
   description: {
-    color: 'var(--card-text)',
+    color: 'var(--muted)',
     marginBottom: '1em',
-    lineHeight: '1.5',
+    maxWidth: '44rem',
   },
-  example: {
-    backgroundColor: 'var(--card-background)',
+  demo: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '1px',
+    backgroundColor: 'var(--line)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius)',
+    overflow: 'hidden',
+    '@media (min-width: 900px)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+  preview: {
+    backgroundColor: 'var(--card)',
     padding: '1.5em',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #eee',
+  },
+  previewLabel: {
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    color: 'var(--muted)',
     marginBottom: '1em',
   },
-  codeSection: {
-    marginTop: '1em',
-  },
-  codeTitle: {
-    fontSize: '1em',
-    fontWeight: '600',
-    color: 'var(--title-color)',
-    marginBottom: '0.5em',
+  code: {
+    backgroundColor: 'var(--code-bg)',
+    padding: '0.25em 1.25em',
+    overflowX: 'auto',
   },
 });
 
@@ -64,17 +74,24 @@ export function Example({
     <div className={cx(styles.container)}>
       <h3 className={cx(styles.title)}>{title}</h3>
       <div className={cx(styles.description)}>{description}</div>
-      <div className={cx(styles.example)}>{children}</div>
-      <div className={cx(styles.codeSection)}>
-        <h4 className={cx(styles.codeTitle)}>Styles</h4>
-        <Code language="typescript">{getCode()}</Code>
-      </div>
-      {usage && (
-        <div className={cx(styles.codeSection)}>
-          <h4 className={cx(styles.codeTitle)}>Usage</h4>
-          <Code language="jsx">{usage}</Code>
+      <div className={cx(styles.demo)}>
+        <div className={cx(styles.preview)}>
+          <p aria-hidden="true" className={cx(styles.previewLabel)}>
+            Result
+          </p>
+          {children}
         </div>
-      )}
+        <div className={cx(styles.code)}>
+          <Code language="typescript" label={`Styles for ${title}`}>
+            {getCode()}
+          </Code>
+          {usage && (
+            <Code language="jsx" label={`Usage for ${title}`}>
+              {usage}
+            </Code>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

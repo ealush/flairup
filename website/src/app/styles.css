@@ -1,20 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card-background: #f5f5f5;
-  --card-text: #171717;
-  --title-color: #3498db;
+  --paper: #ffffff;
+  --ink: #211d17;
+  --muted: #5c564c;
+  --line: #e3dacb;
+  --card: #faf7f1;
+  --accent: #a31621;
+  --accent-strong: #7f1020;
+  --code-bg: #201c16;
+  --code-fg: #f0e9dc;
+  --focus: #a31621;
+  --radius: 10px;
+  --measure: 64rem;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-code: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #222432;
-    --foreground: #ededed;
-    --card-background: rgba(23, 23, 23, 0.7);
-    --card-text: #ededed;
+    --paper: #171310;
+    --ink: #ede4d3;
+    --muted: #b3a794;
+    --line: #38302a;
+    --card: #201b15;
+    --accent: #e57a93;
+    --accent-strong: #f2a9bc;
+    --focus: #e57a93;
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -24,15 +43,13 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings: 'wdth' 100;
 }
 
 * {
@@ -42,12 +59,60 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  color: var(--accent-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
   text-decoration: none;
+  transition: top 0.15s ease-in;
+}
+
+.skip-link:focus-visible {
+  top: 1rem;
+  color: var(--paper);
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

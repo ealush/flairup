@@ -1,0 +1,66 @@
+# FlairUp
+
+FlairUp is a lightweight CSS-in-JS library for UI package authors
+(React, Vue, framework-agnostic). Version documented here: 1.1.x.
+Repository: https://github.com/ealush/flairup
+Package: https://www.npmjs.com/package/flairup
+Docs: https://ealush.github.io/flairup
+
+## When to use it
+
+Use FlairUp when shipping reusable UI components whose styles must work
+without consumer setup: no CSS files to import, no bundler plugins, no
+framework-specific SSR handling. Not a general app-styling framework.
+
+## Install
+
+npm install flairup
+
+## API (five functions)
+
+createSheet(name, rootNode?)
+  Creates a named stylesheet. Returns { create, keyframes, getStyle }.
+  rootNode: an element to mount into, null for strings-only (SSR), or
+  omitted to mount into <head>.
+
+sheet.create(styles)
+  Defines named scopes of camelCase declarations. Each scope returns a
+  Set with one class per declaration. Supports :hover / ::before,
+  .parent markers, &.compound selectors, @media queries, nested
+  conditions, a -- block of CSS variables, and . for passthrough
+  classes. Example:
+    const styles = sheet.create({
+      card: {
+        padding: '16px',
+        '--accent': '#a31621',
+        '&:hover': { borderColor: 'var(--accent)' },
+        '@media (min-width: 700px)': { padding: '24px' },
+      },
+    });
+
+cx(...args)
+  Combines class Sets, strings, arrays, and { className: boolean }
+  maps into one class string for className. Example:
+    cx(styles.card, isActive && styles.active, extraClass)
+
+sheet.keyframes(frames)
+  Defines animations; returns names for the animation property.
+  Example:
+    const { fadeIn } = sheet.keyframes({
+      fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
+    });
+
+sheet.getStyle()
+  Returns the whole stylesheet as CSS text. SSR pattern: create the
+  sheet with a null root on the server, inject the string into a
+  <style> tag. The same calls run unchanged in the browser.
+
+## Rules for generated code
+
+- Style objects use camelCase properties with string values.
+- Reference classes only through the Sets returned by create(); never
+  hardcode generated class names (they are content hashes).
+- Keep one sheet per package (createSheet('my-package')) and compose
+  with cx() at the call site.
+- Conditions nest arbitrarily; keep them next to the declarations
+  they modify.
