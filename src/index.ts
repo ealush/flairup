@@ -32,7 +32,6 @@ export function createSheet(
 }
 
 const defaultSheets: Map<string, Sheet> = new Map();
-const nullSheets: Map<string, Sheet> = new Map();
 const rootedSheets: WeakMap<object, Map<string, Sheet>> = new WeakMap();
 
 function resolveSheet(
@@ -40,25 +39,44 @@ function resolveSheet(
   root: SheetRootNode | CreateSheetOptions | undefined,
 ): Sheet {
   const resolved = resolveSheetRoot(root);
-  const cached = findCachedSheet(name, resolved.rootNode);
+  if (!isCacheableContext(resolved.rootNode)) {
+    // Unmounted sheets never touch the module-global cache: without a
+    // mounted style tag there is nothing shared to reuse, and in a
+    // long-lived server process one request's styles would otherwise leak
+    // into the next request under the same sheet name.
+    return new Sheet(name, root);
+  }
+  return reuseOrCreateSheet(name, root, resolved.rootNode, resolved.nonce);
+}
+
+function reuseOrCreateSheet(
+  name: string,
+  root: SheetRootNode | CreateSheetOptions | undefined,
+  rootNode: Exclude<SheetRootNode, null>,
+  nonce: string | undefined,
+): Sheet {
+  const cached = findCachedSheet(name, rootNode);
   if (cached && !cached.isDetached()) {
-    syncNonce(cached, resolved.nonce);
+    syncNonce(cached, nonce);
     return cached;
   }
   const sheet = new Sheet(name, root);
-  storeCachedSheet(name, resolved.rootNode, sheet);
+  storeCachedSheet(name, rootNode, sheet);
   return sheet;
+}
+
+function isCacheableContext(
+  rootNode: SheetRootNode | undefined,
+): rootNode is Exclude<SheetRootNode, null> {
+  return typeof document !== 'undefined' && rootNode !== null;
 }
 
 function findCachedSheet(
   name: string,
-  rootNode: SheetRootNode | undefined,
+  rootNode: Exclude<SheetRootNode, null> | undefined,
 ): Sheet | undefined {
   if (rootNode === undefined) {
     return defaultSheets.get(name);
-  }
-  if (rootNode === null) {
-    return nullSheets.get(name);
   }
   const scoped = rootedSheets.get(rootNode);
   return scoped?.get(name);
@@ -66,25 +84,17 @@ function findCachedSheet(
 
 function storeCachedSheet(
   name: string,
-  rootNode: SheetRootNode | undefined,
+  rootNode: Exclude<SheetRootNode, null> | undefined,
   sheet: Sheet,
 ): void {
   if (rootNode === undefined) {
     defaultSheets.set(name, sheet);
     return;
   }
-  if (rootNode === null) {
-    nullSheets.set(name, sheet);
-    return;
-  }
   storeRootedSheet(rootNode, name, sheet);
 }
 
-function storeRootedSheet(
-  rootNode: object,
-  name: string,
-  sheet: Sheet,
-): void {
+function storeRootedSheet(rootNode: object, name: string, sheet: Sheet): void {
   let scoped = rootedSheets.get(rootNode);
   if (!scoped) {
     scoped = new Map<string, Sheet>();

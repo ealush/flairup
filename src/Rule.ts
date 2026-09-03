@@ -19,6 +19,31 @@ export function toCssIdent(value: string): string {
   return cleaned;
 }
 
+// Identity prefix for everything a sheet generates (rule hashes, scope
+// classes, keyframes names, hydration matching). Sanitizing is lossy:
+// `accept/a` and `accept?a` both become `accept_a`, so distinct sheets
+// would emit identical classes for different declarations. Appending a
+// digest of the original name keeps separately named sheets from aliasing
+// after sanitization. Ordinary names pass through untouched so their
+// generated classes stay byte-stable.
+export function sheetIdent(name: string): string {
+  const clean = toCssIdent(name);
+  if (clean === name) {
+    return clean;
+  }
+  return `${clean}_${nameDigest(name)}`;
+}
+
+function nameDigest(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    const char = name.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return (hash >>> 0).toString(36);
+}
+
 export class Rule {
   public hash: string;
   public joined: string;
@@ -56,14 +81,15 @@ export class Rule {
   }
 
   private buildHash(atKey: string): string {
-    // The prefix is sanitized so every sheet name yields valid CSS classes;
-    // toCssIdent is the identity for ordinary names, keeping their hashes
-    // byte-stable.
+    // The prefix carries a digest of the original sheet name when
+    // sanitizing is lossy, so separately named sheets never alias.
+    // sheetIdent is the identity for ordinary names, keeping their
+    // hashes byte-stable.
     if (!this.selector.hasConditions && !atKey) {
-      return stableHash(toCssIdent(this.sheet.name), this.joined);
+      return stableHash(sheetIdent(this.sheet.name), this.joined);
     }
 
-    return stableHash(toCssIdent(this.sheet.name), this.key);
+    return stableHash(sheetIdent(this.sheet.name), this.key);
   }
 
   public toString(): string {
@@ -145,7 +171,7 @@ export class Selector {
     if (!this.scopeClassName) {
       this.scopeName = scopeName;
       this.scopeClassName = stableHash(
-        toCssIdent(this.sheet.name),
+        sheetIdent(this.sheet.name),
         // adding the count guarantees uniqueness across style.create calls
         scopeName + '\0' + this.sheet.count,
       );

@@ -54,7 +54,11 @@ const longhands: Record<string, string[]> = {
     'border-bottom-style',
     'border-bottom-color',
   ],
-  'border-left': ['border-left-width', 'border-left-style', 'border-left-color'],
+  'border-left': [
+    'border-left-width',
+    'border-left-style',
+    'border-left-color',
+  ],
   border: [
     'border-width',
     'border-style',
@@ -112,4 +116,27 @@ export function coveredProperties(property: string): string[] {
     return [property].concat(covered);
   }
   return [property];
+}
+
+// Shorthands whose single-token value distributes verbatim to every
+// longhand: `margin: 2px` sets each side to `2px`. Other shorthands
+// (background, font, border, outline, ...) reset their longhands to values
+// that cannot be derived from the shorthand text, so they stay atomic.
+const distributive: Record<string, boolean> = {
+  margin: true,
+  padding: true,
+  inset: true,
+  gap: true,
+  overflow: true,
+  'border-width': true,
+  'border-style': true,
+  'border-color': true,
+  'border-radius': true,
+};
+
+export function distributiveLonghands(property: string): string[] | undefined {
+  if (!distributive[property]) {
+    return undefined;
+  }
+  return longhands[property];
 }

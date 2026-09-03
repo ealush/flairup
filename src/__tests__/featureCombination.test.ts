@@ -175,42 +175,130 @@ describe('feature combinations', () => {
     expect(output).not.toContain(firstA);
   });
 
-  it('resolves shorthand/longhand pairs by cx order', () => {
+  it('retains the unaffected longhands of an earlier shorthand', () => {
     const sheet = createSheet('featShorthand', null);
     const top = sheet.create({ top: { marginTop: '1px' } });
     const all = sheet.create({ all: { margin: '2px' } });
-    expect(cx(all['all'], top['top'])).toBe(classNames(top['top']).join(' '));
+    const css = sheet.getStyle();
+
+    // A single-token shorthand expands into one atomic class per longhand.
+    expect(all['all']?.size).toBe(8);
+    const allTop = classForDeclaration(css, all['all'], '', 'margin-top:2px;');
+    const allRight = classForDeclaration(
+      css,
+      all['all'],
+      '',
+      'margin-right:2px;',
+    );
+
+    // A later longhand wins only its own side; the other sides survive.
+    const forward = cx(all['all'], top['top']);
+    expect(forward).toContain(classNames(top['top']).join(' '));
+    expect(forward).toContain(allRight);
+    expect(forward).not.toContain(allTop);
+
+    // A later shorthand still wins every side.
     expect(cx(top['top'], all['all'])).toBe(classNames(all['all']).join(' '));
 
     const left = sheet.create({ left: { paddingLeft: '3px' } });
     const padded = sheet.create({ padded: { padding: '4px' } });
-    expect(cx(padded['padded'], left['left'])).toBe(
-      classNames(left['left']).join(' '),
+    expect(padded['padded']?.size).toBe(8);
+    const paddedLeft = classForDeclaration(
+      sheet.getStyle(),
+      padded['padded'],
+      '',
+      'padding-left:4px;',
     );
-    expect(cx(left['left'], padded['padded'])).toBe(
-      classNames(padded['padded']).join(' '),
+    const paddedRight = classForDeclaration(
+      sheet.getStyle(),
+      padded['padded'],
+      '',
+      'padding-right:4px;',
     );
+    const paddedWins = cx(left['left'], padded['padded']);
+    expect(paddedWins).toBe(classNames(padded['padded']).join(' '));
+    const leftWins = cx(padded['padded'], left['left']);
+    expect(leftWins).toContain(classNames(left['left']).join(' '));
+    expect(leftWins).toContain(paddedRight);
+    expect(leftWins).not.toContain(paddedLeft);
 
     const edge = sheet.create({ edge: { top: '5px' } });
     const inset = sheet.create({ inset: { inset: '0' } });
-    expect(cx(inset['inset'], edge['edge'])).toBe(
-      classNames(edge['edge']).join(' '),
+    expect(inset['inset']?.size).toBe(4);
+    const insetTop = classForDeclaration(
+      sheet.getStyle(),
+      inset['inset'],
+      '',
+      'top:0;',
     );
+    const insetRight = classForDeclaration(
+      sheet.getStyle(),
+      inset['inset'],
+      '',
+      'right:0;',
+    );
+    const edgeWins = cx(inset['inset'], edge['edge']);
+    expect(edgeWins).toContain(classNames(edge['edge']).join(' '));
+    expect(edgeWins).toContain(insetRight);
+    expect(edgeWins).not.toContain(insetTop);
     expect(cx(edge['edge'], inset['inset'])).toBe(
       classNames(inset['inset']).join(' '),
     );
 
     const side = sheet.create({ side: { borderTopColor: 'blue' } });
     const border = sheet.create({ border: { borderColor: 'red' } });
-    expect(cx(border['border'], side['side'])).toBe(
-      classNames(side['side']).join(' '),
+    expect(border['border']?.size).toBe(4);
+    const borderTop = classForDeclaration(
+      sheet.getStyle(),
+      border['border'],
+      '',
+      'border-top-color:red;',
     );
+    const borderRight = classForDeclaration(
+      sheet.getStyle(),
+      border['border'],
+      '',
+      'border-right-color:red;',
+    );
+    const sideWins = cx(border['border'], side['side']);
+    expect(sideWins).toContain(classNames(side['side']).join(' '));
+    expect(sideWins).toContain(borderRight);
+    expect(sideWins).not.toContain(borderTop);
     expect(cx(side['side'], border['border'])).toBe(
       classNames(border['border']).join(' '),
     );
+  });
 
+  it('keeps multi-value shorthands atomic while expanding single tokens', () => {
+    const sheet = createSheet('featShorthandAtomic', null);
+
+    // Multi-value shorthands cannot be distributed verbatim, so they stay
+    // one atomic class.
+    const two = sheet.create({ two: { margin: '1px 2px' } });
+    expect(two['two']?.size).toBe(1);
+    const overflow = sheet.create({ overflow: { overflow: 'hidden visible' } });
+    expect(overflow['overflow']?.size).toBe(1);
+
+    // Single values expand, including functional notation with inner spaces
+    // and numeric values.
+    const calc = sheet.create({ calc: { margin: 'calc(1px + 2px)' } });
+    expect(calc['calc']?.size).toBe(8);
+    const zero = sheet.create({
+      zero: { margin: 0 as unknown as string },
+    });
+    expect(zero['zero']?.size).toBe(8);
+    const hidden = sheet.create({ hidden: { overflow: 'hidden' } });
+    expect(hidden['hidden']?.size).toBe(2);
+  });
+
+  it('resolves non-distributive shorthands as one atomic unit', () => {
+    const sheet = createSheet('featShorthandGrouped', null);
+
+    // `background` resets longhands to values that cannot be derived from
+    // the shorthand text, so it cannot expand and stays atomic.
     const fill = sheet.create({ fill: { backgroundColor: 'blue' } });
     const background = sheet.create({ background: { background: 'red' } });
+    expect(background['background']?.size).toBe(1);
     expect(cx(background['background'], fill['fill'])).toBe(
       classNames(fill['fill']).join(' '),
     );
@@ -220,6 +308,7 @@ describe('feature combinations', () => {
 
     const size = sheet.create({ size: { fontSize: '20px' } });
     const font = sheet.create({ font: { font: 'italic bold 12px serif' } });
+    expect(font['font']?.size).toBe(1);
     expect(cx(font['font'], size['size'])).toBe(
       classNames(size['size']).join(' '),
     );

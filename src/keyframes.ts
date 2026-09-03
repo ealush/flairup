@@ -1,4 +1,4 @@
-import { Rule, toCssIdent } from './Rule';
+import { Rule, sheetIdent, toCssIdent } from './Rule';
 import { Sheet } from './Sheet';
 import {
   keyframesInput,
@@ -58,7 +58,7 @@ function formatKeyframeName(
   counter: number,
   name: string,
 ): string {
-  return `${toCssIdent(sheetName)}_${counter}_${toCssIdent(name)}`;
+  return `${sheetIdent(sheetName)}_${counter}_${toCssIdent(name)}`;
 }
 
 function buildKeyframeBlock(hashed: string, stages: KeyframeStages): string {
