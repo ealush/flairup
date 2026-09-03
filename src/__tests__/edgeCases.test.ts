@@ -208,6 +208,25 @@ describe('edge cases', () => {
     expect(second.getStyle()).toContain(`@keyframes ${b.spin} {`);
   });
 
+  it('keeps identities isolated when digests collide after sanitizing', () => {
+    // '/ʼ' (code units [47, 700]) and '?Ì' ([63, 204]) share both the
+    // sanitized prefix and a 32-bit digest, so only an injective encoding
+    // of the original name keeps them apart. Paired with the known
+    // declaration-hash collision below, both sheets would otherwise emit
+    // the exact same class for different rules.
+    const first = createSheet('/ʼ', null);
+    const second = createSheet('?Ì', null);
+
+    const a = first.create({ a: { fontFamily: 'Aa' } });
+    const b = second.create({ b: { fontFamily: 'BB' } });
+
+    expect(Array.from(a.a)).not.toEqual(Array.from(b.b));
+    expect(first.getStyle()).toContain('font-family:Aa;');
+    expect(first.getStyle()).not.toContain('font-family:BB;');
+    expect(second.getStyle()).toContain('font-family:BB;');
+    expect(second.getStyle()).not.toContain('font-family:Aa;');
+  });
+
   it('keeps scope classes isolated when sheet names collide after sanitizing', () => {
     const first = createSheet('accept/a', null);
     const second = createSheet('accept?a', null);

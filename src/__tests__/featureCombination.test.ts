@@ -269,20 +269,112 @@ describe('feature combinations', () => {
     );
   });
 
-  it('keeps multi-value shorthands atomic while expanding single tokens', () => {
+  it('distributes multi-value shorthands positionally per side', () => {
+    const sheet = createSheet('featShorthandMulti', null);
+
+    const two = sheet.create({ two: { margin: '2px 4px' } });
+    expect(two['two']?.size).toBe(4);
+    const css = sheet.getStyle();
+    const top2 = classForDeclaration(css, two['two'], '', 'margin-top:2px;');
+    const right4 = classForDeclaration(
+      css,
+      two['two'],
+      '',
+      'margin-right:4px;',
+    );
+    const bottom2 = classForDeclaration(
+      css,
+      two['two'],
+      '',
+      'margin-bottom:2px;',
+    );
+    const left4 = classForDeclaration(css, two['two'], '', 'margin-left:4px;');
+
+    // A later longhand wins only its side; positional survivors keep
+    // their assigned values.
+    const later = sheet.create({ later: { marginTop: '1px' } });
+    const won = cx(two['two'], later['later']);
+    expect(won).toContain(classNames(later['later']).join(' '));
+    expect(won).toContain(right4);
+    expect(won).toContain(bottom2);
+    expect(won).toContain(left4);
+    expect(won).not.toContain(top2);
+
+    const three = sheet.create({ three: { padding: '1px 2px 3px' } });
+    expect(three['three']?.size).toBe(4);
+    const cssThree = sheet.getStyle();
+    classForDeclaration(cssThree, three['three'], '', 'padding-top:1px;');
+    classForDeclaration(cssThree, three['three'], '', 'padding-right:2px;');
+    classForDeclaration(cssThree, three['three'], '', 'padding-bottom:3px;');
+    classForDeclaration(cssThree, three['three'], '', 'padding-left:2px;');
+
+    const pair = sheet.create({ pair: { overflow: 'hidden visible' } });
+    expect(pair['pair']?.size).toBe(2);
+    const cssPair = sheet.getStyle();
+    classForDeclaration(cssPair, pair['pair'], '', 'overflow-x:hidden;');
+    classForDeclaration(cssPair, pair['pair'], '', 'overflow-y:visible;');
+
+    const gap = sheet.create({ gap: { gap: '4px 8px' } });
+    expect(gap['gap']?.size).toBe(2);
+  });
+
+  it('keeps unsafe shorthand shapes atomic', () => {
     const sheet = createSheet('featShorthandAtomic', null);
 
-    // Multi-value shorthands cannot be distributed verbatim, so they stay
-    // one atomic class.
-    const two = sheet.create({ two: { margin: '1px 2px' } });
-    expect(two['two']?.size).toBe(1);
-    const overflow = sheet.create({ overflow: { overflow: 'hidden visible' } });
-    expect(overflow['overflow']?.size).toBe(1);
+    // A bare var()/env() reference can resolve to multiple tokens, which
+    // would make expanded longhands invalid, so it stays one atomic class.
+    const space = sheet.create({ space: { margin: 'var(--space)' } });
+    expect(space['space']?.size).toBe(1);
+    const env = sheet.create({ env: { padding: 'env(safe-area-inset-top)' } });
+    expect(env['env']?.size).toBe(1);
 
-    // Single values expand, including functional notation with inner spaces
-    // and numeric values.
+    // Over-count values and multi-token elliptical radii are invalid CSS;
+    // staying atomic preserves the browser dropping the whole declaration.
+    const five = sheet.create({ five: { margin: '1px 2px 3px 4px 5px' } });
+    expect(five['five']?.size).toBe(1);
+    const slash = sheet.create({
+      slash: { borderRadius: '1px 2px/3px 4px' },
+    });
+    expect(slash['slash']?.size).toBe(1);
+
+    // A single elliptical token distributes verbatim: every corner accepts
+    // the same elliptical value.
+    const elliptical = sheet.create({
+      elliptical: { borderRadius: '10px/20px' },
+    });
+    expect(elliptical['elliptical']?.size).toBe(4);
+  });
+
+  it('preserves !important across shorthand expansion', () => {
+    const sheet = createSheet('featShorthandImportant', null);
+
+    const all = sheet.create({ all: { margin: '2px !important' } });
+    expect(all['all']?.size).toBe(8);
+    const css = sheet.getStyle();
+    classForDeclaration(css, all['all'], '', 'margin-top:2px !important;');
+    classForDeclaration(css, all['all'], '', 'margin-left:2px !important;');
+
+    const two = sheet.create({ two: { padding: '1px 2px !important' } });
+    expect(two['two']?.size).toBe(4);
+    const cssTwo = sheet.getStyle();
+    classForDeclaration(cssTwo, two['two'], '', 'padding-top:1px !important;');
+    classForDeclaration(
+      cssTwo,
+      two['two'],
+      '',
+      'padding-right:2px !important;',
+    );
+  });
+
+  it('expands single tokens, including functional notation and numbers', () => {
+    const sheet = createSheet('featShorthandSingle', null);
+
     const calc = sheet.create({ calc: { margin: 'calc(1px + 2px)' } });
     expect(calc['calc']?.size).toBe(8);
+    const nested = sheet.create({
+      nested: { margin: 'calc(var(--gap) * 2)' },
+    });
+    expect(nested['nested']?.size).toBe(8);
     const zero = sheet.create({
       zero: { margin: 0 as unknown as string },
     });
