@@ -14,10 +14,9 @@ export interface HeroDemoClasses {
 }
 
 // Demo styles live here, in the server module graph, so their rules are
-// part of the inlined stylesheet. Each visual state is a complete scope:
-// under flairup 1.1.0, cx() keeps every class it is given and the
-// stylesheet's rule order decides same-property conflicts, so layered
-// base + override scopes would depend on global creation order. The
+// part of the inlined stylesheet. Each visual state is a complete scope
+// because atomic shorthands resolve as one unit in cx(): a partial
+// override would discard the scope's other declarations. The
 // client <HeroDemo> receives one finished class string per state —
 // plain records of strings, which cross the server/client boundary;
 // functions would not.
