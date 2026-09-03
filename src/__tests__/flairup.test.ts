@@ -158,30 +158,30 @@ describe('createSheet', () => {
       splitStyles.forEach((style) => {
         expect(style).toMatch(singlePropertyRegex);
       });
+    });
 
-      describe('When across style objects', () => {
-        it('Should add to the sheet only once', () => {
-          const styles1 = sheet.create({
-            one: {
-              color: 'blue',
-              height: '100px',
-            },
-          });
+    describe('When across style objects', () => {
+      it('Should add to the sheet only once', () => {
+        const styles1 = sheet.create({
+          one: {
+            color: 'blue',
+            height: '100px',
+          },
+        });
 
-          const styles2 = sheet.create({
-            one: {
-              color: 'blue',
-              height: '100px',
-            },
-          });
+        const styles2 = sheet.create({
+          one: {
+            color: 'blue',
+            height: '100px',
+          },
+        });
 
-          expect(styles1).toEqual(styles2);
+        expect(styles1).toEqual(styles2);
 
-          const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
+        const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
 
-          splitStyles.forEach((style) => {
-            expect(style).toMatch(singlePropertyRegex);
-          });
+        splitStyles.forEach((style) => {
+          expect(style).toMatch(singlePropertyRegex);
         });
       });
     });
@@ -547,8 +547,7 @@ describe('createSheet', () => {
         expect(splitStyles.length).toBe(2);
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
         // eslint-disable-next-line no-unsafe-optional-chaining
-        const [topLevel, pseudoDecleration] =
-          splitStyles[0]?.split(' ') ?? [];
+        const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ') ?? [];
         expect(topLevel).toBe('.top-level-class');
         expect(pseudoDecleration).toMatch(/^\.test_[\w-]+:hover$/);
       });
