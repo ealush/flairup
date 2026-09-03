@@ -81,7 +81,7 @@ function claimCxToken(
   const token = tokens[index] as string;
   const keys = getClassConflicts(token) ?? [token];
 
-  if (!keys.some((key) => !claimed.has(key))) {
+  if (keys.some((key) => claimed.has(key))) {
     return;
   }
 

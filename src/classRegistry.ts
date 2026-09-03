@@ -6,14 +6,14 @@ const classConflicts: Map<string, Set<string>> = new Map();
 
 export function registerClassConflict(
   className: string,
-  conflictKey: string,
+  conflictKeys: string[],
 ): void {
   const existing = classConflicts.get(className);
   if (existing) {
-    existing.add(conflictKey);
+    conflictKeys.forEach((key) => existing.add(key));
     return;
   }
-  classConflicts.set(className, new Set([conflictKey]));
+  classConflicts.set(className, new Set(conflictKeys));
 }
 
 export function getClassConflicts(className: string): string[] | undefined {

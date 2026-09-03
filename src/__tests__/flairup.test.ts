@@ -1,4 +1,5 @@
 import { createSheet } from '../index.js';
+import type { CreateSheetInput } from '../index.js';
 import { describe, expect, it, beforeEach, assert, afterEach } from 'vitest';
 
 const singlePropertyRegex = /^\.([\w-]+)\s*\{\s*([\w-]+)\s*:\s*([\w-]+);\s*\}$/;
@@ -58,10 +59,10 @@ describe('createSheet', () => {
 
     const css = sheet.getStyle();
     expect(css).toMatchInlineSnapshot(`
-      ".test_-maqphw {background-color:red;}
-      .test_-2526za {max-height:100px;}
-      .test_j1uj8f {background-color:blue;}
-      .test_-24iedx {max-height:200px;}"
+      ".test_-63zkkl {background-color:red;}
+      .test_cq0h9r {max-height:100px;}
+      .test_nnfe34 {background-color:blue;}
+      .test_cqk9v4 {max-height:200px;}"
     `);
     const splitStyles = css.split('\n').filter(Boolean);
     expect(splitStyles[0]).toMatch('background-color:red;');
@@ -187,7 +188,7 @@ describe('createSheet', () => {
   });
 
   describe('CSS Variables Support', () => {
-    it('Should create css variables under one class', () => {
+    it('Should create one atomic class per css variable', () => {
       const styles = sheet.create({
         one: {
           '--': {
@@ -197,20 +198,25 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.one.size).toBe(1);
-      const css = sheet.getStyle();
-      expect(css).toMatchInlineSnapshot(
-        `".test_217ka {--base:red; --size:100px;}"`,
-      );
+      expect(styles.one.size).toBe(2);
+      const classes = Array.from(styles.one);
+      expect(new Set(classes).size).toBe(2);
 
-      // list all the individual rules inside of a class
-      expect(css).toMatch('--base:red; --size:100px;');
-      expect(css).toMatch(/\.\s*test_[0-9a-zA-Z]+\s*\{/);
+      const css = sheet.getStyle();
+      const declarations = ['--base:red;', '--size:100px;'];
+      declarations.forEach((declaration) => {
+        const match = classes.find((className) =>
+          css.includes(`.${className} {${declaration}}`),
+        );
+        expect(match).toBeDefined();
+      });
+      // atomic: no grouped multi-declaration rule
+      expect(css).not.toContain('--base:red; --size:100px;');
     });
 
     describe('When inside of a media query', () => {
       describe('Media query', () => {
-        it('Should create css variables under one class', () => {
+        it('Should create one atomic class per css variable', () => {
           const styles = sheet.create({
             one: {
               '@media (max-width: 600px)': {
@@ -223,19 +229,26 @@ describe('createSheet', () => {
             },
           });
 
-          expect(styles.one.size).toBe(1);
-          const css = sheet.getStyle();
-          expect(css).toMatchInlineSnapshot(`
-            "@media (max-width: 600px) {
-            .test_217ka {--base:red; --size:10px; --height:200px;}
-            }"
-          `);
-          const splitStyles = css.split('\n').filter(Boolean);
-          expect(splitStyles.length).toBe(3);
-          const [mediaDecleration, vars] = splitStyles;
+          expect(styles.one.size).toBe(3);
+          const classes = Array.from(styles.one);
+          expect(new Set(classes).size).toBe(3);
 
-          expect(mediaDecleration).toBe('@media (max-width: 600px) {');
-          expect(vars).toContain('--base:red; --size:10px; --height:200px;');
+          const css = sheet.getStyle();
+          expect(css).toContain('@media (max-width: 600px) {');
+          const mediaBlock = css.slice(
+            css.indexOf('@media (max-width: 600px)'),
+          );
+          const declarations = [
+            '--base:red;',
+            '--size:10px;',
+            '--height:200px;',
+          ];
+          declarations.forEach((declaration) => {
+            const match = classes.find((className) =>
+              mediaBlock.includes(`.${className} {${declaration}}`),
+            );
+            expect(match).toBeDefined();
+          });
         });
       });
     });
@@ -261,8 +274,8 @@ describe('createSheet', () => {
         ".test_wqxq0q {color:red;}
         .test_kfaw12 {height:100px;}
         @media (max-width: 600px) {
-        .test_nmrrbr {color:blue;}
-        .test_-4zio2b {height:200px;}
+        .test_-njo7sh {color:blue;}
+        .test_xfo8f9 {height:200px;}
         }"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
@@ -298,21 +311,24 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.one.size).toBe(3);
+      expect(styles.one.size).toBe(4);
 
       const style = sheet.getStyle();
-      expect(style).toMatchInlineSnapshot(`
-        ".test_wqxq0q {color:red;}
-        .test_kfaw12 {height:100px;}
-        .test_z7yakv:hover {color:blue;}
-        .test_z7yakv:hover {height:200px;}"
-      `);
       const splitStyles = style.split('\n').filter(Boolean);
 
+      // One atomic class per declaration: the two :hover rules use
+      // distinct classes.
+      expect(splitStyles).toHaveLength(4);
       expect(splitStyles[0]).toMatch(singlePropertyRegex);
       expect(splitStyles[1]).toMatch(singlePropertyRegex);
       expect(splitStyles[2]).toMatch(singlePropertyWithPseudoRegex);
       expect(splitStyles[3]).toMatch(singlePropertyWithPseudoRegex);
+      expect(style).toContain(':hover {color:blue;}');
+      expect(style).toContain(':hover {height:200px;}');
+      const hoverClasses = splitStyles
+        .slice(2)
+        .map((line) => line.split(':')[0]);
+      expect(new Set(hoverClasses).size).toBe(2);
     });
 
     it('Should scope pseudo selector separately from regular selectors with the same property:value', () => {
@@ -328,7 +344,7 @@ describe('createSheet', () => {
       expect(styles.one.size).toBe(2);
       expect(sheet.getStyle()).toMatchInlineSnapshot(`
         ".test_wqxq0q {color:red;}
-        .test_z7yakv:hover {color:red;}"
+        .test_-jtih2p:hover {color:red;}"
       `);
     });
 
@@ -354,19 +370,26 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.one.size).toBe(2);
+      expect(styles.one.size).toBe(3);
+      expect(styles.two.size).toBe(3);
       expect(styles.one).not.toEqual(styles.two);
-      expect(sheet.getStyle()).toMatchInlineSnapshot(`
-        ".test_wqxq0q {color:red;}
-        .test_z7yakv:hover {color:red;}
-        .test_z7yakv:focus {color:red;}
-        .test_zajen9:hover {color:red;}
-        .test_zajen9:focus {color:red;}"
-      `);
+
+      // The global declaration is shared; each conditional declaration
+      // gets its own atomic class.
+      const shared = Array.from(styles.one).filter((className) =>
+        styles.two.has(className),
+      );
+      expect(shared).toHaveLength(1);
+      for (const className of shared) {
+        expect(sheet.getStyle()).toContain(`.${className} {color:red;}`);
+      }
+
       const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
+      expect(splitStyles).toHaveLength(5);
       expect(splitStyles[0]).toMatch(singlePropertyRegex);
-      expect(splitStyles[1]).toMatch(singlePropertyWithPseudoRegex);
-      expect(splitStyles[2]).toMatch(singlePropertyWithPseudoRegex);
+      splitStyles.slice(1).forEach((line) => {
+        expect(line).toMatch(singlePropertyWithPseudoRegex);
+      });
     });
   });
 
@@ -385,8 +408,8 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(`
-        ".top-level-class .test_3zp0se {color:red;}
-        .top-level-class .test_3zp0se {height:100px;}"
+        ".top-level-class .test_aysr3d {color:red;}
+        .top-level-class .test_xy06wt {height:100px;}"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
 
@@ -415,7 +438,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_3zp0se {color:red;}
+          ".top-level-class .test_aysr3d {color:red;}
           .test_wqxq0q {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
@@ -451,8 +474,8 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
-          ".top-level-class .test_3zp0se {color:red;}
-          .top-level-class2 .test_3zp0se {color:red;}"
+          ".top-level-class .test_aysr3d {color:red;}
+          .top-level-class2 .test_-kgu9nn {color:red;}"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
 
@@ -464,13 +487,13 @@ describe('createSheet', () => {
         );
 
         expect(splitStyles.length).toBe(2);
-        expect(styles.button.size).toBe(1);
+        expect(styles.button.size).toBe(2);
       });
     });
 
     describe('When nesting css variables', () => {
-      it('Should create css variables under the top level class and the scoped', () => {
-        sheet.create({
+      it('Should create one atomic class per css variable under the top level class', () => {
+        const styles = sheet.create({
           '.top-level-class': {
             main: {
               '--': {
@@ -482,15 +505,23 @@ describe('createSheet', () => {
           },
         });
 
-        expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_1ppqxj {--base:red; --size:100px;}
-          .top-level-class .test_1ppqxj {color:var(--base);}"
-        `);
+        expect(styles).toHaveProperty('main');
+        expect(styles.main.size).toBe(3);
+        const classes = Array.from(styles.main);
+        expect(new Set(classes).size).toBe(3);
 
-        const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
-        expect(splitStyles.length).toBe(2);
-        expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
-        expect(splitStyles[1]?.startsWith('.top-level-class ')).toBe(true);
+        const css = sheet.getStyle();
+        const declarations = [
+          '--base:red;',
+          '--size:100px;',
+          'color:var(--base);',
+        ];
+        declarations.forEach((declaration) => {
+          const match = classes.find((className) =>
+            css.includes(`.top-level-class .${className} {${declaration}}`),
+          );
+          expect(match).toBeDefined();
+        });
       });
     });
 
@@ -508,15 +539,16 @@ describe('createSheet', () => {
         });
 
         expect(sheet.getStyle()).toMatchInlineSnapshot(`
-          ".top-level-class .test_5fpxm2:hover {color:blue;}
-          .top-level-class .test_5fpxm2:hover {height:200px;}"
+          ".top-level-class .test_my8e55:hover {color:blue;}
+          .top-level-class .test_9b41m7:hover {height:200px;}"
         `);
 
         const splitStyles = sheet.getStyle().split('\n').filter(Boolean);
         expect(splitStyles.length).toBe(2);
         expect(splitStyles[0]?.startsWith('.top-level-class ')).toBe(true);
         // eslint-disable-next-line no-unsafe-optional-chaining
-        const [topLevel, pseudoDecleration] = splitStyles[0]?.split(' ');
+        const [topLevel, pseudoDecleration] =
+          splitStyles[0]?.split(' ') ?? [];
         expect(topLevel).toBe('.top-level-class');
         expect(pseudoDecleration).toMatch(/^\.test_[\w-]+:hover$/);
       });
@@ -541,8 +573,8 @@ describe('createSheet', () => {
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(
           `
-          ".top-level-class .test_3zp0se {color:red;}
-          .top-level-class .test_-iboff4 {color:blue;}"
+          ".top-level-class .test_aysr3d {color:red;}
+          .top-level-class .test_iuzyyf {color:blue;}"
         `,
         );
         const splitStyles = style.split('\n').filter(Boolean);
@@ -573,7 +605,7 @@ describe('createSheet', () => {
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
           "@media (max-width: 600px) {
-          .top-level-class .test_-13sm2c {color:red;}
+          .top-level-class .test_b7kiy1 {color:red;}
           }"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
@@ -602,7 +634,7 @@ describe('createSheet', () => {
 
       const style = sheet.getStyle();
       expect(style).toMatchInlineSnapshot(
-        `".test_5fpxm2 .lower_level_class {color:red;}"`,
+        `".test_-33zi7a .lower_level_class {color:red;}"`,
       );
       expect(style).toMatch('.lower_level_class');
       expect(style).toMatch('color:red;');
@@ -625,8 +657,8 @@ describe('createSheet', () => {
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
           `
-          ".test_pcvvk5 .class_a .class_b {color:red;}
-          .test_5fpxm2 .class_a {color:blue;}"
+          ".test_-5wwlwl .class_a .class_b {color:red;}
+          .test_4zh20u .class_a {color:blue;}"
         `,
         );
         const lines = css.split('\n').filter(Boolean);
@@ -652,7 +684,7 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
-          `".top-level-class .test_5fpxm2 .lower_level_class {color:red;}"`,
+          `".top-level-class .test_89hes1 .lower_level_class {color:red;}"`,
         );
         expect(css.split('\n').filter(Boolean).length).toBe(1);
       });
@@ -674,7 +706,7 @@ describe('createSheet', () => {
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(`
           "@media (max-width: 600px) {
-          .test_-21n04v .lower_level_class {color:red;}
+          .test_4qute2 .lower_level_class {color:red;}
           }"
         `);
         expect(css.split('\n').filter(Boolean).length).toBe(3);
@@ -683,7 +715,7 @@ describe('createSheet', () => {
     });
 
     describe('With CSS Variables', () => {
-      it("Should nest styles under the precondition's selector", () => {
+      it('Should create one atomic class per css variable under the postcondition selector', () => {
         const styles = sheet.create({
           button: {
             '.lower_level_class': {
@@ -697,14 +729,22 @@ describe('createSheet', () => {
         });
 
         expect(styles).toHaveProperty('button');
+        expect(styles.button.size).toBe(3);
+        const classes = Array.from(styles.button);
+        expect(new Set(classes).size).toBe(3);
 
         const style = sheet.getStyle();
-        expect(style).toMatchInlineSnapshot(`
-          ".test_5fpxm2 {--base:red; --size:100px;}
-          .test_5fpxm2 .lower_level_class {color:var(--base);}"
-        `);
-        expect(style).toMatch('.lower_level_class');
-        expect(style).toMatch('color:var(--base);');
+        const declarations = [
+          '--base:red;',
+          '--size:100px;',
+          'color:var(--base);',
+        ];
+        declarations.forEach((declaration) => {
+          const match = classes.find((className) =>
+            style.includes(`.${className} .lower_level_class {${declaration}}`),
+          );
+          expect(match).toBeDefined();
+        });
       });
     });
 
@@ -724,7 +764,7 @@ describe('createSheet', () => {
 
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(
-          `".test_pcvvk5 .lower_level_class:hover {color:red;}"`,
+          `".test_jbgp63 .lower_level_class:hover {color:red;}"`,
         );
         expect(style).toMatch('.lower_level_class:hover');
         expect(style).toMatch('color:red;');
@@ -759,12 +799,12 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(`
-          ".test_5fpxm2 > .lower_level_class {color:red;}
-          .test_5fpxm2 + .lower_level_class {color:red;}
-          .test_5fpxm2 ~ .lower_level_class {color:red;}
-          .test_5fpxm2 * .lower_level_class {color:red;}
-          .test_5fpxm2::placeholder {color:red;}
-          .test_5fpxm2 * {color:red;}"
+          ".test_w7twe4 > .lower_level_class {color:red;}
+          .test_-5w72tt + .lower_level_class {color:red;}
+          .test_-iuof0k ~ .lower_level_class {color:red;}
+          .test_-muqxio * .lower_level_class {color:red;}
+          .test_-qqmu34::placeholder {color:red;}
+          .test_gmcsfb * {color:red;}"
         `);
       });
     });
@@ -785,8 +825,8 @@ describe('createSheet', () => {
         expect(styles).toHaveProperty('button');
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(`
-          ".test_5fpxm2.lower_level_class {color:red;}
-          .test_5fpxm2:hover {color:red;}"
+          ".test_e0mpv8.lower_level_class {color:red;}
+          .test_zdyq3p:hover {color:red;}"
         `);
       });
     });
@@ -808,7 +848,7 @@ describe('createSheet', () => {
       expect(styles.button.size).toBe(1);
       const css = sheet.getStyle();
       expect(css).toMatchInlineSnapshot(
-        `".top-level-class .lower_level_class .test_3zp0se {color:red;}"`,
+        `".top-level-class .lower_level_class .test_701jl4 {color:red;}"`,
       );
       expect(css.startsWith('.top-level-class .lower_level_class')).toBe(true);
     });
@@ -833,12 +873,12 @@ describe('createSheet', () => {
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(
           `
-          ".top-level-class .test_3zp0se {color:yellow;}
-          .top-level-class .mid_level_class .test_3zp0se {color:blue;}
-          .top-level-class .mid_level_class .lower_level_class .test_3zp0se {color:red;}"
+          ".top-level-class .test_mm4lg8 {color:yellow;}
+          .top-level-class .mid_level_class .test_39b1l2 {color:blue;}
+          .top-level-class .mid_level_class .lower_level_class .test_-unpgpq {color:red;}"
         `,
         );
-        expect(styles.button.size).toBe(1);
+        expect(styles.button.size).toBe(3);
 
         styles.button.forEach((className) => {
           expect(css).toMatch(className);
@@ -873,9 +913,9 @@ describe('createSheet', () => {
           expect(styles).toHaveProperty('paragraph');
           const css = sheet.getStyle();
           expect(css).toMatchInlineSnapshot(`
-            ".top-level-class .test_3zp0se {color:yellow;}
-            .top-level-class .mid_level_class .test_4xnzia {color:blue;}
-            .top-level-class .mid_level_class .lower_level_class .test_3zp0se {color:red;}"
+            ".top-level-class .test_mm4lg8 {color:yellow;}
+            .top-level-class .mid_level_class .test_tjeyni {color:blue;}
+            .top-level-class .mid_level_class .lower_level_class .test_-unpgpq {color:red;}"
           `);
           styles.button.forEach((className) => {
             expect(css).toMatch(className);
@@ -895,7 +935,7 @@ describe('createSheet', () => {
             /^\.top-level-class \.mid_level_class \.lower_level_class \.test_[\w-]+ {/,
           );
           expect(styles.paragraph.size).toBe(1);
-          expect(styles.button.size).toBe(1);
+          expect(styles.button.size).toBe(2);
         });
       });
 
@@ -917,7 +957,7 @@ describe('createSheet', () => {
           expect(styles).toHaveProperty('button');
           const css = sheet.getStyle();
           expect(css).toMatchInlineSnapshot(
-            `".top-level-class .mid_level_class .test_5fpxm2 .lower_level_class {color:red;}"`,
+            `".top-level-class .mid_level_class .test_-te9lit .lower_level_class {color:red;}"`,
           );
           expect(css).toMatch(
             /\.top-level-class \.mid_level_class \.test_[\w-]+ \.lower_level_class {color:red;}/,
@@ -929,7 +969,7 @@ describe('createSheet', () => {
   });
 
   describe('Class deduplication per scope', () => {
-    it('Should use the same class name for all pseudoselectors in the same scope', () => {
+    it('Should use one class per declaration across pseudoselectors in the same scope', () => {
       const styles = sheet.create({
         button: {
           ':hover': {
@@ -944,15 +984,22 @@ describe('createSheet', () => {
         },
       });
 
-      expect(styles.button.size).toBe(1);
+      expect(styles.button.size).toBe(3);
+      const classes = Array.from(styles.button);
+      expect(new Set(classes).size).toBe(3);
+
       const css = sheet.getStyle();
-      expect(css).toMatchInlineSnapshot(`
-        ".test_5fpxm2:hover {color:red;}
-        .test_5fpxm2:focus {color:blue;}
-        .test_5fpxm2:active {color:green;}"
-      `);
-      const splitStyles = css.split('\n').filter(Boolean);
-      expect(splitStyles.length).toBe(3);
+      const expectations: Array<[string, string]> = [
+        [':hover', 'color:red;'],
+        [':focus', 'color:blue;'],
+        [':active', 'color:green;'],
+      ];
+      expectations.forEach(([pseudo, declaration]) => {
+        const match = classes.find((className) =>
+          css.includes(`.${className}${pseudo} {${declaration}}`),
+        );
+        expect(match).toBeDefined();
+      });
     });
 
     it('Should use different classnames for different scopes in the same object', () => {
@@ -981,9 +1028,9 @@ describe('createSheet', () => {
       expect(styles.button1).not.toEqual(styles.button3);
       const css = sheet.getStyle();
       expect(css).toMatchInlineSnapshot(`
-        ".test_oj2lbg:hover {color:red;}
-        .test_oj2jn6:hover {color:red;}
-        .test_oj2j0s:hover {color:red;}"
+        ".test_-p44zf8:hover {color:red;}
+        .test_-p52py4:hover {color:red;}
+        .test_-p4iwuk:hover {color:red;}"
       `);
       const splitStyles = css.split('\n').filter(Boolean);
       // all lines should be different, but end in :hover {color:red;}
@@ -1021,22 +1068,17 @@ describe('createSheet', () => {
           },
         },
       });
-      expect(styles1.button.size).toBe(1);
-      expect(styles2.button.size).toBe(1);
+      expect(styles1.button.size).toBe(3);
+      expect(styles2.button.size).toBe(3);
       expect(styles1).not.toEqual(styles2);
       const css = sheet.getStyle();
-      expect(css).toMatchInlineSnapshot(`
-        ".test_5fpxm2:hover {color:red;}
-        .test_5fpxm2:focus {color:blue;}
-        .test_5fpxm2:active {color:green;}
-        .test_5fpxmy:hover {color:red;}
-        .test_5fpxmy:focus {color:blue;}
-        .test_5fpxmy:active {color:green;}"
-      `);
       const splitStyles = css.split('\n').filter(Boolean);
       expect(splitStyles.length).toBe(6);
       // make sure there are no duplicates
       expect(splitStyles.length).toBe(new Set(splitStyles).size);
+      expect(css).toContain(':hover {color:red;}');
+      expect(css).toContain(':focus {color:blue;}');
+      expect(css).toContain(':active {color:green;}');
     });
   });
 
@@ -1146,7 +1188,7 @@ describe('createSheet', () => {
         0% { opacity:0; }
         100% { opacity:1; }
         }
-        @keyframes test_2_kf {
+        @keyframes test_1_kf {
         0% { color:red; }
         100% { color:blue; }
         }"
@@ -1203,5 +1245,117 @@ describe('createSheet', () => {
       expect(keyframes.kf).toBe('test_0_kf');
       expect(keyframes.leftToRight).toBe('test_1_leftToRight');
     });
+  });
+});
+
+describe('CSS variables scoping', () => {
+  let sheet: ReturnType<typeof createSheet>;
+
+  beforeEach(() => {
+    sheet = createSheet('vars');
+  });
+
+  afterEach(() => {
+    const styleTags = document.querySelectorAll('style');
+    styleTags.forEach((styleTag) => {
+      styleTag.remove();
+    });
+  });
+
+  it('scopes variables under postconditions instead of leaking them', () => {
+    const styles = sheet.create({
+      button: {
+        ':hover': {
+          '--': {
+            '--base': 'red',
+          },
+        },
+      },
+    });
+
+    expect(styles.button.size).toBe(1);
+    const css = sheet.getStyle();
+    expect(css).toContain(':hover');
+    expect(css).toMatch(/:hover\s*\{[^}]*--base:red;/);
+  });
+
+  it('uses distinct classes for global and media variables', () => {
+    const styles = sheet.create({
+      one: {
+        '--': {
+          '--base': 'red',
+        },
+        '@media (max-width: 600px)': {
+          '--': {
+            '--base': 'blue',
+          },
+        },
+      },
+    });
+
+    expect(styles.one.size).toBe(2);
+    const css = sheet.getStyle();
+    expect(css).toContain('--base:red;');
+    const mediaBlock = css.slice(css.indexOf('@media'));
+    expect(mediaBlock).toContain('--base:blue;');
+  });
+
+  it('keeps media-only variables working', () => {
+    const styles = sheet.create({
+      one: {
+        '@media (max-width: 600px)': {
+          '--': {
+            '--base': 'red',
+          },
+        },
+      },
+    });
+
+    expect(styles.one.size).toBe(1);
+    const css = sheet.getStyle();
+    const mediaBlock = css.slice(css.indexOf('@media'));
+    expect(mediaBlock).toContain('--base:red;');
+  });
+
+  it('emits variables directly under a precondition instead of dropping them', () => {
+    sheet.create({
+      '.top': {
+        '--': {
+          '--base': 'red',
+        },
+      },
+    });
+
+    expect(sheet.getStyle()).toContain('.top');
+    expect(sheet.getStyle()).toContain('--base:red;');
+  });
+});
+
+describe('Property spelling', () => {
+  let sheet: ReturnType<typeof createSheet>;
+
+  beforeEach(() => {
+    sheet = createSheet('spelling');
+  });
+
+  afterEach(() => {
+    const styleTags = document.querySelectorAll('style');
+    styleTags.forEach((styleTag) => {
+      styleTag.remove();
+    });
+  });
+
+  it('dedupes camelCase and dash-case spellings of one property', () => {
+    const first = sheet.create({
+      a: { backgroundColor: 'red' },
+    });
+    // Dash-case spellings are accepted at runtime (and deduplicated) even
+    // though the static types only list camelCase properties.
+    const second = sheet.create({
+      b: { 'background-color': 'red' },
+    } as unknown as CreateSheetInput<'b'>);
+
+    expect(first.a).toEqual(second.b);
+    expect(sheet.getStyle().match(/background-color:red;/g)?.length).toBe(1);
   });
 });

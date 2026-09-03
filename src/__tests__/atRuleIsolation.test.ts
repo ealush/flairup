@@ -49,6 +49,48 @@ describe('at-rule isolation', () => {
     expect(css).toContain(`.${mediaClass} {color:red;}`);
   });
 
+  it('does not emit an empty media block when every rule is already on the sheet', () => {
+    const sheet = createSheet('atEmpty', null);
+    sheet.create({
+      a: { [MEDIA]: { color: 'red' } },
+    });
+    sheet.create({
+      b: { [MEDIA]: { color: 'red' } },
+    });
+
+    const css = sheet.getStyle();
+    expect(css.match(/@media \(max-width: 600px\) \{/g)?.length).toBe(1);
+    expect(css).not.toMatch(/@media \(max-width: 600px\) \{\s*\}/);
+  });
+
+  it('does not append an empty media block when a repeated rule fully deduplicates', () => {
+    const sheet = createSheet('atNoEmptyBlock', null);
+    sheet.create({
+      a: { [MEDIA]: { color: 'red' } },
+    });
+    const before = sheet.getStyle();
+
+    sheet.create({
+      b: { [MEDIA]: { color: 'red' } },
+    });
+
+    expect(sheet.getStyle()).toBe(before);
+    expect(sheet.getStyle()).not.toMatch(/@media[^{}]+\{\s*\}/);
+  });
+
+  it('keeps only new declarations when a media block partially deduplicates', () => {
+    const sheet = createSheet('atPartialDedupe', null);
+    sheet.create({
+      a: { [MEDIA]: { color: 'red' } },
+    });
+    sheet.create({
+      b: { [MEDIA]: { color: 'red', height: '10px' } },
+    });
+
+    expect(sheet.getStyle().match(/color:red/g)).toHaveLength(1);
+    expect(sheet.getStyle().match(/height:10px/g)).toHaveLength(1);
+  });
+
   it('shares one media class across scopes for the same query and declaration', () => {
     const sheet = createSheet('atShared', null);
     const first = sheet.create({

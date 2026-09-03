@@ -120,7 +120,7 @@ describe('cx deterministic composition', () => {
     });
   });
 
-  it('preserves css-variable classes from both arguments', () => {
+  it('resolves css-variable conflicts in favor of the last argument', () => {
     const sheet = createSheet('cxVars', null);
     const first = sheet.create({
       first: { '--': { '--brand': 'red' } },
@@ -129,12 +129,11 @@ describe('cx deterministic composition', () => {
       second: { '--': { '--brand': 'blue' } },
     });
 
-    const output = cx(first.first, second.second);
-    Array.from(first.first).forEach((className) => {
-      expect(output).toContain(className);
-    });
-    Array.from(second.second).forEach((className) => {
-      expect(output).toContain(className);
-    });
+    expect(cx(first.first, second.second)).toBe(
+      Array.from(second.second).join(' '),
+    );
+    expect(cx(second.second, first.first)).toBe(
+      Array.from(first.first).join(' '),
+    );
   });
 });

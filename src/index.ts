@@ -1,6 +1,6 @@
 import { addKeyframes } from './keyframes.js';
 import { Selector } from './Rule.js';
-import { Sheet } from './Sheet.js';
+import { Sheet, resolveSheetRoot } from './Sheet.js';
 import { iterateTopLevel, iterateStyles } from './treeParseUtils.js';
 import {
   CreateSheetInput,
@@ -21,7 +21,7 @@ export function createSheet(
   name: string,
   rootNode?: SheetRootNode | CreateSheetOptions,
 ): createSheetReturn {
-  const sheet = new Sheet(name, rootNode);
+  const sheet = resolveSheet(name, rootNode);
 
   return {
     create: genCreate(sheet),
@@ -29,6 +29,74 @@ export function createSheet(
     getStyle: sheet.getStyle.bind(sheet),
     isApplied: sheet.isApplied.bind(sheet),
   };
+}
+
+const defaultSheets: Map<string, Sheet> = new Map();
+const nullSheets: Map<string, Sheet> = new Map();
+const rootedSheets: WeakMap<object, Map<string, Sheet>> = new WeakMap();
+
+function resolveSheet(
+  name: string,
+  root: SheetRootNode | CreateSheetOptions | undefined,
+): Sheet {
+  const resolved = resolveSheetRoot(root);
+  const cached = findCachedSheet(name, resolved.rootNode);
+  if (cached && !cached.isDetached()) {
+    syncNonce(cached, resolved.nonce);
+    return cached;
+  }
+  const sheet = new Sheet(name, root);
+  storeCachedSheet(name, resolved.rootNode, sheet);
+  return sheet;
+}
+
+function findCachedSheet(
+  name: string,
+  rootNode: SheetRootNode | undefined,
+): Sheet | undefined {
+  if (rootNode === undefined) {
+    return defaultSheets.get(name);
+  }
+  if (rootNode === null) {
+    return nullSheets.get(name);
+  }
+  const scoped = rootedSheets.get(rootNode);
+  return scoped?.get(name);
+}
+
+function storeCachedSheet(
+  name: string,
+  rootNode: SheetRootNode | undefined,
+  sheet: Sheet,
+): void {
+  if (rootNode === undefined) {
+    defaultSheets.set(name, sheet);
+    return;
+  }
+  if (rootNode === null) {
+    nullSheets.set(name, sheet);
+    return;
+  }
+  storeRootedSheet(rootNode, name, sheet);
+}
+
+function storeRootedSheet(
+  rootNode: object,
+  name: string,
+  sheet: Sheet,
+): void {
+  let scoped = rootedSheets.get(rootNode);
+  if (!scoped) {
+    scoped = new Map<string, Sheet>();
+    rootedSheets.set(rootNode, scoped);
+  }
+  scoped.set(name, sheet);
+}
+
+function syncNonce(sheet: Sheet, nonce: string | undefined): void {
+  if (nonce !== undefined && nonce !== sheet.getNonce()) {
+    sheet.setNonce(nonce);
+  }
 }
 
 function genCreate<K extends string>(

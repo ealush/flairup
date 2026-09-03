@@ -1,15 +1,12 @@
 # FlairUp 🎩
 
-Lightweight CSS-In-JS library for UI packages.
+Lightweight CSS-in-JS library for UI packages.
 Battle tested on [Emoji-Picker-React](https://github.com/ealush/emoji-picker-react).
 
-# Why?
-
-When creating a third-party package, you have different concerns than when creating an application. Most existing solutions come to solve the problem of shipping styles with your application, but they are not suitable for third-party packages.
-
-There is no existing standard that makes consuming third party packages with their styles as easy as importing packages that are defined locally in your application. The process always involves some manual work or extra configuration, and no solution works out of the box with all bundlers or environment.
-
-FlairUp aims to solve this by allowing package-authors to ship their styles with their package, and automatically apply the styles with them, both during SSR and in the browser.
+FlairUp lets package authors ship styles with their package with zero config:
+it injects a `<style>` tag at runtime, so consumers never have to import
+stylesheets or configure bundlers. It works in the browser, in Shadow DOM,
+and with SSR.
 
 ## Installation
 
@@ -17,50 +14,7 @@ FlairUp aims to solve this by allowing package-authors to ship their styles with
 npm install flairup
 ```
 
-## Core Concepts
-
-### Zero Config
-
-The main issue that FlairUp is trying to tackle is the challenge of bringing your own styles as a third-party dependency. There is no standard way for configuring your styling that will work in all environments and with all bundlers.
-
-It will either break on some bundlers, or will require the user to import the styles manually, which is not ideal.
-
-### OneTime-Runtime
-
-FlairUp is a one-time-runtime library, meaning that it will only run once, when the package is imported.
-While usually, it is not recommended to have styles computed at runtime, this is the only way we can assure the library is working in all environments.
-
-### Style Tag added to DOM
-
-The way FlairUp works is by adding a `<style>` tag to the DOM, and injecting the styles into it.
-
-### One Class Per CSS Property
-
-To reduce bloat and improve performance, FlairUp will only add a single class per CSS property, meaning that if a certain style exists in multiple places, it will only be added as one class to the stylesheet, and be reused in all places consuming it.
-This is a much more efficient way, allowing us not to worry about de-duplication of stylis.
-
-### The StyleSheet Object
-
-Defining your style has two parts:
-
-1. Creating a stylesheet object using the `createSheet` function. This function adds the style tag to the DOM, and returns a stylesheet object with a `create` function.
-2. Using the individual styles using the `create` function.
-   In the create function you can define your styles as a javascript object, and get back a Set containing the class names of the styles you defined.
-
-## Supported CSS Features
-
-1. CSS Properties
-2. Pseudo Selectors and Pseudo Elements
-3. Media Queries
-4. Defining of CSS Variables
-
-### Added Features
-
-1. Scoping styles under a known class name (Preconditions)
-2. Scoping lower level styles under a selector (Postconditions)
-3. Adding custom class names to the stylesheet object
-
-## Usage Example
+## Usage
 
 ```javascript
 import { createSheet, cx } from 'flairup';
@@ -79,62 +33,137 @@ const styles = sheet.create({
 const Button = () => <button className={cx(styles.button)}>Hover Me</button>;
 ```
 
-### Adding Custom Class Names
+## What `create()` returns
+
+`create()` returns a `Record` mapping each scope name to a `Set` of class
+names — one entry per scope, not a single `Set`:
 
 ```javascript
 const styles = sheet.create({
-  button: {
-    '.': 'my-button', // or ["my-button", "button-main"]
+  button: { color: 'red' },
+  title: { color: 'blue' },
+});
+
+styles.button; // Set { 'MyComponent_abc123' }
+styles.title; // Set { 'MyComponent_def456' }
+
+cx(styles.button); // "MyComponent_abc123"
+```
+
+One atomic class is generated per CSS declaration:
+
+- Each plain declaration (for example `color: 'red'`) gets its own class and
+  its own single-declaration rule. Identical declarations are emitted once
+  and shared across scopes.
+- Each conditional declaration (inside a pseudo selector, postcondition, or
+  media query) gets its own class, so conditional styles compose
+  independently.
+- Each CSS variable gets its own single-declaration rule — variables are no
+  longer grouped into one class per scope.
+
+Property names are written in camelCase and emitted in dash-case
+(`backgroundColor` → `background-color`), so both spellings share one
+deduplication entry.
+
+## `cx()` composition
+
+`cx()` accepts strings, arrays, `Set`s, and objects (truthy keys win), and
+returns a single class string:
+
+```javascript
+cx('a', ['b', 'c'], { d: true, e: false }); // "a b c d"
+cx(styles.button, styles.title);
+```
+
+When classes conflict, the last one passed to `cx()` wins — regardless of the
+order the styles were created in:
+
+```javascript
+const red = sheet.create({ red: { color: 'red' } });
+const blue = sheet.create({ blue: { color: 'blue' } });
+
+cx(red.red, blue.blue); // "...blue..." — blue wins
+cx(blue.blue, red.red); // "...red..." — red wins
+```
+
+Conflict rules:
+
+- Conflicts are resolved per context. The same property set globally,
+  under `:hover`, and under a media query never conflicts with itself —
+  each context keeps its class.
+- Shorthand/longhand overlap conflicts in the same context: `margin` beats
+  an earlier `margin-top`, and vice versa, following `cx()` order.
+- Each CSS variable is its own conflict domain: overriding `--tone` keeps
+  an unrelated `--space` from the same scope.
+- Classes from different contexts (pseudo selectors, media queries) are
+  always preserved.
+- Unknown classes (for example utility classes) pass through untouched, and
+  repeated classes are deduped.
+
+## `createSheet()` options and mounting
+
+```javascript
+const sheet = createSheet('MyComponent');
+const sheet = createSheet('MyComponent', { rootNode, nonce });
+```
+
+Calling `createSheet(name)` mounts one `<style id="flairup-{name}">` tag into
+`document.head` and keeps it synchronized after every `create()` and
+`keyframes()` call. `getStyle()` returns the sheet's CSS text, and
+`isApplied()` reports whether a style tag is mounted.
+
+The second argument controls where (and whether) the tag mounts:
+
+- `{ rootNode }` — mount under a specific `HTMLElement` or `ShadowRoot`,
+  so styles work inside Shadow DOM. A bare element may also be passed
+  directly as the second argument.
+- `{ rootNode: null }` — never mount a tag. Use this on the server (or in
+  tests) and read the CSS with `getStyle()`.
+- `{ nonce }` — set a `nonce` attribute on the style tag for
+  Content-Security-Policy environments. The nonce is also applied to an
+  adopted server-rendered tag.
+
+Sheets with the same name and the same mount target share one style element
+and its CSS state: writes from any handle are visible through every handle,
+and identical declarations are still emitted only once. Different names, or
+the same name under different roots, stay isolated.
+
+## Keyframes
+
+`sheet.keyframes()` defines animations and returns a `Record` mapping each
+keyframe name to its generated (hashed) animation name. Names are prefixed
+with the sheet name and numbered independently of created styles:
+
+```javascript
+const sheet = createSheet('Spinner');
+
+const { spin } = sheet.keyframes({
+  spin: {
+    from: { transform: 'rotate(0deg)' },
+    to: { transform: 'rotate(360deg)' },
+  },
+});
+// spin === 'Spinner_0_spin'
+
+const styles = sheet.create({
+  icon: {
     color: 'red',
+    animationName: spin,
+    animationDuration: '1s',
+    animationIterationCount: 'infinite',
   },
 });
 ```
 
-### Adding Scoped CSS Variables
+The `@keyframes` rules are written into the same style element as the rest of
+the sheet's CSS.
 
-Unlike regular CSS properties, CSS variables are as a single class per scope.
+## Conditions
 
-```javascript
-const styles = sheet.create({
-  button: {
-    '--': {
-      '--color': 'red',
-      '--hover-color': 'blue',
-    },
-  },
-});
-```
-  
-### Adding Media Queries
+### Scoping styles under a known class name (preconditions)
 
-```javascript
-const styles = sheet.create({
-  button: {
-    color: 'red',
-    '@media (max-width: 600px)': {
-      color: 'blue',
-    },
-  },
-});
-```
-
-### Adding Pseudo Selectors and Pseudo Elements
-
-```javascript
-const styles = sheet.create({
-  button: {
-    color: 'red',
-    ':hover': {
-      color: 'blue',
-    },
-    '::before': {
-      content: '🎩',
-    },
-  },
-});
-```
-
-### Scoping a style under a known class name (Preconditions)
+Nest scopes under a condition key to apply them only beneath a known
+selector:
 
 ```javascript
 const styles = sheet.create({
@@ -152,68 +181,167 @@ const styles = sheet.create({
 });
 ```
 
-### Scoping lower level styles under a selector (Postconditions)
+### Scoping lower level styles under a selector (postconditions)
 
-Supports all the following selectors:
+Nest condition keys inside a scope to target lower level elements. All of
+the following prefixes are supported:
 
-- `>`
-- `~`
-- `+`
-- `*`
-- `&.class` (Adds the class directly to the selector without a space)
+- `.class` — descendant class: `'.menu'` → `.hash .menu`
+- `:pseudo` / `::element` — pseudo selectors and elements: `':hover'`,
+  `'::before'`
+- `>` / `+` / `~` — combinators: `'> .icon'`, `'+ .next'`, `'~ .sibling'`
+- `*` — universal selector, with or without a suffix
+- `&.class` — same element plus a class, no space: `'.hash.active'`
+- `&:pseudo` — same element plus a pseudo selector, no space:
+  `'.hash:hover'`
 
 ```javascript
 const styles = sheet.create({
   button: {
-    '.lower_level_class': {
+    '.menu': {
       color: 'red',
     },
-  },
-  paragraph: {
-    '*': {
+    '&.active': {
       color: 'blue',
     },
   },
 });
 ```
 
-# SSR Support
+Postconditions chain with preconditions and media queries, joining nested
+levels with a space (except `&` conditions, which attach directly).
 
-While the library supports SSR, we need to do a little bit of work in our component to make it work.
-All we need to do is render a style tag inside our component and put the styles inside it.
+### Media queries
 
-## React SSR Example
+```javascript
+const styles = sheet.create({
+  button: {
+    color: 'red',
+    '@media (max-width: 600px)': {
+      color: 'blue',
+    },
+  },
+});
+```
 
-Create the following component:
+The same declaration inside and outside a media query gets distinct classes,
+so global and media rules never clash or collapse into each other.
+
+### Pseudo selectors and pseudo elements
+
+```javascript
+const styles = sheet.create({
+  button: {
+    color: 'red',
+    ':hover': {
+      color: 'blue',
+    },
+    '::before': {
+      content: '🎩',
+    },
+  },
+});
+```
+
+### CSS variables
+
+```javascript
+const styles = sheet.create({
+  button: {
+    '--': {
+      '--color': 'red',
+      '--hover-color': 'blue',
+    },
+  },
+});
+```
+
+Each variable produces its own single-declaration rule, so one variable can
+be overridden (via `cx()` order) without affecting the others.
+
+### Custom class names
+
+```javascript
+const styles = sheet.create({
+  button: {
+    '.': 'my-button', // or ["my-button", "button-main"]
+    color: 'red',
+  },
+});
+```
+
+Custom classes are added to the scope's `Set` as-is, alongside the generated
+classes.
+
+## SSR
+
+Render the sheet's CSS into a style tag whose `id` matches the sheet
+(`flairup-{name}`). On the client, `createSheet()` with the same name adopts
+that tag instead of mounting a duplicate, preserving the server CSS and
+appending only new rules:
 
 ```jsx
+import { createSheet } from 'flairup';
+
+const sheet = createSheet('MyComponent');
+
 export function SSRStyles() {
-  if (stylesheet.isApplied()) {
+  if (sheet.isApplied()) {
     return null;
   }
 
   return (
     <style
+      id="flairup-MyComponent"
       suppressHydrationWarning
-      dangerouslySetInnerHTML={{ __html: stylesheet.getStyle() }}
+      dangerouslySetInnerHTML={{ __html: sheet.getStyle() }}
     />
   );
 }
 ```
 
-And place it anywhere inside your component, like this:
-
-```jsx
-export default function MyComponentMain({ children }: Props) {
-  return (
-    <div>
-      <SSRStyles /> // <-- Here
-      <ChildComponent>{children}</ChildComponent>
-    </div>
-  );
-}
-```
+Place `<SSRStyles />` anywhere inside your component. When there is no
+server tag (pure client render), the sheet mounts its own tag as usual.
 
 ## What does the output look like?
 
-![image](https://github.com/ealush/flairup/assets/11255103/aea8f56f-1ccb-4bf1-8fa5-c95da9684726)
+Given this input:
+
+```javascript
+import { createSheet } from 'flairup';
+
+const sheet = createSheet('Button', null);
+
+const styles = sheet.create({
+  button: {
+    color: 'red',
+    '--': { '--bg': 'white' },
+    ':hover': { color: 'blue' },
+    '@media (max-width: 600px)': { color: 'green' },
+  },
+});
+
+const { fade } = sheet.keyframes({
+  fade: { from: { opacity: '0' }, to: { opacity: '1' } },
+});
+```
+
+`sheet.getStyle()` returns exactly this CSS:
+
+```css
+.Button_wqxq0q {color:red;}
+.Button_x5i9n8 {--bg:white;}
+.Button_-w97goy:hover {color:blue;}
+@media (max-width: 600px) {
+.Button_se7zu2 {color:green;}
+}
+@keyframes Button_0_fade {
+from { opacity:0; }
+to { opacity:1; }
+}
+```
+
+Each declaration produces one atomic class with one single-declaration
+rule, conditional declarations get their own classes, and keyframes are
+named `{sheet}_{n}_{name}`. Exact class hashes vary with the sheet name and
+creation order.

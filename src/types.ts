@@ -16,8 +16,13 @@ export type CreateSheetOptions = {
   nonce?: string;
 };
 
-// That's the create function input
-export type Styles = Partial<StyleObject & Chunks & PostConditionStyles>;
+// That's the create function input. FlairUpProperties is part of the
+// intersection (not just a top-level alternative) so scopes mixing plain
+// declarations with '--'/'.' blocks are accepted wherever Styles is: the
+// runtime supports those mixes at every nesting level.
+export type Styles = Partial<
+  StyleObject & Chunks & PostConditionStyles & FlairUpProperties
+>;
 
 export type PostConditionStyles = {
   [k: ConditionKey]:

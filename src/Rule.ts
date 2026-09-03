@@ -1,3 +1,4 @@
+import { coveredProperties } from './shorthands.js';
 import { Sheet } from './Sheet';
 import { asArray } from './utils/asArray';
 import { isImmediatePostcondition, isPsuedoSelector } from './utils/is';
@@ -9,6 +10,14 @@ import {
   joinedProperty,
   toClass,
 } from './utils/stringManipulators';
+
+export function toCssIdent(value: string): string {
+  const cleaned = value.replace(/[^a-zA-Z0-9_-]/g, '_');
+  if (/^[0-9]/.test(cleaned) || /^-[0-9]/.test(cleaned)) {
+    return `_${cleaned}`;
+  }
+  return cleaned;
+}
 
 export class Rule {
   public hash: string;
@@ -23,45 +32,38 @@ export class Rule {
   ) {
     this.property = property;
     this.value = value;
-    this.joined = joinedProperty(property, value);
-    const joinedConditions = this.selector.preconditions.concat(
-      this.selector.postconditions,
-    );
+    // Dash-case the property before hashing so spellings like
+    // backgroundColor/background-color share one deduplication entry.
+    this.joined = joinedProperty(camelCaseToDash(property), value);
+    const conds = this.selector.preconditions
+      .concat(this.selector.postconditions)
+      .join(',');
     const atKey = this.selector.atRules.join('|');
+    const scopePart = this.selector.hasConditions
+      ? (this.selector.scopeClassName as string)
+      : '';
+    this.key = [this.joined, conds, atKey, scopePart].join('\0');
     this.hash = this.buildHash(atKey);
-    this.key = joinTruthy([this.joined, joinedConditions, atKey, this.hash]);
   }
 
-  public getConflictKey(): string {
-    return [
-      camelCaseToDash(this.property),
-      this.selector.preconditions.join(','),
-      this.selector.postconditions.join(','),
-      this.selector.atRules.join('|'),
-    ].join('\0');
+  public getConflictKeys(): string[] {
+    const pre = this.selector.preconditions.join(',');
+    const post = this.selector.postconditions.join(',');
+    const at = this.selector.atRules.join('|');
+    return coveredProperties(camelCaseToDash(this.property)).map((prop) =>
+      [prop, pre, post, at].join('\0'),
+    );
   }
 
   private buildHash(atKey: string): string {
-    if (atKey) {
-      return stableHash(
-        this.sheet.name,
-        `${this.hashSeed()}|${atKey}`,
-      );
+    // The prefix is sanitized so every sheet name yields valid CSS classes;
+    // toCssIdent is the identity for ordinary names, keeping their hashes
+    // byte-stable.
+    if (!this.selector.hasConditions && !atKey) {
+      return stableHash(toCssIdent(this.sheet.name), this.joined);
     }
 
-    if (this.selector.hasConditions) {
-      return this.selector.scopeClassName as string;
-    }
-
-    return stableHash(this.sheet.name, this.joined);
-  }
-
-  private hashSeed(): string {
-    if (this.selector.hasConditions) {
-      return this.selector.scopeClassName as string;
-    }
-
-    return this.joined;
+    return stableHash(toCssIdent(this.sheet.name), this.key);
   }
 
   public toString(): string {
@@ -143,9 +145,9 @@ export class Selector {
     if (!this.scopeClassName) {
       this.scopeName = scopeName;
       this.scopeClassName = stableHash(
-        this.sheet.name,
+        toCssIdent(this.sheet.name),
         // adding the count guarantees uniqueness across style.create calls
-        scopeName + this.sheet.count,
+        scopeName + '\0' + this.sheet.count,
       );
     }
 
