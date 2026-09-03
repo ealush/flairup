@@ -128,6 +128,7 @@ type PreparedShorthand = {
   tokens: string[];
   slash: boolean;
   important: boolean;
+  text: string;
 };
 
 function expandShorthand(
@@ -157,11 +158,11 @@ function expandTokens(
   value: string,
 ): PreparedShorthand | undefined {
   const { text, important } = splitImportant(value);
-  if (isOpaqueValue(text)) {
-    return undefined;
-  }
   const { tokens, slash } = tokenizeValue(text);
-  if (tokens.length === 0) {
+  // Any top-level token that is itself a bare var()/env()/attr() call
+  // makes the value opaque: it can resolve to any number of tokens, so
+  // expanding could turn a valid shorthand into invalid longhands.
+  if (tokens.length === 0 || tokens.some(isOpaqueValue)) {
     return undefined;
   }
   return {
@@ -170,30 +171,52 @@ function expandTokens(
     tokens,
     slash,
     important,
+    text,
   };
 }
 
 function expandPrepared(
   prepared: PreparedShorthand,
 ): Array<[string, string]> | undefined {
-  const { longhands, tokens, important } = prepared;
+  const { kind, slash, tokens } = prepared;
+  if (kind === 'corners' && slash) {
+    return expandElliptical(prepared);
+  }
   if (tokens.length === 1) {
-    const only = tokens[0];
-    if (!only) {
-      return undefined;
-    }
-    return longhands.map<[string, string]>((longhand) => [
-      longhand,
-      withImportant(only, important),
-    ]);
+    return expandSingle(prepared);
   }
   return expandPositional(prepared);
+}
+
+// Box shorthands set only the four physical sides, so expansion targets
+// those even for single tokens: emitting logical longhands alongside
+// would let a surviving logical override a physical cx() winner
+// independently of source order. Pairs and corners have no logicals.
+function expansionTargets(prepared: PreparedShorthand): string[] {
+  return prepared.kind === 'box'
+    ? prepared.longhands.slice(0, 4)
+    : prepared.longhands;
+}
+
+function expandSingle(
+  prepared: PreparedShorthand,
+): Array<[string, string]> | undefined {
+  const { tokens, important } = prepared;
+  const only = tokens[0];
+  if (!only) {
+    return undefined;
+  }
+  return expansionTargets(prepared).map<[string, string]>((longhand) => [
+    longhand,
+    withImportant(only, important),
+  ]);
 }
 
 // Positional assignment per CSS: 2 values split top/bottom vs sides,
 // 3 values add an explicit bottom, 4 values go top/right/bottom/left,
 // and pairs (gap, overflow) split first/second.
 const quadSides: Record<number, number[]> = {
+  1: [0, 0, 0, 0],
   2: [0, 1, 0, 1],
   3: [0, 1, 2, 1],
   4: [0, 1, 2, 3],
@@ -206,7 +229,7 @@ const pairSides: Record<number, number[]> = {
 function expandPositional(
   prepared: PreparedShorthand,
 ): Array<[string, string]> | undefined {
-  const { kind, longhands, tokens, slash, important } = prepared;
+  const { kind, tokens, slash, important } = prepared;
   if (slash) {
     return undefined;
   }
@@ -215,8 +238,93 @@ function expandPositional(
   if (!sides) {
     return undefined;
   }
-  const positional = kind === 'box' ? longhands.slice(0, 4) : longhands;
-  return assignPositional(positional, sides, tokens, important);
+  return assignPositional(expansionTargets(prepared), sides, tokens, important);
+}
+
+// Elliptical radii (`10px/20px`, `1px 2px/3px`): the slash form is
+// shorthand-only, so each corner is translated to its space-separated
+// per-corner form (`10px 20px`). Both halves repeat positionally per the
+// 1-4 value rule; anything else stays atomic.
+function expandElliptical(
+  prepared: PreparedShorthand,
+): Array<[string, string]> | undefined {
+  const halves = splitElliptical(prepared.text);
+  if (!halves) {
+    return undefined;
+  }
+  const horizontal = quadAssign(tokenizeValue(halves.horizontal).tokens);
+  const vertical = quadAssign(tokenizeValue(halves.vertical).tokens);
+  if (!horizontal || !vertical) {
+    return undefined;
+  }
+  return assignCorners(prepared, horizontal, vertical);
+}
+
+function splitElliptical(
+  text: string,
+): { horizontal: string; vertical: string } | undefined {
+  const slashAt = topLevelSlash(text);
+  if (slashAt < 0) {
+    return undefined;
+  }
+  const horizontal = text.slice(0, slashAt).trim();
+  const vertical = text.slice(slashAt + 1).trim();
+  if (!horizontal || !vertical || topLevelSlash(vertical) >= 0) {
+    return undefined;
+  }
+  return { horizontal, vertical };
+}
+
+function topLevelSlash(text: string): number {
+  let depth = 0;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    depth = Math.max(0, depth + parenDelta(char));
+    if (depth === 0 && char === '/') {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function quadAssign(tokens: string[]): string[] | undefined {
+  const sides = quadSides[tokens.length];
+  if (!sides) {
+    return undefined;
+  }
+  return assignTokens(tokens, sides);
+}
+
+function assignTokens(tokens: string[], sides: number[]): string[] | undefined {
+  const output: string[] = [];
+  for (const side of sides) {
+    const token = tokens[side];
+    if (token === undefined) {
+      return undefined;
+    }
+    output.push(token);
+  }
+  return output;
+}
+
+function assignCorners(
+  prepared: PreparedShorthand,
+  horizontal: string[],
+  vertical: string[],
+): Array<[string, string]> {
+  const output: Array<[string, string]> = [];
+  prepared.longhands.forEach((longhand, index) => {
+    const across = horizontal[index];
+    const down = vertical[index];
+    if (across === undefined || down === undefined) {
+      return;
+    }
+    output.push([
+      longhand,
+      withImportant(`${across} ${down}`, prepared.important),
+    ]);
+  });
+  return output;
 }
 
 function assignPositional(
