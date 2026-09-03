@@ -91,8 +91,15 @@ Conflict rules:
 - Conflicts are resolved per context. The same property set globally,
   under `:hover`, and under a media query never conflicts with itself —
   each context keeps its class.
-- Shorthand/longhand overlap conflicts in the same context: `margin` beats
-  an earlier `margin-top`, and vice versa, following `cx()` order.
+- Shorthand/longhand overlap in the same context follows `cx()` order per
+  side: single- and multi-value distributive shorthands (`margin`,
+  `padding`, `inset`, `gap`, `overflow`, border widths/styles/colors,
+  `border-radius`) expand into one atomic class per longhand, so a later
+  `margin-top` wins only its side while the other sides survive. A later
+  shorthand still wins every side. Values that cannot be split soundly
+  (bare `var()`/`env()` references, over-count values, multi-token
+  elliptical radii) and non-distributive shorthands (`background`, `font`,
+  `border`, ...) stay one atomic class.
 - Each CSS variable is its own conflict domain: overriding `--tone` keeps
   an unrelated `--space` from the same scope.
 - Classes from different contexts (pseudo selectors, media queries) are

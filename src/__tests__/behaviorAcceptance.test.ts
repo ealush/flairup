@@ -81,6 +81,18 @@ describe('browser-visible composition acceptance', () => {
     expect(restored.marginLeft).toBe('2px');
   });
 
+  it('preserves positional sides of multi-value shorthands under override', () => {
+    const sheet = createSheet('acceptShorthandMulti');
+    const all = sheet.create({ all: { margin: '2px 4px' } });
+    const top = sheet.create({ top: { marginTop: '1px' } });
+
+    const overridden = computedStyleFor(cx(all['all'], top['top']));
+    expect(overridden.marginTop).toBe('1px');
+    expect(overridden.marginRight).toBe('4px');
+    expect(overridden.marginBottom).toBe('2px');
+    expect(overridden.marginLeft).toBe('4px');
+  });
+
   it('resolves grouped CSS variables by cx order and preserves unrelated variables', () => {
     const sheet = createSheet('acceptVariables');
     const base = sheet.create({

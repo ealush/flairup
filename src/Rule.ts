@@ -20,28 +20,23 @@ export function toCssIdent(value: string): string {
 }
 
 // Identity prefix for everything a sheet generates (rule hashes, scope
-// classes, keyframes names, hydration matching). Sanitizing is lossy:
-// `accept/a` and `accept?a` both become `accept_a`, so distinct sheets
-// would emit identical classes for different declarations. Appending a
-// digest of the original name keeps separately named sheets from aliasing
-// after sanitization. Ordinary names pass through untouched so their
+// classes, keyframes names, hydration matching). This must be injective
+// in the original sheet name: sanitizing is lossy (`accept/a` and
+// `accept?a` both become `accept_a`), and even a digest of the original
+// can collide, aliasing two sheets to identical classes for different
+// declarations. Every code unit outside [A-Za-z0-9-] is therefore escaped
+// as _<hex>_, with _ itself escaped, so distinct names always produce
+// distinct prefixes. Ordinary names pass through untouched so their
 // generated classes stay byte-stable.
 export function sheetIdent(name: string): string {
-  const clean = toCssIdent(name);
-  if (clean === name) {
-    return clean;
+  const encoded = name.replace(
+    /[^A-Za-z0-9-]/g,
+    (char) => `_${char.charCodeAt(0).toString(16)}_`,
+  );
+  if (/^[0-9]/.test(encoded) || /^-[0-9]/.test(encoded)) {
+    return `_${encoded}`;
   }
-  return `${clean}_${nameDigest(name)}`;
-}
-
-function nameDigest(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    const char = name.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return (hash >>> 0).toString(36);
+  return encoded;
 }
 
 export class Rule {
