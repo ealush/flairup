@@ -19,9 +19,10 @@ npm install flairup
 ## API (five functions)
 
 createSheet(name, rootNode?)
-  Creates a named stylesheet. Returns { create, keyframes, getStyle }.
-  rootNode: an element to mount into, null for strings-only (SSR), or
-  omitted to mount into <head>.
+  Creates a named stylesheet. Returns { create, keyframes, getStyle,
+  isApplied }. rootNode: an element to mount into, null for
+  strings-only (SSR), omitted to mount into <head>, or an options
+  object { rootNode, nonce }.
 
 sheet.create(styles)
   Defines named scopes of camelCase declarations. Each scope returns a
@@ -32,7 +33,7 @@ sheet.create(styles)
     const styles = sheet.create({
       card: {
         padding: '16px',
-        '--accent': '#a31621',
+        '--accent': '#9c1a24',
         '&:hover': { borderColor: 'var(--accent)' },
         '@media (min-width: 700px)': { padding: '24px' },
       },
@@ -40,7 +41,11 @@ sheet.create(styles)
 
 cx(...args)
   Combines class Sets, strings, arrays, and { className: boolean }
-  maps into one class string for className. Example:
+  maps into one class string for className. Every class stays in the
+  output, so when two set the same property the stylesheet rule order
+  decides — one complete scope per visual state; cx() combines scopes
+  that set different properties.
+  Example:
     cx(styles.card, isActive && styles.active, extraClass)
 
 sheet.keyframes(frames)
@@ -55,6 +60,10 @@ sheet.getStyle()
   sheet with a null root on the server, inject the string into a
   <style> tag. The same calls run unchanged in the browser.
 
+sheet.isApplied()
+  True once the sheet has mounted a <style> tag; false for detached,
+  strings-only server sheets.
+
 ## Rules for generated code
 
 - Style objects use camelCase properties with string values.
@@ -62,5 +71,8 @@ sheet.getStyle()
   hardcode generated class names (they are content hashes).
 - Keep one sheet per package (createSheet('my-package')) and compose
   with cx() at the call site.
+- Overlapping an atomic shorthand (background/font/border, opaque var()
+  values) replaces the whole shorthand: give each visual state its own
+  complete scope instead of layering overrides.
 - Conditions nest arbitrarily; keep them next to the declarations
   they modify.

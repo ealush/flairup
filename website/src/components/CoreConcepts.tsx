@@ -12,6 +12,13 @@ const styles = stylesheet.create({
       gridTemplateColumns: '1fr 1fr',
     },
   },
+  itemIndex: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.95rem',
+    fontWeight: '700',
+    color: 'var(--accent)',
+    marginBottom: '0.35em',
+  },
   itemTitle: {
     fontSize: '1.1rem',
     fontWeight: '650',
@@ -29,13 +36,16 @@ const styles = stylesheet.create({
 
 const concepts: Array<{ title: string; body: React.ReactNode }> = [
   {
-    title: 'One sheet per name',
+    title: 'One sheet per name and target',
     body: (
       <>
         <code className={cx(styles.itemTextCode)}>createSheet(&apos;name&apos;)</code>{' '}
-        gives a package its own stylesheet. Identical declarations
-        deduplicate into a single class, so popular styles cost nothing
-        extra no matter how many components use them.
+        gives a package its own stylesheet; calls with the same name and
+        mount target share it. A{' '}
+        <code className={cx(styles.itemTextCode)}>null</code> root always
+        creates an isolated sheet, so server requests never share styles.
+        Identical declarations deduplicate into a single class, so popular
+        styles cost nothing extra no matter how many components use them.
       </>
     ),
   },
@@ -80,8 +90,11 @@ export function CoreConcepts() {
   return (
     <div>
       <div className={cx(styles.list)}>
-        {concepts.map((concept) => (
+        {concepts.map((concept, index) => (
           <div key={concept.title}>
+            <p aria-hidden="true" className={cx(styles.itemIndex)}>
+              {String(index + 1).padStart(2, '0')}
+            </p>
             <h3 className={cx(styles.itemTitle)}>{concept.title}</h3>
             <p className={cx(styles.itemText)}>{concept.body}</p>
           </div>
@@ -94,22 +107,24 @@ const sheet = createSheet('my-package');
 
 const styles = sheet.create({
   button: {
-    padding: '8px 16px',
-    borderRadius: '6px',
+    color: '#fff',
+    backgroundColor: '#9c1a24',
+    padding: '10px 20px',
+    borderRadius: '8px',
     '&:hover': {
-      backgroundColor: '#eee',
+      backgroundColor: '#7e1420',
     },
   },
-  primary: {
-    backgroundColor: '#a31621',
-    color: '#fff',
+  block: {
+    display: 'block',
+    width: '100%',
   },
 });
 
-function Button({ primary, className }) {
+function Button({ block, className }) {
   return (
-    <button className={cx(styles.button, primary && styles.primary, className)}>
-      Click me
+    <button className={cx(styles.button, block && styles.block, className)}>
+      Save changes
     </button>
   );
 }`}

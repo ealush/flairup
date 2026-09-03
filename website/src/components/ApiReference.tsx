@@ -8,11 +8,22 @@ const styles = stylesheet.create({
     flexDirection: 'column',
     gap: '2em',
   },
+  entry: {
+    backgroundColor: 'var(--card)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius)',
+    padding: '1.25rem 1.25rem 1.4rem',
+  },
   signature: {
+    display: 'inline-block',
     fontFamily: 'var(--font-code)',
-    fontSize: '0.92rem',
+    fontSize: '0.88rem',
     fontWeight: '500',
-    marginBottom: '0.4em',
+    color: 'var(--code-fg)',
+    backgroundColor: 'var(--code-bg)',
+    borderRadius: '6px',
+    padding: '0.3em 0.7em',
+    marginBottom: '0.8em',
   },
   text: {
     color: 'var(--muted)',
@@ -23,7 +34,7 @@ const styles = stylesheet.create({
 const entries: Array<{ signature: string; text: string; sample?: string }> = [
   {
     signature: "createSheet(name, rootNode?)",
-    text: 'Creates a named stylesheet and returns its API. Pass an element to mount into it, null to keep styles as strings only (the SSR pattern), or nothing to mount into <head>.',
+    text: 'Creates a named stylesheet and returns { create, keyframes, getStyle, isApplied }. Pass an element to mount into it, null to keep styles as strings only (the SSR pattern), or nothing to mount into <head>. An options object { rootNode, nonce } covers the rest.',
     sample: `const sheet = createSheet('my-package');\n// SSR only:\nconst serverSheet = createSheet('my-package', null);`,
   },
   {
@@ -32,7 +43,7 @@ const entries: Array<{ signature: string; text: string; sample?: string }> = [
     sample: `const styles = sheet.create({
   card: {
     padding: '16px',
-    '--accent': '#a31621',
+    '--accent': '#9c1a24',
     '&:hover': { borderColor: 'var(--accent)' },
     '@media (min-width: 700px)': { padding: '24px' },
   },
@@ -40,7 +51,7 @@ const entries: Array<{ signature: string; text: string; sample?: string }> = [
   },
   {
     signature: 'cx(...args)',
-    text: 'Combines class sets, strings, arrays, and { className: boolean } maps into a single class string for className.',
+    text: 'Combines class sets, strings, arrays, and { className: boolean } maps into a single class string for className. Every class stays in the output, so when two set the same property the stylesheet rule order decides — give each visual state its own complete scope (see Variants) and use cx() to combine scopes that set different properties.',
     sample: `cx(styles.card, isActive && styles.active, extraClass);`,
   },
   {
@@ -55,13 +66,18 @@ const entries: Array<{ signature: string; text: string; sample?: string }> = [
     signature: 'sheet.getStyle()',
     text: 'Returns the entire stylesheet as CSS text. Inject it into a <style> tag on the server; the client-side sheet continues from the same rules. See the SSR section below.',
   },
+  {
+    signature: 'sheet.isApplied()',
+    text: 'Reports whether the sheet has mounted a <style> tag. Tells a live browser sheet apart from a detached, strings-only server sheet.',
+    sample: `if (!sheet.isApplied()) {\n  // strings-only mode: ship sheet.getStyle() to the client\n}`,
+  },
 ];
 
 export function ApiReference() {
   return (
     <div className={cx(styles.list)}>
       {entries.map((entry) => (
-        <div key={entry.signature}>
+        <div key={entry.signature} className={cx(styles.entry)}>
           <h3 className={cx(styles.signature)}>{entry.signature}</h3>
           <p className={cx(styles.text)}>{entry.text}</p>
           {entry.sample && (

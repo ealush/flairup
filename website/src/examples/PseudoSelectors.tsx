@@ -4,39 +4,56 @@ import { stylesheet } from '../app/stylesheet';
 import { Example } from '../components/Example';
 
 const exampleStyle = {
+  invite: {
+    maxWidth: '24rem',
+  },
+  field: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    marginBottom: '12px',
+  },
+  label: {
+    fontWeight: '600',
+    fontSize: '0.95rem',
+  },
+  input: {
+    font: 'inherit',
+    color: 'var(--ink)',
+    backgroundColor: 'var(--paper)',
+    border: '1px solid var(--field-border)',
+    borderRadius: '8px',
+    padding: '10px 12px',
+    '&:hover': {
+      borderColor: 'var(--muted)',
+    },
+    '&:focus-visible': {
+      outline: '2px solid var(--focus)',
+      outlineOffset: '1px',
+    },
+    '&::placeholder': {
+      color: 'var(--muted)',
+      opacity: '1',
+    },
+    '&:disabled': {
+      opacity: '0.55',
+      cursor: 'not-allowed',
+    },
+  },
   button: {
-    backgroundColor: '#f1c40f',
-    color: 'white',
+    font: 'inherit',
+    fontWeight: '600',
+    color: 'var(--btn-fg)',
+    backgroundColor: 'var(--btn-bg)',
     padding: '10px 20px',
-    borderRadius: '5px',
     border: 'none',
+    borderRadius: '8px',
     cursor: 'pointer',
-    position: 'relative',
-    transition: 'all 0.3s ease',
-    ':hover': {
-      backgroundColor: '#f39c12',
-      transform: 'translateY(-2px)',
+    '&:hover': {
+      backgroundColor: 'var(--accent-strong)',
     },
-    ':active': {
-      transform: 'translateY(0)',
-    },
-    ':focus': {
-      outline: 'none',
-      boxShadow: '0 0 0 3px rgba(241, 196, 15, 0.4)',
-    },
-    '::before': {
-      content: '🎩',
-      position: 'absolute',
-      left: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-    },
-    '::after': {
-      content: '→',
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
+    '&:active': {
+      transform: 'translateY(1px)',
     },
   },
 };
@@ -48,18 +65,46 @@ const styles = stylesheet.create({
 export function PseudoSelectors() {
   return (
     <Example
-      title="Pseudo Selectors & Elements"
-      description="Demonstrates the use of pseudo-selectors and pseudo-elements in FlairUp. This example shows a button with hover, active, and focus states, as well as before and after pseudo-elements. The styles are defined using the standard CSS pseudo-selector syntax within the style object."
+      title="Pseudo selectors and elements"
+      description="States live next to the declarations they change: :hover and :active on the button, :focus-visible and ::placeholder on the input. No separate selectors to keep in sync."
       exampleStyle={exampleStyle}
-      usage={`function FancyButton() {
+      usage={`function Invite() {
   return (
-    <button className={cx(styles.button)}>
-      Hover me!
-    </button>
+    <div className={cx(styles.invite)}>
+      <div className={cx(styles.field)}>
+        <label className={cx(styles.label)} htmlFor="invite-email">
+          Work email
+        </label>
+        <input
+          id="invite-email"
+          type="email"
+          placeholder="teammate@company.com"
+          className={cx(styles.input)}
+        />
+      </div>
+      <button type="button" className={cx(styles.button)}>
+        Send invite
+      </button>
+    </div>
   );
 }`}
     >
-      <button className={cx(styles.button)}>Hover me!</button>
+      <div className={cx(styles.invite)}>
+        <div className={cx(styles.field)}>
+          <label className={cx(styles.label)} htmlFor="example-invite-email">
+            Work email
+          </label>
+          <input
+            id="example-invite-email"
+            type="email"
+            placeholder="teammate@company.com"
+            className={cx(styles.input)}
+          />
+        </div>
+        <button type="button" className={cx(styles.button)}>
+          Send invite
+        </button>
+      </div>
     </Example>
   );
 }

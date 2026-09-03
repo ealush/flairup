@@ -1,7 +1,46 @@
 import React from 'react';
 import { cx } from 'flairup';
 import { stylesheet } from '../app/stylesheet';
-import { Highlight, themes } from 'prism-react-renderer';
+import { Highlight, type PrismTheme } from 'prism-react-renderer';
+
+// Warm code theme drawn from the site palette so samples sit in the
+// same color family as the page around them.
+const codeTheme: PrismTheme = {
+  plain: {
+    color: 'var(--code-fg)',
+    backgroundColor: 'var(--code-bg)',
+  },
+  styles: [
+    {
+      types: ['comment', 'prolog', 'cdata'],
+      style: { color: 'var(--code-comment)' },
+    },
+    {
+      types: ['punctuation', 'operator'],
+      style: { color: '#b3a58d' },
+    },
+    {
+      types: ['keyword', 'boolean', 'null', 'tag', 'important'],
+      style: { color: '#ec9aae' },
+    },
+    {
+      types: ['string', 'char', 'attr-value', 'regex'],
+      style: { color: '#d3bd8b' },
+    },
+    {
+      types: ['number', 'unit', 'symbol'],
+      style: { color: '#e8c07d' },
+    },
+    {
+      types: ['function', 'class-name', 'selector'],
+      style: { color: '#f2eada' },
+    },
+    {
+      types: ['property', 'attr-name', 'parameter'],
+      style: { color: '#d9c6a5' },
+    },
+  ],
+};
 
 const styles = stylesheet.create({
   figure: {
@@ -44,7 +83,7 @@ export function Code({ children, language = 'typescript', label }: CodeProps) {
   return (
     <figure className={cx(styles.figure)}>
       <Highlight
-        theme={themes.nightOwl}
+        theme={codeTheme}
         code={children.trim()}
         language={language}
       >
