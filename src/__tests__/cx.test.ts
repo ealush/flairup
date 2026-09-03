@@ -34,4 +34,30 @@ describe('cx', () => {
     expect(cx('a', ['b', 'c'], { d: true })).toBe('a b c d');
     expect(cx('a', ['b', 'c'], { d: false })).toBe('a b c');
   });
+
+  it('Should return an empty string for nullish arguments', () => {
+    expect(cx(null)).toBe('');
+    expect(cx(undefined)).toBe('');
+  });
+
+  it('Should ignore nullish and falsy non-string arguments', () => {
+    expect(cx('a', null, undefined, false, 0)).toBe('a');
+  });
+
+  it('Should return an empty string for empty strings', () => {
+    expect(cx('')).toBe('');
+  });
+
+  it('Should ignore numbers', () => {
+    expect(cx(42)).toBe('');
+  });
+
+  it('Should collapse exact duplicate custom tokens to one', () => {
+    expect(cx('a', 'a')).toBe('a');
+  });
+
+  it('Should preserve nested and conditional forms', () => {
+    expect(cx(['a', ['b', { c: true, d: false }]])).toBe('a b c');
+    expect(cx('a', new Set(['b', 'c']))).toBe('a b c');
+  });
 });

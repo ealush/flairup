@@ -44,6 +44,8 @@
     "build": "tsup ./src/index.ts --target es5",
     "lint": "eslint --ext .ts ./src",
     "test": "vitest --watch=false",
+    "test:acceptance": "npm run build && node --test acceptance/*.test.mjs",
+    "test:all": "npm run test && npm run test:acceptance",
     "prepublish": "npm run test && npm run build"
   },
   "tsup": {

@@ -22,6 +22,31 @@ describe('style lifecycle', () => {
     expect(styleTag?.innerHTML).toContain('opacity:1');
   });
 
+  it('numbers keyframes independently of created styles', () => {
+    const sheet = createSheet('lcStableNames', null);
+    sheet.create({
+      first: { color: 'red' },
+    });
+    const first = sheet.keyframes({
+      fade: {
+        '0%': { opacity: '0' },
+        '100%': { opacity: '1' },
+      },
+    });
+    sheet.create({
+      second: { color: 'blue' },
+    });
+    const second = sheet.keyframes({
+      slide: {
+        '0%': { opacity: '0' },
+        '100%': { opacity: '1' },
+      },
+    });
+
+    expect(first.fade).toBe('lcStableNames_0_fade');
+    expect(second.slide).toBe('lcStableNames_1_slide');
+  });
+
   it('keeps keyframes and component styles in the same element', () => {
     const sheet = createSheet('lcCombined');
     sheet.create({

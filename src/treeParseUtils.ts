@@ -108,10 +108,16 @@ function cssVariablesBlock(
   selector: Selector,
 ) {
   const classes: ClassSet = new Set<string>();
-
   const chunkRows: string[] = [];
+  const scope = selector.scopeClassName;
+
   forIn(styles, (property: string, value) => {
     if (isValidProperty(property, value)) {
+      if (scope) {
+        const rule = selector.createRule(property, value);
+        classes.add(sheet.addRule(rule));
+        return;
+      }
       chunkRows.push(Rule.genRule(property, value));
       return;
     }
@@ -119,21 +125,28 @@ function cssVariablesBlock(
     addEachClass(res, classes);
   });
 
-  if (!selector.scopeClassName) {
-    return classes;
+  if (!scope && chunkRows.length) {
+    // Variables with no scope (e.g. directly under a precondition) have no
+    // class to hand back, but dropping them silently would lose declarations.
+    appendAmbientVariables(sheet, chunkRows.join(' '), selector);
   }
 
-  if (chunkRows.length) {
-    const output = chunkRows.join(' ');
-    sheet.append(
-      `${mergeSelectors(selector.preconditions, {
-        right: selector.scopeClassName,
-      })} {${output}}`,
-    );
-  }
-
-  classes.add(selector.scopeClassName);
   return classes;
+}
+
+function appendAmbientVariables(
+  sheet: Sheet,
+  css: string,
+  selector: Selector,
+): void {
+  let selectors = mergeSelectors(selector.preconditions, {});
+  selectors = mergeSelectors(selector.postconditions, {
+    left: selectors,
+  });
+
+  if (selectors) {
+    sheet.append(`${selectors} {${css}}`);
+  }
 }
 
 function handleMediaQuery(
@@ -142,7 +155,9 @@ function handleMediaQuery(
   mediaQuery: string,
   selector: Selector,
 ) {
+  const mark = sheet.getLength();
   sheet.append(mediaQuery + ' {');
+  const innerMark = sheet.getLength();
 
   // iterateStyles will internally append each rule to the sheet
   // as needed. All we have to do is just open the block and close it after.
@@ -150,7 +165,13 @@ function handleMediaQuery(
   // outside of it never share a deduplication entry.
   const output = iterateStyles(sheet, styles, selector.addAtRule(mediaQuery));
 
-  sheet.append('}');
+  // Nothing was appended inside the block (e.g. every rule deduplicated
+  // against identical declarations already on the sheet): drop the opener.
+  if (sheet.getLength() === innerMark) {
+    sheet.truncate(mark);
+    return output;
+  }
 
+  sheet.append('}');
   return output;
 }
