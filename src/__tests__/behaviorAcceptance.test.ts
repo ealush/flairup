@@ -93,6 +93,18 @@ describe('browser-visible composition acceptance', () => {
     expect(overridden.marginLeft).toBe('4px');
   });
 
+  it('lets a later physical override win over an earlier shorthand', () => {
+    const sheet = createSheet('acceptShorthandReversed');
+    const left = sheet.create({ left: { marginLeft: '1px' } });
+    const all = sheet.create({ all: { margin: '2px' } });
+
+    const overridden = computedStyleFor(cx(all['all'], left['left']));
+    expect(overridden.marginTop).toBe('2px');
+    expect(overridden.marginRight).toBe('2px');
+    expect(overridden.marginBottom).toBe('2px');
+    expect(overridden.marginLeft).toBe('1px');
+  });
+
   it('resolves grouped CSS variables by cx order and preserves unrelated variables', () => {
     const sheet = createSheet('acceptVariables');
     const base = sheet.create({

@@ -181,8 +181,13 @@ describe('feature combinations', () => {
     const all = sheet.create({ all: { margin: '2px' } });
     const css = sheet.getStyle();
 
-    // A single-token shorthand expands into one atomic class per longhand.
-    expect(all['all']?.size).toBe(8);
+    // A single-token shorthand expands into one atomic class per
+    // physical side. No logical longhands are emitted: box shorthands
+    // set only physical sides, and a surviving logical would override a
+    // physical cx() winner independently of source order.
+    expect(all['all']?.size).toBe(4);
+    expect(css).not.toContain('margin-inline-start');
+    expect(css).not.toContain('margin-block-start');
     const allTop = classForDeclaration(css, all['all'], '', 'margin-top:2px;');
     const allRight = classForDeclaration(
       css,
@@ -202,7 +207,7 @@ describe('feature combinations', () => {
 
     const left = sheet.create({ left: { paddingLeft: '3px' } });
     const padded = sheet.create({ padded: { padding: '4px' } });
-    expect(padded['padded']?.size).toBe(8);
+    expect(padded['padded']?.size).toBe(4);
     const paddedLeft = classForDeclaration(
       sheet.getStyle(),
       padded['padded'],
@@ -318,6 +323,48 @@ describe('feature combinations', () => {
     expect(gap['gap']?.size).toBe(2);
   });
 
+  it('translates elliptical radii to per-corner form', () => {
+    const sheet = createSheet('featElliptical', null);
+
+    const simple = sheet.create({ simple: { borderRadius: '10px/20px' } });
+    expect(simple['simple']?.size).toBe(4);
+    const css = sheet.getStyle();
+    classForDeclaration(
+      css,
+      simple['simple'],
+      '',
+      'border-top-left-radius:10px 20px;',
+    );
+    classForDeclaration(
+      css,
+      simple['simple'],
+      '',
+      'border-bottom-right-radius:10px 20px;',
+    );
+
+    const mixed = sheet.create({ mixed: { borderRadius: '1px 2px/3px' } });
+    expect(mixed['mixed']?.size).toBe(4);
+    const cssMixed = sheet.getStyle();
+    classForDeclaration(
+      cssMixed,
+      mixed['mixed'],
+      '',
+      'border-top-left-radius:1px 3px;',
+    );
+    classForDeclaration(
+      cssMixed,
+      mixed['mixed'],
+      '',
+      'border-top-right-radius:2px 3px;',
+    );
+    classForDeclaration(
+      cssMixed,
+      mixed['mixed'],
+      '',
+      'border-bottom-left-radius:2px 3px;',
+    );
+  });
+
   it('keeps unsafe shorthand shapes atomic', () => {
     const sheet = createSheet('featShorthandAtomic', null);
 
@@ -328,14 +375,57 @@ describe('feature combinations', () => {
     const env = sheet.create({ env: { padding: 'env(safe-area-inset-top)' } });
     expect(env['env']?.size).toBe(1);
 
-    // Over-count values and multi-token elliptical radii are invalid CSS;
-    // staying atomic preserves the browser dropping the whole declaration.
+    // The same holds when the bare reference is one token among several:
+    // each side would inherit the unresolved reference.
+    const mixedVar = sheet.create({
+      mixedVar: { margin: 'var(--vertical) 4px' },
+    });
+    expect(mixedVar['mixedVar']?.size).toBe(1);
+    const trailingVar = sheet.create({
+      trailingVar: { margin: '1px var(--side)' },
+    });
+    expect(trailingVar['trailingVar']?.size).toBe(1);
+
+    // Over-count values and repeated slashes are invalid CSS; staying
+    // atomic preserves the browser dropping the whole declaration.
     const five = sheet.create({ five: { margin: '1px 2px 3px 4px 5px' } });
     expect(five['five']?.size).toBe(1);
+    const multiSlash = sheet.create({
+      multiSlash: { borderRadius: '1px/2px/3px' },
+    });
+    expect(multiSlash['multiSlash']?.size).toBe(1);
+
+    // Multi-token elliptical radii translate positionally per half:
+    // `1px 2px/3px 4px` assigns top/left from each half in order.
     const slash = sheet.create({
       slash: { borderRadius: '1px 2px/3px 4px' },
     });
-    expect(slash['slash']?.size).toBe(1);
+    expect(slash['slash']?.size).toBe(4);
+    const cssSlash = sheet.getStyle();
+    classForDeclaration(
+      cssSlash,
+      slash['slash'],
+      '',
+      'border-top-left-radius:1px 3px;',
+    );
+    classForDeclaration(
+      cssSlash,
+      slash['slash'],
+      '',
+      'border-top-right-radius:2px 4px;',
+    );
+    classForDeclaration(
+      cssSlash,
+      slash['slash'],
+      '',
+      'border-bottom-right-radius:1px 3px;',
+    );
+    classForDeclaration(
+      cssSlash,
+      slash['slash'],
+      '',
+      'border-bottom-left-radius:2px 4px;',
+    );
 
     // A single elliptical token distributes verbatim: every corner accepts
     // the same elliptical value.
@@ -349,7 +439,7 @@ describe('feature combinations', () => {
     const sheet = createSheet('featShorthandImportant', null);
 
     const all = sheet.create({ all: { margin: '2px !important' } });
-    expect(all['all']?.size).toBe(8);
+    expect(all['all']?.size).toBe(4);
     const css = sheet.getStyle();
     classForDeclaration(css, all['all'], '', 'margin-top:2px !important;');
     classForDeclaration(css, all['all'], '', 'margin-left:2px !important;');
@@ -370,15 +460,15 @@ describe('feature combinations', () => {
     const sheet = createSheet('featShorthandSingle', null);
 
     const calc = sheet.create({ calc: { margin: 'calc(1px + 2px)' } });
-    expect(calc['calc']?.size).toBe(8);
+    expect(calc['calc']?.size).toBe(4);
     const nested = sheet.create({
       nested: { margin: 'calc(var(--gap) * 2)' },
     });
-    expect(nested['nested']?.size).toBe(8);
+    expect(nested['nested']?.size).toBe(4);
     const zero = sheet.create({
       zero: { margin: 0 as unknown as string },
     });
-    expect(zero['zero']?.size).toBe(8);
+    expect(zero['zero']?.size).toBe(4);
     const hidden = sheet.create({ hidden: { overflow: 'hidden' } });
     expect(hidden['hidden']?.size).toBe(2);
   });
