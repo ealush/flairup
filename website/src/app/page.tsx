@@ -54,7 +54,6 @@ const styles = sheet.create({
     fontWeight: '700',
     lineHeight: '1.12',
     letterSpacing: '-0.01em',
-    textWrap: 'balance',
     marginBottom: '1.1rem',
   },
   lede: {
