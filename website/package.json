@@ -17,7 +17,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
-  "homepage": "https://ealush.github.io/flairup",
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
