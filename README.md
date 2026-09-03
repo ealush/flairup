@@ -113,10 +113,31 @@ Conflict rules:
 - Unknown classes (for example utility classes) pass through untouched, and
   repeated classes are deduped.
 
+Edge cases:
+
+- Partial overlap drops the whole earlier class. An atomic shorthand that
+  stays atomic (`background`, `font`, `border`, an opaque `var()` margin)
+  resolves as one unit: if a later class overlaps any of its conflict keys,
+  the earlier class is removed entirely — deterministically, regardless of
+  creation order. That means non-overlapping declarations go with it:
+  `cx({ background: 'red url(a.png)' }, { backgroundColor: 'blue' })`
+  yields blue with no image. When those declarations matter, give each
+  visual state its own complete scope instead of layering.
+- `border` also resets `border-image`, so `border-image` (and its
+  longhands) belong to `border`'s conflict set: a later `border` replaces
+  an earlier image, and a later image replaces an earlier `border`.
+- `!important` survives shorthand expansion: `margin: '2px !important'`
+  still emits four longhands, each carrying the flag.
+
 ## `createSheet()` options and mounting
 
 ```javascript
 const sheet = createSheet('MyComponent');
+```
+
+With explicit mount options:
+
+```javascript
 const sheet = createSheet('MyComponent', { rootNode, nonce });
 ```
 
