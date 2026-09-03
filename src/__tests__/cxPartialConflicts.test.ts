@@ -75,6 +75,30 @@ describe('cx partial conflicts', () => {
     expect(output).toContain(imageClass);
   });
 
+  it('keeps a longhand reset alongside a specializing image', () => {
+    const sheet = createSheet('cxLonghandResetCompose');
+    const base = sheet.create({ base: { backgroundColor: 'transparent' } });
+    const over = sheet.create({ over: { backgroundImage: 'url(b.png)' } });
+
+    const element = document.createElement('div');
+    element.className = cx(base.base, over.over);
+    document.body.appendChild(element);
+    const style = getComputedStyle(element);
+    expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    expect(style.backgroundImage).toContain('b.png');
+  });
+
+  it('keeps the later size over an earlier zeroing reset', () => {
+    const sheet = createSheet('cxResetSizeOrder');
+    const reset = sheet.create({ reset: { fontSize: '0' } });
+    const size = sheet.create({ size: { fontSize: '16px' } });
+
+    const element = document.createElement('div');
+    element.className = cx(reset.reset, size.size);
+    document.body.appendChild(element);
+    expect(getComputedStyle(element).fontSize).toBe('16px');
+  });
+
   it('renders no image once the shorthand loses', () => {
     const sheet = createSheet('cxPartialImage');
     const base = sheet.create({ base: { background: 'red url(a.png)' } });
