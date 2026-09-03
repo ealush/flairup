@@ -1,16 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap');
 
 :root {
-  --paper: #ffffff;
-  --ink: #211d17;
-  --muted: #5c564c;
-  --line: #e3dacb;
-  --card: #faf7f1;
-  --accent: #a31621;
-  --accent-strong: #7f1020;
-  --code-bg: #201c16;
-  --code-fg: #f0e9dc;
-  --focus: #a31621;
+  --paper: #fcfaf5;
+  --ink: #211c15;
+  --muted: #615849;
+  --line: #e3d8c4;
+  --card: #f6f1e6;
+  --accent: #9c1a24;
+  --accent-strong: #7e1420;
+  --btn-bg: #9c1a24;
+  --btn-fg: #ffffff;
+  --field-border: #8a7d68;
+  --tone-success: #237a4b;
+  --tone-warning: #8a5a00;
+  --code-bg: #231d15;
+  --code-fg: #f2eada;
+  --code-comment: #a2937b;
+  --focus: #9c1a24;
+  --on-dark-fg: #f2eada;
+  --on-dark-muted: #a2937b;
+  --on-dark-accent: #ec9aae;
+  --on-dark-btn-bg: #ec9aae;
+  --on-dark-btn-fg: #2a1216;
+  --on-dark-panel: #171310;
   --radius: 10px;
   --measure: 64rem;
   --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
@@ -21,14 +33,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #171310;
-    --ink: #ede4d3;
-    --muted: #b3a794;
+    --paper: #161210;
+    --ink: #ece2ce;
+    --muted: #b3a58d;
     --line: #38302a;
-    --card: #201b15;
-    --accent: #e57a93;
-    --accent-strong: #f2a9bc;
-    --focus: #e57a93;
+    --card: #211b14;
+    --accent: #ec9aae;
+    --accent-strong: #f6c2cf;
+    --btn-bg: #ec9aae;
+    --btn-fg: #2a1216;
+    --field-border: #6e6250;
+    --tone-success: #7fc79b;
+    --tone-warning: #d9a93f;
+    --focus: #ec9aae;
   }
 }
 
@@ -40,6 +57,9 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  /* clip (not hidden) so position: sticky keeps working: hidden makes
+     the page itself a scroll container and unsticks descendants. */
+  overflow-x: clip;
 }
 
 body {
@@ -76,8 +96,8 @@ a:hover {
 }
 
 ::selection {
-  background: var(--accent);
-  color: #fff;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
 }
 
 .skip-link {

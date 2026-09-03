@@ -35,13 +35,6 @@ const styles = stylesheet.create({
     color: 'var(--muted)',
     marginTop: '0.25em',
   },
-  proof: {
-    marginTop: '2.5em',
-    paddingTop: '1.5em',
-    borderTop: '1px solid var(--line)',
-    color: 'var(--muted)',
-    maxWidth: '44rem',
-  },
 });
 
 const problems: Array<[string, string]> = [
@@ -115,14 +108,6 @@ export function Introduction() {
           <DefinitionList items={answers} />
         </div>
       </div>
-      <p className={cx(styles.proof)}>
-        Battle-tested on{' '}
-        <a href="https://github.com/ealush/emoji-picker-react">
-          Emoji-Picker-React
-        </a>
-        , FlairUp ships styles with components while staying reliable in
-        any environment.
-      </p>
     </div>
   );
 }

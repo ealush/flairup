@@ -5,105 +5,115 @@ import { Example } from '../components/Example';
 
 const exampleStyle = {
   '.theme-dark': {
-    button: {
-      backgroundColor: '#3498db',
-      color: 'white',
+    plan: {
+      backgroundColor: '#241c13',
+      borderColor: '#4a3f30',
+      color: '#f2eada',
+    },
+    planPrice: {
+      color: '#f2eada',
+    },
+    planFeatures: {
+      color: '#c9bda6',
+    },
+    planButton: {
+      backgroundColor: '#ec9aae',
+      color: '#2a1216',
       '&:hover': {
-        backgroundColor: '#2980b9',
+        backgroundColor: '#f6c2cf',
       },
     },
   },
-  '.theme-light': {
-    button: {
-      backgroundColor: '#2ecc71',
-      color: 'white',
-      '&:hover': {
-        backgroundColor: '#27ae60',
-      },
+  plans: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '12px',
+    '@media (min-width: 640px)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+  plan: {
+    backgroundColor: 'var(--paper)',
+    border: '1px solid var(--line)',
+    borderRadius: '8px',
+    padding: '20px',
+    color: 'var(--ink)',
+  },
+  planName: {
+    fontWeight: '650',
+    fontSize: '0.95rem',
+    color: 'var(--accent)',
+    marginBottom: '0.25em',
+  },
+  planPrice: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.75rem',
+    fontWeight: '700',
+    color: 'var(--ink)',
+    marginBottom: '0.35em',
+  },
+  planFeatures: {
+    color: 'var(--muted)',
+    fontSize: '0.95rem',
+    marginTop: '0',
+    marginBottom: '1em',
+    paddingLeft: '1.2em',
+  },
+  planButton: {
+    font: 'inherit',
+    fontWeight: '600',
+    color: 'var(--btn-fg)',
+    backgroundColor: 'var(--btn-bg)',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: 'var(--accent-strong)',
     },
   },
 };
 
 const styles = stylesheet.create({
-  themeContainer: {
-    display: 'flex',
-    gap: '1em',
-    marginBottom: '1em',
-  },
-  themeBox: {
-    padding: '1em',
-    borderRadius: '8px',
-    flex: '1',
-  },
-  themeDark: {
-    backgroundColor: '#2c3e50',
-    color: '#ecf0f1',
-  },
-  themeLight: {
-    backgroundColor: '#ecf0f1',
-    color: 'var(--title-color)',
-  },
-  button: {
-    padding: '10px 20px',
-    borderRadius: '5px',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
   ...exampleStyle,
 });
+
+function PlanCard({ name, price }: { name: string; price: string }) {
+  return (
+    <div className={cx(styles.plan)}>
+      <p className={cx(styles.planName)}>{name}</p>
+      <p className={cx(styles.planPrice)}>{price}</p>
+      <ul className={cx(styles.planFeatures)}>
+        <li>Unlimited projects</li>
+        <li>Export to any format</li>
+      </ul>
+      <button className={cx(styles.planButton)}>Choose {name}</button>
+    </div>
+  );
+}
 
 export function ParentClassSupport() {
   return (
     <Example
-      title="Parent Class Support"
-      description={
-        <div>
-          FlairUp allows you to scope styles based on a top-level class name
-          provided when defining your styles. This feature serves two key
-          purposes:
-          <ul>
-            <li>
-              {`Theme Responsiveness within your Component: By defining styles
-              under a specific parent class, your component's styles can react
-              to external theming or global styles applied at a higher level in
-              the application. For example, you can have different styles for
-              your component when it resides within a \`.theme-dark\` container.`}
-            </li>
-            <li>
-              {`User Customization: This feature enables users consuming your
-              component to easily customize its appearance by applying their own
-              top-level classes. Your component can then define specific styles
-              that are activated when these user-defined classes are present in
-              the component's parent hierarchy. This example demonstrates
-              theme-based styling where button styles change based on the parent
-              theme class (dark or light). The styles are scoped using the
-              \`.theme-dark\` and \`.theme-light\` selectors, allowing for
-              contextual styling`}
-            </li>
-          </ul>
-        </div>
-      }
+      title="Parent selectors"
+      description="Scope a whole subtree under a host class like .theme-dark. The same card renders light or dark depending on where it lands — handy when your component has to respect theming it doesn't own. The deeper idea is a contract: name the host classes your package responds to — .theme-dark, .density-compact — and document them. Consumers opt in by wrapping your components, no configuration objects or prop drilling required."
       exampleStyle={exampleStyle}
-      usage={`function ThemeButtons() {
+      usage={`function Pricing() {
   return (
-    <div className={cx(styles.themeContainer)}>
-      <div className={cx(styles.themeBox, styles.themeDark, 'theme-dark')}>
-        <button className={cx(styles.button)}>Dark Theme Button</button>
-      </div>
-      <div className={cx(styles.themeBox, styles.themeLight, 'theme-light')}>
-        <button className={cx(styles.button)}>Light Theme Button</button>
+    <div className={cx(styles.plans)}>
+      <PlanCard name="Starter" price="$9" />
+      {/* Same card, restyled by the host's theme class */}
+      <div className="theme-dark">
+        <PlanCard name="Pro" price="$29" />
       </div>
     </div>
   );
 }`}
     >
-      <div className={cx(styles.themeContainer)}>
-        <div className={cx(styles.themeBox, styles.themeDark, 'theme-dark')}>
-          <button className={cx(styles.button)}>Dark Theme Button</button>
-        </div>
-        <div className={cx(styles.themeBox, styles.themeLight, 'theme-light')}>
-          <button className={cx(styles.button)}>Light Theme Button</button>
+      <div className={cx(styles.plans)}>
+        <PlanCard name="Starter" price="$9" />
+        <div className="theme-dark">
+          <PlanCard name="Pro" price="$29" />
         </div>
       </div>
     </Example>

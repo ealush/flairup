@@ -4,48 +4,36 @@ import { stylesheet } from '../app/stylesheet';
 import { Example } from '../components/Example';
 
 const exampleStyle = {
-  box: {
-    '--box-bg-color': 'lightgreen',
-    backgroundColor: 'var(--box-bg-color)',
-    padding: '15px',
+  alert: {
+    '--tone': '#9c1a24',
+    backgroundColor: 'var(--card)',
+    borderLeft: '4px solid var(--tone)',
     borderRadius: '8px',
-    margin: '10px 0',
-  },
-  'box--primary': {
-    '--box-bg-color': 'lightblue',
-  },
-  'box--secondary': {
-    '--box-bg-color': 'lightcoral',
-  },
-  button: {
-    '--': {
-      '--button-bg': '#3498db',
-      '--button-hover-bg': '#2980b9',
-      '--button-text': 'white',
-      '--button-padding': '10px 20px',
-      '--button-radius': '4px',
-    },
-    backgroundColor: 'var(--button-bg)',
-    color: 'var(--button-text)',
-    padding: 'var(--button-padding)',
-    borderRadius: 'var(--button-radius)',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
-    ':hover': {
-      backgroundColor: 'var(--button-hover-bg)',
+    padding: '12px 16px',
+    marginBottom: '12px',
+    '@media (prefers-color-scheme: dark)': {
+      '--tone': '#ec9aae',
     },
   },
-  'button--danger': {
-    '--': {
-      '--button-bg': '#e74c3c',
-      '--button-hover-bg': '#c0392b',
+  alertTitle: {
+    fontWeight: '650',
+    color: 'var(--tone)',
+    marginBottom: '0.25em',
+  },
+  alertText: {
+    color: 'var(--muted)',
+    fontSize: '0.95rem',
+  },
+  toneSuccess: {
+    '--tone': '#237a4b',
+    '@media (prefers-color-scheme: dark)': {
+      '--tone': '#7fc79b',
     },
   },
-  'button--success': {
-    '--': {
-      '--button-bg': '#2ecc71',
-      '--button-hover-bg': '#27ae60',
+  toneWarning: {
+    '--tone': '#8a5a00',
+    '@media (prefers-color-scheme: dark)': {
+      '--tone': '#d9a93f',
     },
   },
 };
@@ -57,39 +45,41 @@ const styles = stylesheet.create({
 export function CSSVariables() {
   return (
     <Example
-      title="CSS Variables"
-      description="Shows how to use CSS variables in FlairUp. Unlike regular CSS properties, CSS variables are added as a single class per scope. This example demonstrates how to define and use CSS variables to create themeable components with different color variants."
+      title="CSS variables"
+      description="A scope can set variables instead of declarations, and one class carries all of them. Each tone is a literal hex value, with its dark-mode counterpart nested in a media query — override --tone per instance and every declaration that reads it follows."
       exampleStyle={exampleStyle}
-      usage={`function Boxes() {
+      usage={`function Notices() {
   return (
     <>
-      <div className={cx(styles.box)}>Default Box</div>
-      <div className={cx(styles.box, styles['box--primary'])}>Primary Box</div>
-      <div className={cx(styles.box, styles['box--secondary'])}>Secondary Box</div>
+      <div className={cx(styles.alert)}>
+        <p className={cx(styles.alertTitle)}>Payment failed</p>
+        <p className={cx(styles.alertText)}>Your card was declined.</p>
+      </div>
+      <div className={cx(styles.alert, styles.toneSuccess)}>
+        <p className={cx(styles.alertTitle)}>Payment received</p>
+        <p className={cx(styles.alertText)}>Receipt sent to your inbox.</p>
+      </div>
     </>
   );
 }`}
     >
-      <div className={cx(styles.box)}>Default Box</div>
-      <div className={cx(styles.box, styles['box--primary'])}>Primary Box</div>
-      <div className={cx(styles.box, styles['box--secondary'])}>
-        Secondary Box
+      <div className={cx(styles.alert)}>
+        <p className={cx(styles.alertTitle)}>Payment failed</p>
+        <p className={cx(styles.alertText)}>
+          Your card was declined. Try another payment method.
+        </p>
       </div>
-
-      <div style={{ marginTop: '20px' }}>
-        <button className={cx(styles.button)}>Default Button</button>
-        <button
-          className={cx(styles.button, styles['button--danger'])}
-          style={{ marginLeft: '10px' }}
-        >
-          Danger Button
-        </button>
-        <button
-          className={cx(styles.button, styles['button--success'])}
-          style={{ marginLeft: '10px' }}
-        >
-          Success Button
-        </button>
+      <div className={cx(styles.alert, styles.toneSuccess)}>
+        <p className={cx(styles.alertTitle)}>Payment received</p>
+        <p className={cx(styles.alertText)}>
+          Thanks — a receipt is on its way to your inbox.
+        </p>
+      </div>
+      <div className={cx(styles.alert, styles.toneWarning)}>
+        <p className={cx(styles.alertTitle)}>Trial ends in 3 days</p>
+        <p className={cx(styles.alertText)}>
+          Add a payment method to keep your workspace running.
+        </p>
       </div>
     </Example>
   );

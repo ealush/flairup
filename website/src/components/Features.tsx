@@ -12,8 +12,10 @@ const styles = stylesheet.create({
     },
   },
   item: {
-    borderTop: '2px solid var(--line)',
-    paddingTop: '1em',
+    backgroundColor: 'var(--card)',
+    border: '1px solid var(--line)',
+    borderRadius: 'var(--radius)',
+    padding: '1.25rem 1.25rem 1.4rem',
   },
   title: {
     fontSize: '1.05rem',
@@ -26,7 +28,7 @@ const styles = stylesheet.create({
 });
 
 const features: Array<[string, string]> = [
-  ['2 KB runtime, zero dependencies', 'Small enough to bundle into any package without a second thought.'],
+  ['≈6 KB minified and gzipped, zero dependencies', 'Small enough to bundle into any package without a second thought.'],
   ['TypeScript throughout', 'Style objects are typed; scopes come back as named sets of classes.'],
   ['Scoped by construction', 'Hashed atomic classes mean two packages never fight over a name.'],
   ['Framework-agnostic SSR', 'Styles render to a string anywhere JavaScript runs — no DOM required.'],
