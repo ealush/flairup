@@ -1,190 +1,128 @@
 import React from 'react';
 import { cx } from 'flairup';
 import { stylesheet } from '../app/stylesheet';
-import { Section } from './Section';
 
 const styles = stylesheet.create({
-  introContainer: {
+  lede: {
+    fontSize: '1.2rem',
+    lineHeight: '1.7',
+    maxWidth: '44rem',
+    marginBottom: '2.5em',
+  },
+  grid: {
     display: 'grid',
     gridTemplateColumns: '1fr',
-    gap: '2em',
-    '@media (min-width: 768px)': {
+    gap: '2.5em',
+    '@media (min-width: 860px)': {
       gridTemplateColumns: '1fr 1fr',
     },
   },
-  introText: {
-    fontSize: '1.1em',
-    lineHeight: '1.6',
-    color: 'var(--card-text)',
-  },
-  introList: {
-    margin: '0.5em 0',
-    paddingLeft: '1.2em',
-    listStyleType: 'none',
-  },
-  introListItem: {
-    marginBottom: '0.5em',
-    lineHeight: '1.5',
-    position: 'relative',
-    paddingLeft: '1.2em',
-    '&::before': {
-      content: '→',
-      position: 'absolute',
-      left: '0',
-      color: '#3498db',
-      fontSize: '0.9em',
-    },
-  },
-  introLink: {
-    color: '#3498db',
-    textDecoration: 'none',
-    fontWeight: '500',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-  introCard: {
-    backgroundColor: 'var(--card-background)',
-    padding: '1.5em',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #eee',
-  },
-  introTitle: {
-    fontSize: '1.2em',
-    fontWeight: '600',
-    color: 'var(--title-color)',
+  groupTitle: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.3rem',
+    fontWeight: '700',
     marginBottom: '1em',
+  },
+  list: {
     display: 'flex',
-    alignItems: 'center',
-    '&::before': {
-      content: '🎩',
-      marginRight: '0.5em',
-    },
+    flexDirection: 'column',
+    gap: '1.4em',
+  },
+  term: {
+    fontWeight: '650',
+  },
+  detail: {
+    color: 'var(--muted)',
+    marginTop: '0.25em',
+  },
+  proof: {
+    marginTop: '2.5em',
+    paddingTop: '1.5em',
+    borderTop: '1px solid var(--line)',
+    color: 'var(--muted)',
+    maxWidth: '44rem',
   },
 });
 
-interface IntroTextProps {
-  children: React.ReactNode;
-}
+const problems: Array<[string, string]> = [
+  [
+    'Manual style imports',
+    'Consumers have to import CSS files or configure style loaders before a single component renders. Every extra setup step loses adopters.',
+  ],
+  [
+    'Bundler-specific configuration',
+    'Webpack, Rollup, Vite and others each handle styles differently. A package that works everywhere needs styling with no build pipeline at all.',
+  ],
+  [
+    'Style conflicts',
+    'Shared class names and CSS variables leak across packages. Two dependencies can silently override each other with no warning.',
+  ],
+  [
+    'SSR as an afterthought',
+    'Server rendering needs the same styles as strings, in every framework, with no DOM available. Most solutions bolt this on late — or never.',
+  ],
+];
 
-function IntroText({ children }: IntroTextProps) {
-  return <p className={cx(styles.introText)}>{children}</p>;
-}
+const answers: Array<[string, string]> = [
+  [
+    'Zero configuration',
+    'Styles ship inside the JavaScript. Consumers install the package and render — nothing to import, nothing to configure.',
+  ],
+  [
+    'No build pipeline',
+    'FlairUp computes plain CSS at runtime and injects it once. It works under any bundler, or none.',
+  ],
+  [
+    'Scoped atomic classes',
+    'Every declaration becomes its own hashed, deduplicated class. Packages cannot collide, and repeated styles are inserted once.',
+  ],
+  [
+    'SSR from day one',
+    'sheet.getStyle() returns the whole stylesheet as a string. Render it into a <style> tag on the server; the client picks it up.',
+  ],
+];
 
-interface IntroTitleProps {
-  children: React.ReactNode;
-}
-
-function IntroTitle({ children }: IntroTitleProps) {
-  return <h3 className={cx(styles.introTitle)}>{children}</h3>;
-}
-
-interface IntroListItemProps {
-  children: React.ReactNode;
-}
-
-function IntroListItem({ children }: IntroListItemProps) {
-  return <li className={cx(styles.introListItem)}>{children}</li>;
-}
-
-interface IntroCardProps {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}
-
-function IntroCard({ children, style }: IntroCardProps) {
+function DefinitionList({ items }: { items: Array<[string, string]> }) {
   return (
-    <div className={cx(styles.introCard)} style={style}>
-      {children}
-    </div>
+    <dl className={cx(styles.list)}>
+      {items.map(([term, detail]) => (
+        <div key={term}>
+          <dt className={cx(styles.term)}>{term}</dt>
+          <dd className={cx(styles.detail)}>{detail}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
 export function Introduction() {
   return (
-    <Section title="Introduction">
-      <div className={cx(styles.introContainer)}>
-        <IntroCard>
-          <IntroTitle>What is Flairup?</IntroTitle>
-          <IntroText>
-            Flairup is a CSS-in-JS library specifically designed for UI package
-            authors. Unlike general CSS-in-JS solutions, Flairup focuses on
-            solving the unique challenges of distributing reusable UI components
-            with their styles.
-          </IntroText>
-        </IntroCard>
-
-        <IntroCard>
-          <IntroTitle>The Challenge</IntroTitle>
-          <IntroText>
-            When creating third-party packages, you face different challenges
-            than when building applications. Most existing styling solutions are
-            designed for applications, not for packages meant to be shared and
-            consumed by others.
-          </IntroText>
-        </IntroCard>
-
-        <IntroCard>
-          <IntroTitle>Common Problems</IntroTitle>
-          <ul className={cx(styles.introList)}>
-            <IntroListItem>
-              <strong>Manual Style Imports:</strong> Users often need to
-              manually import CSS files or configure style loaders, creating
-              friction in the adoption process.
-            </IntroListItem>
-            <IntroListItem>
-              <strong>Bundler Configuration:</strong> Different bundlers
-              (Webpack, Rollup, Vite) require different configurations for
-              handling styles, making it hard to create universally compatible
-              packages.
-            </IntroListItem>
-            <IntroListItem>
-              <strong>Style Conflicts:</strong> When multiple packages use the
-              same class names or CSS variables, styles can conflict and
-              override each other unexpectedly.
-            </IntroListItem>
-            <IntroListItem>
-              <strong>SSR Challenges:</strong> Server-side rendering often
-              requires special handling for styles, with solutions varying
-              between frameworks and environments.
-            </IntroListItem>
-          </ul>
-        </IntroCard>
-
-        <IntroCard>
-          <IntroTitle>{"Flairup's Solution"}</IntroTitle>
-          <ul className={cx(styles.introList)}>
-            <IntroListItem>
-              Requiring zero configuration from package consumers
-            </IntroListItem>
-            <IntroListItem>
-              Working seamlessly with all bundlers and environments
-            </IntroListItem>
-            <IntroListItem>
-              Automatically scoping styles to prevent conflicts
-            </IntroListItem>
-            <IntroListItem>Providing built-in SSR support</IntroListItem>
-            <IntroListItem>
-              Optimizing performance with one class per CSS property
-            </IntroListItem>
-          </ul>
-        </IntroCard>
+    <div>
+      <p className={cx(styles.lede)}>
+        FlairUp is a CSS-in-JS library for UI package authors. Applications
+        can dictate their stack; packages cannot — a shared component must
+        bring its styles along and behave in bundlers, frameworks, and
+        server runtimes it has never seen. FlairUp is designed for exactly
+        that job.
+      </p>
+      <div className={cx(styles.grid)}>
+        <div>
+          <h3 className={cx(styles.groupTitle)}>The package problem</h3>
+          <DefinitionList items={problems} />
+        </div>
+        <div>
+          <h3 className={cx(styles.groupTitle)}>How FlairUp answers</h3>
+          <DefinitionList items={answers} />
+        </div>
       </div>
-
-      <IntroCard style={{ marginTop: '2em' }}>
-        <IntroText>
-          Battle-tested on{' '}
-          <a
-            href="https://github.com/ealush/emoji-picker-react"
-            className={cx(styles.introLink)}
-          >
-            Emoji-Picker-React
-          </a>
-          , Flairup makes it easy to ship styles with your components while
-          ensuring they work reliably in any environment.
-        </IntroText>
-      </IntroCard>
-    </Section>
+      <p className={cx(styles.proof)}>
+        Battle-tested on{' '}
+        <a href="https://github.com/ealush/emoji-picker-react">
+          Emoji-Picker-React
+        </a>
+        , FlairUp ships styles with components while staying reliable in
+        any environment.
+      </p>
+    </div>
   );
 }

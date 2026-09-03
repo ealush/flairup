@@ -4,42 +4,31 @@ import { stylesheet } from '../app/stylesheet';
 
 const styles = stylesheet.create({
   section: {
-    marginBottom: '60px',
-    paddingBottom: '40px',
-    borderBottom: '1px solid #eee',
-    '&:last-child': {
-      borderBottom: 'none',
-      marginBottom: '0',
-    },
+    marginBottom: '4.5rem',
+    scrollMarginTop: '5rem',
   },
-  usageTitle: {
-    fontSize: '1.8em',
-    fontWeight: 'bold',
-    marginBottom: '1.2em',
-    color: 'var(--title-color)',
-    position: 'relative',
-    '&::after': {
-      content: '',
-      position: 'absolute',
-      bottom: '-10px',
-      left: '0',
-      width: '50px',
-      height: '3px',
-      backgroundColor: '#3498db',
-      borderRadius: '2px',
-    },
+  title: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.75rem',
+    fontWeight: '700',
+    lineHeight: '1.25',
+    marginBottom: '1.5rem',
+    color: 'var(--ink)',
   },
 });
 
 interface SectionProps {
+  id: string;
   title: string;
   children: React.ReactNode;
 }
 
-export function Section({ title, children }: SectionProps) {
+export function Section({ id, title, children }: SectionProps) {
   return (
-    <section className={cx(styles.section)}>
-      <h2 className={cx(styles.usageTitle)}>{title}</h2>
+    <section id={id} aria-labelledby={`${id}-title`} className={cx(styles.section)}>
+      <h2 id={`${id}-title`} className={cx(styles.title)}>
+        {title}
+      </h2>
       {children}
     </section>
   );
