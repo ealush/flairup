@@ -1,5 +1,6 @@
+import { registerClassConflict } from './classRegistry.js';
 import { Rule } from './Rule.js';
-import { StoredStyles } from './types.js';
+import { CreateSheetOptions, SheetRootNode, StoredStyles } from './types.js';
 import { isString } from './utils/is.js';
 import {
   appendString,
@@ -15,15 +16,20 @@ export class Sheet {
   // styles->hash
   private storedClasses: Record<string, string> = {};
   private style: string = '';
+  private rootNode: SheetRootNode | undefined;
+  private nonce: string | undefined;
   public count = 0;
   public id: string;
 
   constructor(
     public name: string,
-    private rootNode?: HTMLElement | null,
+    root?: SheetRootNode | CreateSheetOptions,
   ) {
     this.id = `flairup-${name}`;
 
+    const resolved = resolveSheetRoot(root);
+    this.rootNode = resolved.rootNode;
+    this.nonce = resolved.nonce;
     this.styleTag = this.createStyleTag();
   }
 
@@ -68,11 +74,7 @@ export class Sheet {
       return this.styleTag;
     }
 
-    const styleTag = document.createElement('style');
-    styleTag.type = 'text/css';
-    styleTag.id = this.id;
-    (this.rootNode ?? document.head).appendChild(styleTag);
-    return styleTag;
+    return this.adoptStyleTag() ?? this.mountStyleTag();
   }
 
   addRule(rule: Rule): string {
@@ -84,8 +86,73 @@ export class Sheet {
 
     this.storedClasses[rule.key] = rule.hash;
     this.storedStyles[rule.hash] = [rule.property, rule.value];
+    registerClassConflict(rule.hash, rule.getConflictKey());
 
     this.append(rule.toString());
     return rule.hash;
   }
+
+  private adoptStyleTag(): HTMLStyleElement | undefined {
+    const existing = this.findExistingStyleTag();
+
+    if (!existing) {
+      return undefined;
+    }
+
+    // Adopt server-rendered content so hydration never drops it.
+    this.style = existing.innerHTML;
+    this.applyNonce(existing);
+    return existing;
+  }
+
+  private mountStyleTag(): HTMLStyleElement {
+    const styleTag = document.createElement('style');
+    styleTag.type = 'text/css';
+    styleTag.id = this.id;
+    this.applyNonce(styleTag);
+    this.getMountTarget().appendChild(styleTag);
+    return styleTag;
+  }
+
+  private getMountTarget(): HTMLElement | ShadowRoot {
+    return this.rootNode ?? document.head;
+  }
+
+  private findExistingStyleTag(): HTMLStyleElement | undefined {
+    const scope = this.rootNode ?? document;
+    const existing = scope.querySelector(`style#${this.id}`);
+
+    if (existing && existing.tagName === 'STYLE') {
+      return existing as HTMLStyleElement;
+    }
+
+    return undefined;
+  }
+
+  private applyNonce(styleTag: HTMLStyleElement): void {
+    if (!this.nonce) {
+      return;
+    }
+
+    styleTag.setAttribute('nonce', this.nonce);
+  }
+}
+
+function resolveSheetRoot(
+  root: SheetRootNode | CreateSheetOptions | undefined,
+): {
+  rootNode: SheetRootNode | undefined;
+  nonce: string | undefined;
+} {
+  if (!root || isRootNode(root)) {
+    return { rootNode: root, nonce: undefined };
+  }
+
+  return { rootNode: root.rootNode, nonce: root.nonce };
+}
+
+function isRootNode(
+  value: SheetRootNode | CreateSheetOptions,
+): value is HTMLElement | ShadowRoot {
+  return typeof (value as HTMLElement).nodeType === 'number';
 }

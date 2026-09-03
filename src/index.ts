@@ -4,8 +4,10 @@ import { Sheet } from './Sheet.js';
 import { iterateTopLevel, iterateStyles } from './treeParseUtils.js';
 import {
   CreateSheetInput,
+  CreateSheetOptions,
   KeyframesOutput,
   ScopedStyles,
+  SheetRootNode,
   Styles,
   createSheetReturn,
   keyframesInput,
@@ -13,11 +15,11 @@ import {
 
 export { cx } from './cx.js';
 
-export type { CreateSheetInput, Styles };
+export type { CreateSheetInput, CreateSheetOptions, SheetRootNode, Styles };
 
 export function createSheet(
   name: string,
-  rootNode?: HTMLElement | null,
+  rootNode?: SheetRootNode | CreateSheetOptions,
 ): createSheetReturn {
   const sheet = new Sheet(name, rootNode);
 
@@ -62,6 +64,9 @@ function genKeyframes<KF extends string>(sheet: Sheet) {
   return function keyframes(
     keyframesInput: keyframesInput<KF>,
   ): KeyframesOutput<KF> {
-    return addKeyframes(sheet, keyframesInput);
+    const output = addKeyframes(sheet, keyframesInput);
+    // Commit the keyframes to a mounted style element, if there is one.
+    sheet.apply();
+    return output;
   };
 }

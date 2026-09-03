@@ -9,6 +9,13 @@ type ConditionKey = `${ConditionPrefix}${string}`;
 
 export type ClassSet = Set<string>;
 
+export type SheetRootNode = HTMLElement | ShadowRoot | null;
+
+export type CreateSheetOptions = {
+  rootNode?: SheetRootNode;
+  nonce?: string;
+};
+
 // That's the create function input
 export type Styles = Partial<StyleObject & Chunks & PostConditionStyles>;
 

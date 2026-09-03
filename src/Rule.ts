@@ -27,10 +27,41 @@ export class Rule {
     const joinedConditions = this.selector.preconditions.concat(
       this.selector.postconditions,
     );
-    this.hash = this.selector.hasConditions
-      ? (this.selector.scopeClassName as string)
-      : stableHash(this.sheet.name, this.joined);
-    this.key = joinTruthy([this.joined, joinedConditions, this.hash]);
+    const atKey = this.selector.atRules.join('|');
+    this.hash = this.buildHash(atKey);
+    this.key = joinTruthy([this.joined, joinedConditions, atKey, this.hash]);
+  }
+
+  public getConflictKey(): string {
+    return [
+      camelCaseToDash(this.property),
+      this.selector.preconditions.join(','),
+      this.selector.postconditions.join(','),
+      this.selector.atRules.join('|'),
+    ].join('\0');
+  }
+
+  private buildHash(atKey: string): string {
+    if (atKey) {
+      return stableHash(
+        this.sheet.name,
+        `${this.hashSeed()}|${atKey}`,
+      );
+    }
+
+    if (this.selector.hasConditions) {
+      return this.selector.scopeClassName as string;
+    }
+
+    return stableHash(this.sheet.name, this.joined);
+  }
+
+  private hashSeed(): string {
+    if (this.selector.hasConditions) {
+      return this.selector.scopeClassName as string;
+    }
+
+    return this.joined;
   }
 
   public toString(): string {
@@ -83,6 +114,7 @@ export class Selector {
   public scopeClassName: string | null = null;
   public scopeName: string | null = null;
   public postconditions: string[] = [];
+  public atRules: string[] = [];
 
   constructor(
     private sheet: Sheet,
@@ -90,13 +122,16 @@ export class Selector {
     {
       preconditions,
       postconditions,
+      atRules,
     }: {
       preconditions?: string[] | string | undefined;
       postconditions?: string[] | string | undefined;
+      atRules?: string[] | undefined;
     } = {},
   ) {
     this.preconditions = preconditions ? asArray(preconditions) : [];
     this.postconditions = postconditions ? asArray(postconditions) : [];
+    this.atRules = atRules ? atRules.slice() : [];
     this.setScope(scopeName);
   }
 
@@ -125,6 +160,7 @@ export class Selector {
     return new Selector(this.sheet, scopeName, {
       preconditions: this.preconditions,
       postconditions: this.postconditions,
+      atRules: this.atRules,
     });
   }
 
@@ -132,6 +168,7 @@ export class Selector {
     return new Selector(this.sheet, this.scopeClassName, {
       postconditions: this.postconditions,
       preconditions: this.preconditions.concat(precondition),
+      atRules: this.atRules,
     });
   }
 
@@ -139,7 +176,19 @@ export class Selector {
     return new Selector(this.sheet, this.scopeClassName, {
       preconditions: this.preconditions,
       postconditions: this.postconditions.concat(postcondition),
+      atRules: this.atRules,
     });
+  }
+
+  addAtRule(atRule: string): Selector {
+    const selector = new Selector(this.sheet, null, {
+      preconditions: this.preconditions,
+      postconditions: this.postconditions,
+      atRules: this.atRules.concat(atRule),
+    });
+    selector.scopeClassName = this.scopeClassName;
+    selector.scopeName = this.scopeName;
+    return selector;
   }
 
   createRule(property: string, value: string): Rule {
