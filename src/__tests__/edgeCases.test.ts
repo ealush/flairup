@@ -178,4 +178,58 @@ describe('edge cases', () => {
       `${generated} edge-util`,
     );
   });
+
+  it('keeps rule identities isolated when sheet names collide after sanitizing', () => {
+    const first = createSheet('accept/a', null);
+    const second = createSheet('accept?a', null);
+
+    // `font-family:Aa` and `font-family:BB` share a declaration hash and
+    // both sheet names sanitize to `accept_a`, so without an identity
+    // digest both sheets would emit the same class for different rules.
+    const a = first.create({ a: { fontFamily: 'Aa' } });
+    const b = second.create({ b: { fontFamily: 'BB' } });
+
+    expect(Array.from(a.a)).not.toEqual(Array.from(b.b));
+    expect(first.getStyle()).toContain('font-family:Aa;');
+    expect(first.getStyle()).not.toContain('font-family:BB;');
+    expect(second.getStyle()).toContain('font-family:BB;');
+    expect(second.getStyle()).not.toContain('font-family:Aa;');
+  });
+
+  it('keeps keyframes names isolated when sheet names collide after sanitizing', () => {
+    const first = createSheet('accept/a', null);
+    const second = createSheet('accept?a', null);
+
+    const a = first.keyframes({ spin: { to: { opacity: '1' } } });
+    const b = second.keyframes({ spin: { to: { opacity: '1' } } });
+
+    expect(a.spin).not.toBe(b.spin);
+    expect(first.getStyle()).toContain(`@keyframes ${a.spin} {`);
+    expect(second.getStyle()).toContain(`@keyframes ${b.spin} {`);
+  });
+
+  it('keeps scope classes isolated when sheet names collide after sanitizing', () => {
+    const first = createSheet('accept/a', null);
+    const second = createSheet('accept?a', null);
+
+    // Identical declarations, so only the sheet identity can distinguish
+    // the two scopes: without a digest both sets would be equal.
+    const a = first.create({ box: { ':hover': { color: 'red' } } });
+    const b = second.create({ box: { ':hover': { color: 'red' } } });
+
+    expect(Array.from(a.box)).not.toEqual(Array.from(b.box));
+  });
+
+  it('does not share state between unmounted sheets with the same name', () => {
+    const first = createSheet('edgeUnmounted', null);
+    first.create({ box: { color: 'red' } });
+
+    const second = createSheet('edgeUnmounted', null);
+    second.create({ box: { width: '10px' } });
+
+    expect(second.getStyle()).toContain('width:10px;');
+    expect(second.getStyle()).not.toContain('color:red;');
+    expect(first.getStyle()).toContain('color:red;');
+    expect(first.getStyle()).not.toContain('width:10px;');
+  });
 });

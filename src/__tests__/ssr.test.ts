@@ -158,4 +158,30 @@ describe('ssr without a document', () => {
     expect(output).toContain(secondA);
     expect(output).not.toContain(firstA);
   });
+
+  it('isolates same-name sheets across server requests', () => {
+    const first = createSheet('ssrRequest', null);
+    first.create({ box: { color: 'red' } });
+
+    const second = createSheet('ssrRequest', null);
+    second.create({ box: { width: '10px' } });
+
+    expect(second.getStyle()).toContain('width:10px;');
+    expect(second.getStyle()).not.toContain('color:red;');
+    expect(first.getStyle()).toContain('color:red;');
+    expect(first.getStyle()).not.toContain('width:10px;');
+  });
+
+  it('isolates default-root sheets when no document is present', () => {
+    const first = createSheet('ssrDefaultRoot');
+    first.create({ box: { color: 'red' } });
+
+    const second = createSheet('ssrDefaultRoot');
+    second.create({ box: { width: '10px' } });
+
+    expect(second.getStyle()).toContain('width:10px;');
+    expect(second.getStyle()).not.toContain('color:red;');
+    expect(first.getStyle()).toContain('color:red;');
+    expect(first.getStyle()).not.toContain('width:10px;');
+  });
 });

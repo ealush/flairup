@@ -68,8 +68,17 @@ describe('browser-visible composition acceptance', () => {
     const top = sheet.create({ top: { marginTop: '1px' } });
     const all = sheet.create({ all: { margin: '2px' } });
 
-    expect(computedStyleFor(cx(all['all'], top['top'])).marginTop).toBe('1px');
-    expect(computedStyleFor(cx(top['top'], all['all'])).marginTop).toBe('2px');
+    const overridden = computedStyleFor(cx(all['all'], top['top']));
+    expect(overridden.marginTop).toBe('1px');
+    expect(overridden.marginRight).toBe('2px');
+    expect(overridden.marginBottom).toBe('2px');
+    expect(overridden.marginLeft).toBe('2px');
+
+    const restored = computedStyleFor(cx(top['top'], all['all']));
+    expect(restored.marginTop).toBe('2px');
+    expect(restored.marginRight).toBe('2px');
+    expect(restored.marginBottom).toBe('2px');
+    expect(restored.marginLeft).toBe('2px');
   });
 
   it('resolves grouped CSS variables by cx order and preserves unrelated variables', () => {

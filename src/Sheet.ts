@@ -1,5 +1,5 @@
 import { registerClassConflict } from './classRegistry.js';
-import { Rule, toCssIdent } from './Rule.js';
+import { Rule, sheetIdent } from './Rule.js';
 import { coveredProperties } from './shorthands.js';
 import { CreateSheetOptions, SheetRootNode, StoredStyles } from './types.js';
 import { isKeyframes, isMediaQuery, isString } from './utils/is.js';
@@ -383,7 +383,7 @@ function parseAdoptedRule(
 }
 
 function isSheetHash(hash: string, sheetName: string): boolean {
-  return hash.startsWith(`${toCssIdent(sheetName)}_`);
+  return hash.startsWith(`${sheetIdent(sheetName)}_`);
 }
 
 function splitDeclaration(body: string): [string, string] | undefined {
@@ -402,7 +402,10 @@ function splitDeclaration(body: string): [string, string] | undefined {
   return [only.slice(0, separator).trim(), only.slice(separator + 1).trim()];
 }
 
-function findStyleTagById(node: Node, id: string): HTMLStyleElement | undefined {
+function findStyleTagById(
+  node: Node,
+  id: string,
+): HTMLStyleElement | undefined {
   const children = node.childNodes;
   for (let i = 0; i < children.length; i++) {
     const found = findStyleTagInChild(children[i], id);
