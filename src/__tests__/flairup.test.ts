@@ -261,8 +261,8 @@ describe('createSheet', () => {
         ".test_wqxq0q {color:red;}
         .test_kfaw12 {height:100px;}
         @media (max-width: 600px) {
-        .test_kr6kup {color:blue;}
-        .test_kfuomf {height:200px;}
+        .test_nmrrbr {color:blue;}
+        .test_-4zio2b {height:200px;}
         }"
       `);
       const splitStyles = style.split('\n').filter(Boolean);
@@ -573,7 +573,7 @@ describe('createSheet', () => {
         const style = sheet.getStyle();
         expect(style).toMatchInlineSnapshot(`
           "@media (max-width: 600px) {
-          .top-level-class .test_3zp0se {color:red;}
+          .top-level-class .test_-13sm2c {color:red;}
           }"
         `);
         const splitStyles = style.split('\n').filter(Boolean);
@@ -674,7 +674,7 @@ describe('createSheet', () => {
         const css = sheet.getStyle();
         expect(css).toMatchInlineSnapshot(`
           "@media (max-width: 600px) {
-          .test_5fpxm2 .lower_level_class {color:red;}
+          .test_-21n04v .lower_level_class {color:red;}
           }"
         `);
         expect(css.split('\n').filter(Boolean).length).toBe(3);
@@ -1146,7 +1146,7 @@ describe('createSheet', () => {
         0% { opacity:0; }
         100% { opacity:1; }
         }
-        @keyframes test_1_kf {
+        @keyframes test_2_kf {
         0% { color:red; }
         100% { color:blue; }
         }"

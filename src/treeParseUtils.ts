@@ -146,7 +146,9 @@ function handleMediaQuery(
 
   // iterateStyles will internally append each rule to the sheet
   // as needed. All we have to do is just open the block and close it after.
-  const output = iterateStyles(sheet, styles, selector);
+  // The at-rule is part of the selector so identical declarations inside and
+  // outside of it never share a deduplication entry.
+  const output = iterateStyles(sheet, styles, selector.addAtRule(mediaQuery));
 
   sheet.append('}');
 
