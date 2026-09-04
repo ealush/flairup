@@ -1,7 +1,7 @@
 {
   "name": "flairup",
   "description": "🎩 Lightweight CSS-in-JS solution for npm packages",
-  "version": "1.1.1-rc.1",
+  "version": "1.1.1",
   "homepage": "https://ealush.com/flairup",
   "license": "MIT",
   "engines": {
