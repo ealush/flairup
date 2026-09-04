@@ -55,14 +55,18 @@ export class Rule {
     // Dash-case the property before hashing so spellings like
     // backgroundColor/background-color share one deduplication entry.
     this.joined = joinedProperty(camelCaseToDash(property), value);
-    const conds = this.selector.preconditions
-      .concat(this.selector.postconditions)
-      .join(',');
+    // Preconditions and postconditions are separate key fields: merging
+    // them aliases selector shapes like `.state .hash` and `.hash .state`
+    // whenever their scope hashes collide. Each list joins with '\0' so a
+    // nested pair can never read as one comma-containing condition either.
+    // Keys are only compared whole (Sheet.addRule), never split.
+    const pre = this.selector.preconditions.join('\0');
+    const post = this.selector.postconditions.join('\0');
     const atKey = this.selector.atRules.join('|');
     const scopePart = this.selector.hasConditions
       ? (this.selector.scopeClassName as string)
       : '';
-    this.key = [this.joined, conds, atKey, scopePart].join('\0');
+    this.key = [this.joined, pre, post, atKey, scopePart].join('\0');
     this.hash = this.buildHash(atKey);
   }
 
