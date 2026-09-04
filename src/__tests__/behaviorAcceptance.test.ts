@@ -37,6 +37,37 @@ function classForDeclaration(
 }
 
 describe('browser-visible composition acceptance', () => {
+  it('applies both condition directions when their scope hashes collide', () => {
+    const sheet = createSheet('ruleKeyHashCollision');
+    const preScope = 'ruleKeyHashCollision_9lyaan';
+    const postScope = 'post1056';
+    const styles = sheet.create({
+      '.state': {
+        [preScope]: { color: 'red' },
+      },
+      [postScope]: {
+        '.state': { color: 'red' },
+      },
+    });
+
+    const ancestor = document.createElement('div');
+    ancestor.className = 'state';
+    const boxInsideState = document.createElement('div');
+    boxInsideState.className = cx(styles[preScope]);
+    ancestor.appendChild(boxInsideState);
+
+    const styledBox = document.createElement('div');
+    styledBox.className = cx(styles[postScope]);
+    const stateInsideBox = document.createElement('div');
+    stateInsideBox.className = 'state';
+    styledBox.appendChild(stateInsideBox);
+
+    document.body.append(ancestor, styledBox);
+
+    expect(getComputedStyle(boxInsideState).color).toBe('rgb(255, 0, 0)');
+    expect(getComputedStyle(stateInsideBox).color).toBe('rgb(255, 0, 0)');
+  });
+
   it('makes the last cx argument win in either order, regardless of creation order', () => {
     const sheet = createSheet('acceptCxOrder');
     const red = sheet.create({ red: { color: 'red' } });
