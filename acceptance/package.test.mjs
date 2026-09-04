@@ -75,6 +75,33 @@ test('CommonJS consumer can require and execute the packed package', () => {
   assert.match(sheet.getStyle(), /color:red/);
 });
 
+test('packed package preserves colliding precondition and postcondition identities', () => {
+  const requireFromFixture = createRequire(join(appRoot, 'condition.cjs'));
+  const { createSheet } = requireFromFixture('flairup');
+  const sheet = createSheet('ruleKeyHashCollision', null);
+  const preScope = 'ruleKeyHashCollision_9lyaan';
+  const postScope = 'post1056';
+  const styles = sheet.create({
+    '.state': {
+      [preScope]: { color: 'red' },
+    },
+    [postScope]: {
+      '.state': { color: 'red' },
+    },
+  });
+
+  const preClasses = Array.from(styles[preScope]);
+  const postClasses = Array.from(styles[postScope]);
+  const css = sheet.getStyle();
+
+  assert.equal(preClasses.length, 1);
+  assert.equal(postClasses.length, 1);
+  assert.notEqual(preClasses[0], postClasses[0]);
+  assert.equal((css.match(/color:red;/g) ?? []).length, 2);
+  assert.ok(css.includes(`.state .${preClasses[0]} {color:red;}`));
+  assert.ok(css.includes(`.${postClasses[0]} .state {color:red;}`));
+});
+
 test('ES module consumer can import and execute the packed package', () => {
   const script = [
     "import { createSheet, cx } from 'flairup';",
