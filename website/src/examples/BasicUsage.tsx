@@ -5,7 +5,8 @@ import { Example } from '../components/Example';
 
 const exampleStyle = {
   button: {
-    font: 'inherit',
+    fontFamily: 'inherit',
+    lineHeight: 'inherit',
     fontWeight: '600',
     color: 'var(--btn-fg)',
     backgroundColor: 'var(--btn-bg)',

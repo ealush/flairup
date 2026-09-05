@@ -60,7 +60,8 @@ const exampleStyle = {
     paddingLeft: '1.2em',
   },
   planButton: {
-    font: 'inherit',
+    fontFamily: 'inherit',
+    lineHeight: 'inherit',
     fontWeight: '600',
     color: 'var(--btn-fg)',
     backgroundColor: 'var(--btn-bg)',
