@@ -14,18 +14,18 @@
     "flairup": "^1.1.2",
     "next": "15.5.25",
     "prism-react-renderer": "^2.4.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "15.5.25",
     "gh-pages": "^6.1.1",
-    "prettier": "3.5.3",
-    "typescript": "^5"
+    "prettier": "3.9.6",
+    "typescript": "^7"
   }
 }
