@@ -11,7 +11,7 @@
     "deploy": "gh-pages -d out"
   },
   "dependencies": {
-    "flairup": "^1.1.0",
+    "flairup": "^1.1.1",
     "next": "15.5.25",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.0.0",
