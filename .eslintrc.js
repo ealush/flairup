@@ -26,7 +26,6 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 2,
     '@typescript-eslint/no-explicit-any': 2,
     '@typescript-eslint/explicit-module-boundary-types': 2,
-    '@typescript-eslint/semi': 2,
     semi: 2,
     'no-unused-vars': 2,
     'no-console': 2,
