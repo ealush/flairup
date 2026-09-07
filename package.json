@@ -72,5 +72,8 @@
       }
     }
   },
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "overrides": {
+    "esbuild": "^0.28.1"
+  }
 }
