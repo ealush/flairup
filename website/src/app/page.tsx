@@ -138,8 +138,10 @@ const styles = sheet.create({
 });
 
 function Hero() {
+  // A page-level banner landmark: the h1, install command, and live demo
+  // would otherwise sit outside every landmark (see axe `region`).
   return (
-    <div className={cx(styles.hero)}>
+    <header className={cx(styles.hero)}>
       <div className={cx(styles.heroInner)}>
         <div>
           <p className={cx(styles.eyebrow)}>CSS-in-JS for component packages</p>
@@ -171,7 +173,7 @@ function Hero() {
         </div>
         <HeroDemo classes={heroDemoClasses} />
       </div>
-    </div>
+    </header>
   );
 }
 

@@ -10,6 +10,9 @@ const exampleStyle = {
       borderColor: '#4a3f30',
       color: '#f2eada',
     },
+    planName: {
+      color: '#ec9aae',
+    },
     planPrice: {
       color: '#f2eada',
     },

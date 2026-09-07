@@ -65,7 +65,10 @@ const styles = stylesheet.create({
     textAlign: 'right',
     paddingRight: '1.1em',
     userSelect: 'none',
-    opacity: '0.45',
+    // Solid tone instead of a dimmed one: code-fg at 45% opacity lands at
+    // 3.88:1 on the code background and fails the contrast check, while
+    // this matches the code-comment tone at 5.56:1.
+    color: 'var(--code-comment)',
   },
   lineContent: {
     display: 'table-cell',
