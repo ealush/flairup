@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[19400,["/flairup/_next/static/chunks/501372e9c1d9d36f.js"],"ViewportBoundary"]
+3:I[19400,["/flairup/_next/static/chunks/501372e9c1d9d36f.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"l1yB44B-gKm-RAQsvaBaV","rsc":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"FlairUp — CSS-in-JS for packages that ship styles"}],["$","meta","1",{"name":"description","content":"FlairUp is a lightweight CSS-in-JS library for UI package authors: zero-config style shipping, bundler-agnostic output, scoped atomic classes, and built-in SSR support."}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
