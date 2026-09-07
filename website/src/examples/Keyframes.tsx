@@ -61,8 +61,15 @@ const styles = stylesheet.create({
     width: '28px',
     height: '28px',
     borderRadius: '50%',
-    border: '3px solid var(--line)',
-    borderTopColor: 'var(--accent)',
+    // NOTE: keep the four sides as disjoint declarations. A `border`
+    // shorthand plus a `borderTopColor` override in the same scope does
+    // not compose: `border` stays one atomic class, so cx() drops the
+    // whole shorthand when the top color overlaps it, leaving no border
+    // at all. One shorthand per side covers distinct properties instead.
+    borderTop: '3px solid var(--accent)',
+    borderRight: '3px solid var(--line)',
+    borderBottom: '3px solid var(--line)',
+    borderLeft: '3px solid var(--line)',
     animation: `${keyframes.spin} 0.9s linear infinite`,
   },
   skeleton: {
@@ -161,8 +168,10 @@ const styles = sheet.create({
     width: '28px',
     height: '28px',
     borderRadius: '50%',
-    border: '3px solid var(--line)',
-    borderTopColor: 'var(--accent)',
+    borderTop: '3px solid var(--accent)',
+    borderRight: '3px solid var(--line)',
+    borderBottom: '3px solid var(--line)',
+    borderLeft: '3px solid var(--line)',
     animation: \`\${keyframes.spin} 0.9s linear infinite\`,
   },
   skeletonLine: {
@@ -207,7 +216,7 @@ const usageCode = `function Loading({ kind }: { kind: 'spinner' | 'skeleton' | '
 export function Keyframes() {
   return (
     <Example
-      title="Keyframe animations"
+      title="Loading indicators"
       description="Define keyframes once, reference the returned names from animation. Pick an animation above — the typing dots add staggered delays to the same pattern. This site disables animation under prefers-reduced-motion, so all three go still for users who ask."
       exampleStyle={styleCode}
       usage={usageCode}

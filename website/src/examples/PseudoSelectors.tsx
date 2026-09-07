@@ -65,7 +65,7 @@ const styles = stylesheet.create({
 export function PseudoSelectors() {
   return (
     <Example
-      title="Pseudo selectors and elements"
+      title="Button and input states"
       description="States live next to the declarations they change: :hover and :active on the button, :focus-visible and ::placeholder on the input. No separate selectors to keep in sync."
       exampleStyle={exampleStyle}
       usage={`function Invite() {

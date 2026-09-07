@@ -96,7 +96,7 @@ function PlanCard({ name, price }: { name: string; price: string }) {
 export function ParentClassSupport() {
   return (
     <Example
-      title="Parent selectors"
+      title="Host-themed card"
       description="Scope a whole subtree under a host class like .theme-dark. The same card renders light or dark depending on where it lands — handy when your component has to respect theming it doesn't own. The deeper idea is a contract: name the host classes your package responds to — .theme-dark, .density-compact — and document them. Consumers opt in by wrapping your components, no configuration objects or prop drilling required."
       exampleStyle={exampleStyle}
       usage={`function Pricing() {

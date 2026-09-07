@@ -61,7 +61,7 @@ const styles = stylesheet.create({
 export function StylingVariantsAndScopes() {
   return (
     <Example
-      title="Variants and scopes"
+      title="Button variants"
       description="Each variant is a complete scope with everything the button needs. Variants never layer, so there is no question which rule wins — pick one per state and let cx() handle the rest."
       exampleStyle={exampleStyle}
       usage={`function Actions({ kind }: { kind: 'primary' | 'secondary' | 'quiet' }) {

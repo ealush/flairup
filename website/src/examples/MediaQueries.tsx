@@ -101,7 +101,7 @@ const badgeClasses = {
 export function MediaQueries() {
   return (
     <Example
-      title="Media queries"
+      title="Responsive card"
       description="Nest @media blocks inside the scope they modify. One card, five breakpoints: spacing grows at 480px, it turns horizontal at 720px, settles into a centered measure at 1024px, and gains an accent edge with larger type at 1280px. The badge names the active breakpoint as you resize. Each step uses distinct values: under flairup 1.1.0, identical declarations share one class, so a repeated value would apply at every width."
       exampleStyle={exampleStyle}
       usage={`function Announcement() {

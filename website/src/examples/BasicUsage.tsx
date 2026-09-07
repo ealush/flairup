@@ -45,7 +45,7 @@ const styles = stylesheet.create({
 export function BasicUsage() {
   return (
     <Example
-      title="Basic usage"
+      title="Save button"
       description="The whole loop: define scopes with sheet.create, get a set of classes back per scope, and combine them with cx() where the element renders."
       exampleStyle={exampleStyle}
       usage={`function SaveButton() {

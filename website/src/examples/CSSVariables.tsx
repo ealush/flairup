@@ -45,7 +45,7 @@ const styles = stylesheet.create({
 export function CSSVariables() {
   return (
     <Example
-      title="CSS variables"
+      title="Alert tones"
       description="A scope can set variables instead of declarations, and one class carries all of them. Each tone is a literal hex value, with its dark-mode counterpart nested in a media query — override --tone per instance and every declaration that reads it follows."
       exampleStyle={exampleStyle}
       usage={`function Notices() {
